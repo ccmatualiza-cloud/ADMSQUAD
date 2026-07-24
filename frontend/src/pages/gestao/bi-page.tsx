@@ -3,15 +3,16 @@ import { http } from '../../lib/http-client';
 
 export default function BiPage({ onBack }: { onBack: () => void }) {
   const [totalUsers, setTotalUsers]   = useState<number | null>(null);
-  const [oracleCount, setOracleCount] = useState<number | null>(null);
+  const [oracleCount, setOracleCount]       = useState<number | null>(null);
+  const [sqlserverCount, setSqlserverCount] = useState<number | null>(null);
   const [vpuData, setVpuData]         = useState<{ razao: string; qtdusers: number }[]>([]);
   const [gruposData, setGruposData]   = useState<{ grupo: string; total: number }[]>([]);
   const [faixasData, setFaixasData]     = useState<{ faixa: string; total: number }[]>([]);
   const [sistemasData, setSistemasData] = useState<{ sistema: string; total: number }[]>([]);
 
   useEffect(() => {
-    http.get<{ total_users: number; oracle_count: number }>('/api/gestao/bi/stats')
-      .then(d => { setTotalUsers(d.total_users); setOracleCount(d.oracle_count); })
+    http.get<{ total_users: number; oracle_count: number; sqlserver_count: number }>('/api/gestao/bi/stats')
+      .then(d => { setTotalUsers(d.total_users); setOracleCount(d.oracle_count); setSqlserverCount(d.sqlserver_count); })
       .catch(() => {});
     http.get<{ razao: string; qtdusers: number }[]>('/api/gestao/bi/vpu-users')
       .then(setVpuData)
@@ -206,7 +207,7 @@ export default function BiPage({ onBack }: { onBack: () => void }) {
         <KpiCard label="Serv. LINX VPU"  value="—" color="var(--ccm-blue)"    />
         <KpiCard label="Serv. CCM VPU"   value="—" color="var(--ccm-blue)"    />
         <KpiCard label="Oracle"          value={oracleCount !== null ? oracleCount.toLocaleString('pt-BR') : '…'} color="#CC0000" />
-        <KpiCard label="SQL Server"      value="—" color="var(--ccm-ink)"     />
+        <KpiCard label="SQL Server"      value={sqlserverCount !== null ? sqlserverCount.toLocaleString('pt-BR') : '…'} color="#0078D4" />
       </div>
 
       {/* Charts layout */}
