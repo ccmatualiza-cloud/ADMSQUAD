@@ -224,7 +224,7 @@ export default function BiPage({ onBack }: { onBack: () => void }) {
     );
   };
 
-  const v = (n: number | null) => n !== null ? n.toLocaleString('pt-BR') : '…';
+  const v = (n: number | null | undefined) => (n != null) ? n.toLocaleString('pt-BR') : '…';
 
   return (
     <div>
@@ -239,13 +239,13 @@ export default function BiPage({ onBack }: { onBack: () => void }) {
 
       {/* KPI Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 10, marginBottom: 20, marginTop: 16 }}>
-        <KpiCard label="Total de Users"  value={v(stats?.total_users ?? null)}    color="var(--ccm-blue)" />
-        <KpiCard label="Clientes Ativos" value={v(stats?.linx_ativo ?? null)}      color="#1DB954"         />
-        <KpiCard label="Cancelados"      value="—"                                 color="#E74C3C"         />
-        <KpiCard label="Serv. LINX VPU"  value={v(stats?.linx_ativo ?? null)}      color="var(--ccm-blue)" />
-        <KpiCard label="Serv. CCM VPU"   value={v(stats?.ccm_vpu ?? null)}         color="var(--ccm-blue)" />
-        <KpiCard label="Oracle"          value={v(stats?.oracle_count ?? null)}    color="#CC0000"         />
-        <KpiCard label="SQL Server"      value={v(stats?.sqlserver_count ?? null)} color="#F9A825"         />
+        <KpiCard label="Total de Users"  value={v(stats?.total_users)}    color="var(--ccm-blue)" />
+        <KpiCard label="Clientes Ativos" value={v(stats?.linx_ativo)}      color="#1DB954"         />
+        <KpiCard label="Cancelados"      value="—"                         color="#E74C3C"         />
+        <KpiCard label="Serv. LINX VPU"  value={v(stats?.linx_ativo)}      color="var(--ccm-blue)" />
+        <KpiCard label="Serv. CCM VPU"   value={v(stats?.ccm_vpu)}         color="var(--ccm-blue)" />
+        <KpiCard label="Oracle"          value={v(stats?.oracle_count)}    color="#CC0000"         />
+        <KpiCard label="SQL Server"      value={v(stats?.sqlserver_count)} color="#F9A825"         />
       </div>
 
       {/* Charts layout */}
