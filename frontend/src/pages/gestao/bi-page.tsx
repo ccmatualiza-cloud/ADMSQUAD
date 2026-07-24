@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { http } from '../../lib/http-client';
 
-interface Stats { total_users: number; oracle_count: number; sqlserver_count: number; ccm_vpu: number; linx_ativo: number; }
+interface Stats { total_users: number; oracle_count: number; sqlserver_count: number; ccm_vpu: number; linx_ativo: number; ativos_total: number; cancelados: number; }
 interface VpuItem { razao: string; qtdusers: number; }
 interface GrupoItem { grupo: string; total: number; }
 interface FaixaItem { faixa: string; total: number; }
@@ -231,9 +231,9 @@ export default function BiPage({ onBack }: { onBack: () => void }) {
       {/* KPI Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 10, marginBottom: 20, marginTop: 16 }}>
         <KpiCard label="Total de Users"  value={v(stats?.total_users)}    color="var(--ccm-blue)" />
-        <KpiCard label="Clientes Ativos" value={v(stats?.linx_ativo)}      color="#1DB954"         />
-        <KpiCard label="Cancelados"      value="—"                         color="#E74C3C"         />
-        <KpiCard label="Serv. LINX VPU"  value={v(stats?.linx_ativo)}      color="var(--ccm-blue)" />
+        <KpiCard label="Clientes Ativos" value={v(stats?.ativos_total)}     color="#1DB954"         />
+        <KpiCard label="Cancelados"      value={v(stats?.cancelados)}       color="#E74C3C"         />
+        <KpiCard label="Serv. LINX VPU"  value={v(stats?.linx_ativo)}      color="#7F77DD"         />
         <KpiCard label="Serv. CCM VPU"   value={v(stats?.ccm_vpu)}         color="var(--ccm-blue)" />
         <KpiCard label="Oracle"          value={v(stats?.oracle_count)}    color="#CC0000"         />
         <KpiCard label="SQL Server"      value={v(stats?.sqlserver_count)} color="#F9A825"         />

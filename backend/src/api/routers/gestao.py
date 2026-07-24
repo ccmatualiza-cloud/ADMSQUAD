@@ -418,7 +418,9 @@ async def bi_stats(
                 " SUM(CASE WHEN bd='ORACLE' AND status IN ('6 - ATIVO','7 - ATIVO VPU') THEN 1 ELSE 0 END) as oracle_count,"
                 " SUM(CASE WHEN bd='SQLSERVER' AND status IN ('6 - ATIVO','7 - ATIVO VPU') THEN 1 ELSE 0 END) as sqlserver_count,"
                 " SUM(CASE WHEN status='7 - ATIVO VPU' THEN 1 ELSE 0 END) as ccm_vpu,"
-                " SUM(CASE WHEN status='6 - ATIVO' THEN 1 ELSE 0 END) as linx_ativo"
+                " SUM(CASE WHEN status='6 - ATIVO' THEN 1 ELSE 0 END) as linx_ativo,"
+                " SUM(CASE WHEN status IN ('6 - ATIVO','7 - ATIVO VPU') THEN 1 ELSE 0 END) as ativos_total,"
+                " SUM(CASE WHEN status='9 - INATIVO' THEN 1 ELSE 0 END) as cancelados"
                 " FROM tbl_linx"
             )
         )
@@ -428,6 +430,8 @@ async def bi_stats(
         sqlserver_count = int(row[2]) if row and row[2] else 0
         ccm_vpu = int(row[3]) if row and row[3] else 0
         linx_ativo = int(row[4]) if row and row[4] else 0
-        return {"total_users": total_users, "oracle_count": oracle_count, "sqlserver_count": sqlserver_count, "ccm_vpu": ccm_vpu, "linx_ativo": linx_ativo}
+        ativos_total = int(row[5]) if row and row[5] else 0
+        cancelados = int(row[6]) if row and row[6] else 0
+        return {"total_users": total_users, "oracle_count": oracle_count, "sqlserver_count": sqlserver_count, "ccm_vpu": ccm_vpu, "linx_ativo": linx_ativo, "ativos_total": ativos_total, "cancelados": cancelados}
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
