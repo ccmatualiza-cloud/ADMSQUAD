@@ -74,30 +74,29 @@ export default function CancelamentoClientePage({ onBack }: { onBack: () => void
               <thead>
                 <tr style={{ background: 'var(--ccm-blue)' }}>
                   <th style={th}>Razão Social</th>
-                  <th style={th}>Caminho Loc</th>
                   <th style={th}>Sistema</th>
                   <th style={th}>Server BD</th>
                   <th style={th}>Data Off</th>
+                  <th style={th}>Obs</th>
                   <th style={th}>Status</th>
-                  <th style={{ ...th, textAlign: 'center' }}>Users</th>
                 </tr>
               </thead>
               <tbody>
                 {clientes.length === 0 ? (
-                  <tr><td colSpan={7} style={{ padding: 32, textAlign: 'center', color: 'var(--ccm-gray-dark)' }}>Nenhum cliente inativo encontrado</td></tr>
+                  <tr><td colSpan={6} style={{ padding: 32, textAlign: 'center', color: 'var(--ccm-gray-dark)' }}>Nenhum cliente inativo encontrado</td></tr>
                 ) : clientes.map((c, i) => (
                   <tr key={c.cod} style={{ background: i % 2 === 0 ? '#fff' : '#F7F8FA', borderBottom: '1px solid var(--ccm-line)' }}>
                     <td style={{ ...td, fontWeight: 600, color: 'var(--ccm-ink)', maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.razao || '—'}</td>
-                    <td style={{ ...td, maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.caminholoc || '—'}</td>
                     <td style={{ ...td, color: 'var(--ccm-blue)', fontWeight: 600 }}>{c.sistema || '—'}</td>
                     <td style={td}>{c.serverbd || '—'}</td>
                     <td style={td}>{c.dataoff || '—'}</td>
+                    <td style={{ ...td, maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.caminholoc || '—'}</td>
                     <td style={td}>
                       <span style={{ background: '#FDDEDE', color: '#9B2020', borderRadius: 99, padding: '2px 9px', fontSize: 10, fontWeight: 700 }}>
                         {c.status || '—'}
                       </span>
                     </td>
-                    <td style={{ ...td, textAlign: 'center', fontWeight: 600 }}>{c.qtdusers ?? '—'}</td>
+
                   </tr>
                 ))}
               </tbody>
