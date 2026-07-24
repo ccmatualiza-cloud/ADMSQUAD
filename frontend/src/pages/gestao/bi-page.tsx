@@ -92,31 +92,52 @@ export default function BiPage({ onBack }: { onBack: () => void }) {
   };
 
   const SistemasChart = () => {
-    const maxS = sistemasData.length > 0 ? Math.max(...sistemasData.map(d => d.total)) : 1;
+    const COLORS = ['#00B0FA','#204294','#7F77DD','#1DB954','#F9A825','#E74C3C','#25D366','#F97316','#0EA5E9','#8B5CF6','#EC4899','#14B8A6'];
+    const total = sistemasData.reduce((s, d) => s + d.total, 0);
+    const SIZE = 150;
+    const cx = SIZE / 2, cy = SIZE / 2, r = SIZE / 2 - 8, ri = r * 0.52;
+
+    let cumulAngle = -Math.PI / 2;
+    const slices = sistemasData.map((d, i) => {
+      const angle = (d.total / total) * 2 * Math.PI;
+      const startA = cumulAngle;
+      cumulAngle += angle;
+      const endA = cumulAngle;
+      const x1 = cx + r * Math.cos(startA), y1 = cy + r * Math.sin(startA);
+      const x2 = cx + r * Math.cos(endA),   y2 = cy + r * Math.sin(endA);
+      const xi1 = cx + ri * Math.cos(startA), yi1 = cy + ri * Math.sin(startA);
+      const xi2 = cx + ri * Math.cos(endA),   yi2 = cy + ri * Math.sin(endA);
+      const large = angle > Math.PI ? 1 : 0;
+      const path = `M${xi1} ${yi1} L${x1} ${y1} A${r} ${r} 0 ${large} 1 ${x2} ${y2} L${xi2} ${yi2} A${ri} ${ri} 0 ${large} 0 ${xi1} ${yi1} Z`;
+      const pct = Math.round((d.total / total) * 100);
+      return { ...d, path, color: COLORS[i % COLORS.length], pct };
+    });
+
     return (
       <div style={{ background: '#fff', border: '1px solid var(--ccm-line)', borderRadius: 8, padding: '16px 18px', boxShadow: '0 1px 4px rgba(12,25,33,.06)' }}>
         <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--ccm-ink)', marginBottom: 12 }}>Nº clientes / sistemas</div>
         {sistemasData.length === 0 ? (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 160, background: '#F7F8FA', borderRadius: 4 }}>
-            <span style={{ fontSize: 12, color: 'var(--ccm-gray-medium)' }}><i className="bi bi-bar-chart me-2" />Carregando...</span>
+            <span style={{ fontSize: 12, color: 'var(--ccm-gray-medium)' }}>Carregando...</span>
           </div>
         ) : (
-          <div style={{ overflowX: 'auto' }}>
-            <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, minWidth: sistemasData.length * 60, height: 180, paddingBottom: 4 }}>
-              {sistemasData.map((d, i) => {
-                const pct = Math.round((d.total / maxS) * 100);
-                const colors = ['#00B0FA','#204294','#7F77DD','#1DB954','#F9A825','#E74C3C','#25D366','#00B0FA'];
-                const color = colors[i % colors.length];
-                return (
-                  <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: '1 0 50px' }}>
-                    <div style={{ fontSize: 9, fontWeight: 700, color, marginBottom: 3 }}>{d.total}</div>
-                    <div style={{ width: '100%', height: `${pct}%`, minHeight: 4, background: color, borderRadius: '3px 3px 0 0', transition: 'height .4s ease' }} />
-                    <div style={{ fontSize: 8, color: 'var(--ccm-gray-dark)', marginTop: 5, textAlign: 'center', wordBreak: 'break-word', maxWidth: 55, lineHeight: 1.2 }}>
-                      {d.sistema.length > 12 ? d.sistema.substring(0, 12) + '…' : d.sistema}
-                    </div>
-                  </div>
-                );
-              })}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <svg width={SIZE} height={SIZE} viewBox={`0 0 ${SIZE} ${SIZE}`} style={{ flexShrink: 0 }}>
+              {slices.map((s, i) => (
+                <path key={i} d={s.path} fill={s.color} stroke="#fff" strokeWidth={1.5} />
+              ))}
+              <text x={cx} y={cy - 6} textAnchor="middle" fontSize="11" fontWeight="700" fill="#1a2e3e">{total}</text>
+              <text x={cx} y={cy + 10} textAnchor="middle" fontSize="8" fill="#9BA4AB">clientes</text>
+            </svg>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 5, overflowY: 'auto', maxHeight: 160 }}>
+              {slices.map((s, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <div style={{ width: 10, height: 10, borderRadius: 2, background: s.color, flexShrink: 0 }} />
+                  <div style={{ fontSize: 10, color: 'var(--ccm-gray-dark)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.sistema}</div>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: s.color, flexShrink: 0 }}>{s.total}</div>
+                  <div style={{ fontSize: 9, color: 'var(--ccm-gray-medium)', flexShrink: 0 }}>({s.pct}%)</div>
+                </div>
+              ))}
             </div>
           </div>
         )}
