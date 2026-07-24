@@ -352,6 +352,27 @@ async def bi_sistemas(
         raise HTTPException(status_code=500, detail=str(exc))
 
 
+@router.get("/bi/atualizacoes")
+async def bi_atualizacoes(
+    _: Annotated[dict, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> list[dict]:
+    try:
+        result = await session.execute(
+            text(
+                "SELECT data, COUNT(*) as total FROM tbl_history "
+                "WHERE data IS NOT NULL AND data != '' "
+                "GROUP BY data ORDER BY STR_TO_DATE(data, '%d/%m/%Y') DESC LIMIT 30"
+            )
+        )
+        rows = result.fetchall()
+        items = [{"data": r[0], "total": int(r[1])} for r in rows]
+        items.reverse()
+        return items
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
 @router.get("/bi/faixas-users")
 async def bi_faixas_users(
     _: Annotated[dict, Depends(get_current_user)],
@@ -392,12 +413,21 @@ async def bi_stats(
 ) -> dict:
     try:
         result = await session.execute(
-            text("SELECT COALESCE(SUM(qtdusers), 0) as total_users, SUM(CASE WHEN bd = 'ORACLE' AND status IN ('6 - ATIVO','7 - ATIVO VPU') THEN 1 ELSE 0 END) as oracle_count, SUM(CASE WHEN bd = 'SQLSERVER' AND status IN ('6 - ATIVO','7 - ATIVO VPU') THEN 1 ELSE 0 END) as sqlserver_count FROM tbl_linx WHERE status IN ('6 - ATIVO','7 - ATIVO VPU','X - ATIVO COMPLEMENTO')")
+            text(
+                "SELECT COALESCE(SUM(qtdusers),0) as total_users,"
+                " SUM(CASE WHEN bd='ORACLE' AND status IN ('6 - ATIVO','7 - ATIVO VPU') THEN 1 ELSE 0 END) as oracle_count,"
+                " SUM(CASE WHEN bd='SQLSERVER' AND status IN ('6 - ATIVO','7 - ATIVO VPU') THEN 1 ELSE 0 END) as sqlserver_count,"
+                " SUM(CASE WHEN status='7 - ATIVO VPU' THEN 1 ELSE 0 END) as ccm_vpu,"
+                " SUM(CASE WHEN status='6 - ATIVO' THEN 1 ELSE 0 END) as linx_ativo"
+                " FROM tbl_linx"
+            )
         )
         row = result.fetchone()
         total_users = int(row[0]) if row and row[0] else 0
         oracle_count = int(row[1]) if row and row[1] else 0
         sqlserver_count = int(row[2]) if row and row[2] else 0
-        return {"total_users": total_users, "oracle_count": oracle_count, "sqlserver_count": sqlserver_count}
+        ccm_vpu = int(row[3]) if row and row[3] else 0
+        linx_ativo = int(row[4]) if row and row[4] else 0
+        return {"total_users": total_users, "oracle_count": oracle_count, "sqlserver_count": sqlserver_count, "ccm_vpu": ccm_vpu, "linx_ativo": linx_ativo}
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
