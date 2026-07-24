@@ -40,8 +40,12 @@ export default function CancelamentoClientePage({ onBack }: { onBack: () => void
 
   const fetchClienteOpts = async () => {
     try {
-      const data = await http.get<ClienteOpt[]>('/api/cx/clientes');
-      setClienteOpts(data);
+      const [ativos, vpu] = await Promise.all([
+        http.get<ClienteOpt[]>('/api/cx/clientes?status_filter=6%20-%20ATIVO'),
+        http.get<ClienteOpt[]>('/api/cx/clientes?status_filter=7%20-%20ATIVO%20VPU'),
+      ]);
+      const merged = [...ativos, ...vpu].sort((a, b) => (a.razao || '').localeCompare(b.razao || ''));
+      setClienteOpts(merged);
     } catch { /* silent */ }
   };
 
