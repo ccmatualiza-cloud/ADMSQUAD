@@ -266,7 +266,7 @@ async def list_inativos(
             where += " AND (razao LIKE :q OR sistema LIKE :q OR serverbd LIKE :q)"
             params["q"] = f"%{q}%"
         result = await session.execute(
-            text(f"SELECT cod, razao, caminholoc, sistema, serverbd, dataoff, status, qtdusers FROM tbl_linx {where} ORDER BY dataoff DESC, razao ASC"),
+            text(f"SELECT cod, razao, caminholoc, sistema, serverbd, dataoff, status, qtdusers FROM tbl_linx {where} ORDER BY STR_TO_DATE(dataoff, '%d/%m/%Y') DESC"),
             params
         )
         rows = result.fetchall()
