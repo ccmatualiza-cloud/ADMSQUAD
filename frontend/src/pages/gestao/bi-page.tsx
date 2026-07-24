@@ -32,15 +32,6 @@ export default function BiPage({ onBack }: { onBack: () => void }) {
     </div>
   );
 
-  const ChartBox = ({ title }: { title: string }) => (
-    <div style={{ background: '#fff', border: '1px solid var(--ccm-line)', borderRadius: 8, padding: '16px 18px', boxShadow: '0 1px 4px rgba(12,25,33,.06)' }}>
-      <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--ccm-ink)', marginBottom: 12 }}>{title}</div>
-      <div style={{ height: 180, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F7F8FA', borderRadius: 4, border: '1px dashed var(--ccm-line)' }}>
-        <span style={{ fontSize: 12, color: 'var(--ccm-gray-medium)' }}><i className="bi bi-bar-chart me-2" />Gráfico em breve</span>
-      </div>
-    </div>
-  );
-
   // VPU horizontal bar chart
   const VpuChart = () => {
     const max = vpuData.length > 0 ? vpuData[0].qtdusers : 1;
