@@ -118,7 +118,8 @@ export default function BiPage({ onBack }: { onBack: () => void }) {
       ...d
     }));
     const path = pts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ');
-    const area = `${path} L${pts[pts.length-1].x} ${PAD.t+iH} L${PAD.l} ${PAD.t+iH} Z`;
+    const lastPt = pts[pts.length - 1];
+    const area = lastPt ? `${path} L${lastPt.x} ${PAD.t+iH} L${PAD.l} ${PAD.t+iH} Z` : '';
     const step = Math.max(1, Math.floor(n / 6));
     return (
       <div style={{ background: '#fff', border: '1px solid var(--ccm-line)', borderRadius: 8, padding: '16px 18px', boxShadow: '0 1px 4px rgba(12,25,33,.06)' }}>
