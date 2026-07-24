@@ -97,16 +97,16 @@ export default function BiPage({ onBack }: { onBack: () => void }) {
             <span style={{ fontSize: 12, color: 'var(--ccm-gray-medium)' }}><i className="bi bi-bar-chart me-2" />Carregando...</span>
           </div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {faixasData.map((d, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--ccm-gray-dark)', width: 70, textAlign: 'right', flexShrink: 0 }}>{d.faixa}</div>
-                <div style={{ flex: 1, height: 20, background: '#F0F4FA', borderRadius: 4, overflow: 'hidden' }}>
-                  <div style={{ width: `${Math.round((d.total / maxF) * 100)}%`, height: '100%', background: '#7F77DD', borderRadius: 4, display: 'flex', alignItems: 'center', paddingLeft: 6 }}>
-                    {d.total > 0 && <span style={{ fontSize: 10, fontWeight: 700, color: '#fff' }}>{d.total}</span>}
+                <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--ccm-gray-dark)', width: 65, textAlign: 'right', flexShrink: 0 }}>{d.faixa}</div>
+                <div style={{ flex: 1, height: 22, background: '#EBF5FB', borderRadius: 4, overflow: 'hidden', position: 'relative' }}>
+                  <div style={{ width: `${Math.round((d.total / maxF) * 100)}%`, height: '100%', background: '#00B0FA', borderRadius: 4, display: 'flex', alignItems: 'center', paddingLeft: 8, transition: 'width .4s ease' }}>
+                    {d.total > 0 && <span style={{ fontSize: 10, fontWeight: 700, color: '#fff', whiteSpace: 'nowrap' }}>{d.total}</span>}
                   </div>
                 </div>
-                {d.total === 0 && <span style={{ fontSize: 10, fontWeight: 700, color: '#7F77DD' }}>0</span>}
+                <div style={{ fontSize: 10, fontWeight: 700, color: '#00B0FA', width: 28, flexShrink: 0 }}>{d.total === 0 ? '0' : ''}</div>
               </div>
             ))}
           </div>
