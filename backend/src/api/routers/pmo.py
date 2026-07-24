@@ -245,9 +245,10 @@ async def update_franquia(
 class ClienteInativoItem(BaseModel):
     cod: int
     razao: str | None = None
-    bandeira: str | None = None
+    caminholoc: str | None = None
     sistema: str | None = None
     serverbd: str | None = None
+    dataoff: str | None = None
     status: str | None = None
     qtdusers: int | None = None
 
@@ -265,7 +266,7 @@ async def list_inativos(
             where += " AND (razao LIKE :q OR sistema LIKE :q OR serverbd LIKE :q)"
             params["q"] = f"%{q}%"
         result = await session.execute(
-            text(f"SELECT cod, razao, bandeira, sistema, serverbd, status, qtdusers FROM tbl_linx {where} ORDER BY razao"),
+            text(f"SELECT cod, razao, caminholoc, sistema, serverbd, dataoff, status, qtdusers FROM tbl_linx {where} ORDER BY razao"),
             params
         )
         rows = result.fetchall()
