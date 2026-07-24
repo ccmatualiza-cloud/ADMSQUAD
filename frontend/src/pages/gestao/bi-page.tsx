@@ -122,18 +122,18 @@ export default function BiPage({ onBack }: { onBack: () => void }) {
           </div>
         ) : (
           <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{ overflow: 'visible' }}>
-            {[0,.25,.5,.75,1].map((f,i) => (
+            {[0,.25,.5,.75,1].map((f, _i) => (
               <line key={i} x1={PAD.l} x2={W-PAD.r} y1={PAD.t+iH*(1-f)} y2={PAD.t+iH*(1-f)} stroke="#F0F0F0" strokeWidth={1} />
             ))}
             <path d={area} fill="rgba(0,176,250,0.12)" />
             <path d={path} fill="none" stroke="#00B0FA" strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
             {pts.map((p, i) => <circle key={i} cx={p.x} cy={p.y} r={3} fill="#00B0FA" />)}
-            {pts.filter((_, i) => i % step === 0 || i === n-1).map((p, i) => (
+            {pts.filter((_p, i) => i % step === 0 || i === n-1).map((p, i) => (
               <text key={i} x={p.x} y={H-4} textAnchor="middle" fontSize="7" fill="#9BA4AB">
                 {p.data.substring(0,5)}
               </text>
             ))}
-            {[0,.5,1].map((f,i) => (
+            {[0,.5,1].map((f, _i) => (
               <text key={i} x={PAD.l-4} y={PAD.t+iH*(1-f)+3} textAnchor="end" fontSize="8" fill="#9BA4AB">
                 {Math.round(maxV*f)}
               </text>
