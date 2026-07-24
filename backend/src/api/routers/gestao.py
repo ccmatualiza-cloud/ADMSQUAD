@@ -333,6 +333,25 @@ async def bi_grupos_atualizacao(
         raise HTTPException(status_code=500, detail=str(exc))
 
 
+@router.get("/bi/sistemas")
+async def bi_sistemas(
+    _: Annotated[dict, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> list[dict]:
+    try:
+        result = await session.execute(
+            text(
+                "SELECT COALESCE(NULLIF(TRIM(sistema),''), 'SEM SISTEMA') as sistema, COUNT(*) as total "
+                "FROM tbl_linx WHERE status IN ('6 - ATIVO','7 - ATIVO VPU','0 - IMPLANTAÇÃO') "
+                "GROUP BY sistema ORDER BY total DESC"
+            )
+        )
+        rows = result.fetchall()
+        return [{"sistema": r[0] or "SEM SISTEMA", "total": int(r[1])} for r in rows]
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
 @router.get("/bi/faixas-users")
 async def bi_faixas_users(
     _: Annotated[dict, Depends(get_current_user)],

@@ -5,7 +5,8 @@ export default function BiPage({ onBack }: { onBack: () => void }) {
   const [totalUsers, setTotalUsers] = useState<number | null>(null);
   const [vpuData, setVpuData]         = useState<{ razao: string; qtdusers: number }[]>([]);
   const [gruposData, setGruposData]   = useState<{ grupo: string; total: number }[]>([]);
-  const [faixasData, setFaixasData]   = useState<{ faixa: string; total: number }[]>([]);
+  const [faixasData, setFaixasData]     = useState<{ faixa: string; total: number }[]>([]);
+  const [sistemasData, setSistemasData] = useState<{ sistema: string; total: number }[]>([]);
 
   useEffect(() => {
     http.get<{ total_users: number }>('/api/gestao/bi/stats')
@@ -19,6 +20,9 @@ export default function BiPage({ onBack }: { onBack: () => void }) {
       .catch(() => {});
     http.get<{ faixa: string; total: number }[]>('/api/gestao/bi/faixas-users')
       .then(setFaixasData)
+      .catch(() => {});
+    http.get<{ sistema: string; total: number }[]>('/api/gestao/bi/sistemas')
+      .then(setSistemasData)
       .catch(() => {});
   }, []);
 
@@ -81,6 +85,39 @@ export default function BiPage({ onBack }: { onBack: () => void }) {
                 <div style={{ fontSize: 10, fontWeight: 700, color: '#204294', width: 30, textAlign: 'left', flexShrink: 0 }}>{d.total}</div>
               </div>
             ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const SistemasChart = () => {
+    const maxS = sistemasData.length > 0 ? Math.max(...sistemasData.map(d => d.total)) : 1;
+    return (
+      <div style={{ background: '#fff', border: '1px solid var(--ccm-line)', borderRadius: 8, padding: '16px 18px', boxShadow: '0 1px 4px rgba(12,25,33,.06)' }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--ccm-ink)', marginBottom: 12 }}>Nº clientes / sistemas</div>
+        {sistemasData.length === 0 ? (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 160, background: '#F7F8FA', borderRadius: 4 }}>
+            <span style={{ fontSize: 12, color: 'var(--ccm-gray-medium)' }}><i className="bi bi-bar-chart me-2" />Carregando...</span>
+          </div>
+        ) : (
+          <div style={{ overflowX: 'auto' }}>
+            <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, minWidth: sistemasData.length * 60, height: 180, paddingBottom: 4 }}>
+              {sistemasData.map((d, i) => {
+                const pct = Math.round((d.total / maxS) * 100);
+                const colors = ['#00B0FA','#204294','#7F77DD','#1DB954','#F9A825','#E74C3C','#25D366','#00B0FA'];
+                const color = colors[i % colors.length];
+                return (
+                  <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: '1 0 50px' }}>
+                    <div style={{ fontSize: 9, fontWeight: 700, color, marginBottom: 3 }}>{d.total}</div>
+                    <div style={{ width: '100%', height: `${pct}%`, minHeight: 4, background: color, borderRadius: '3px 3px 0 0', transition: 'height .4s ease' }} />
+                    <div style={{ fontSize: 8, color: 'var(--ccm-gray-dark)', marginTop: 5, textAlign: 'center', wordBreak: 'break-word', maxWidth: 55, lineHeight: 1.2 }}>
+                      {d.sistema.length > 12 ? d.sistema.substring(0, 12) + '…' : d.sistema}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
       </div>
@@ -158,7 +195,7 @@ export default function BiPage({ onBack }: { onBack: () => void }) {
         </div>
         {/* Top right: 2 charts */}
         <ChartBox title="Nº clientes / marcas" />
-        <ChartBox title="Nº clientes / sistemas" />
+        <SistemasChart />
         {/* Bottom right: 2 charts */}
         <GruposChart />
         <FaixasChart />
