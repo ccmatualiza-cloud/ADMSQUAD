@@ -392,10 +392,11 @@ async def bi_stats(
 ) -> dict:
     try:
         result = await session.execute(
-            text("SELECT COALESCE(SUM(qtdusers), 0) as total_users FROM tbl_linx WHERE status IN ('6 - ATIVO','7 - ATIVO VPU','X - ATIVO COMPLEMENTO')")
+            text("SELECT COALESCE(SUM(qtdusers), 0) as total_users, SUM(CASE WHEN bd = 'ORACLE' AND status IN ('6 - ATIVO','7 - ATIVO VPU') THEN 1 ELSE 0 END) as oracle_count FROM tbl_linx WHERE status IN ('6 - ATIVO','7 - ATIVO VPU','X - ATIVO COMPLEMENTO')")
         )
         row = result.fetchone()
         total_users = int(row[0]) if row and row[0] else 0
-        return {"total_users": total_users}
+        oracle_count = int(row[1]) if row and row[1] else 0
+        return {"total_users": total_users, "oracle_count": oracle_count}
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
