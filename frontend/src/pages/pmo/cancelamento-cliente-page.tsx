@@ -3,20 +3,30 @@ import { toast } from 'sonner';
 import { http } from '../../lib/http-client';
 
 interface ClienteInativo {
-  cod: number;
-  razao: string | null;
-  caminholoc: string | null;
-  sistema: string | null;
-  serverbd: string | null;
-  dataoff: string | null;
-  status: string | null;
-  qtdusers: number | null;
+  cod: number; razao: string | null; caminholoc: string | null;
+  sistema: string | null; serverbd: string | null;
+  dataoff: string | null; status: string | null; qtdusers: number | null;
 }
 
+interface ClienteInfo {
+  cod: number; razao: string; qtdusers: number; grupo: string; status: string; caminholoc: string;
+}
+
+interface ClienteOpt { cod: number; razao: string | null; cliente: string | null; }
+
+const inputStyle = { background: 'var(--ccm-ink)', border: '1px solid #1a3a6e', color: '#fff', fontSize: 13 };
+const readStyle  = { background: '#0d1c28', border: '1px solid #1a3a6e', color: '#7FB3D3', fontSize: 13, cursor: 'not-allowed' };
+const labelStyle = { color: '#9BA4AB', fontSize: 10, fontWeight: 700 as const, textTransform: 'uppercase' as const, letterSpacing: '.14em' };
+
 export default function CancelamentoClientePage({ onBack }: { onBack: () => void }) {
-  const [clientes, setClientes] = useState<ClienteInativo[]>([]);
-  const [loading, setLoading]   = useState(true);
-  const [search, setSearch]     = useState('');
+  const [clientes, setClientes]   = useState<ClienteInativo[]>([]);
+  const [loading, setLoading]     = useState(true);
+  const [search, setSearch]       = useState('');
+  const [showModal, setShowModal] = useState(false);
+  const [clienteOpts, setClienteOpts] = useState<ClienteOpt[]>([]);
+  const [selectedCod, setSelectedCod] = useState<number | ''>('');
+  const [clienteInfo, setClienteInfo] = useState<ClienteInfo | null>(null);
+  const [cancelling, setCancelling]   = useState(false);
 
   const fetchData = async (q = '') => {
     setLoading(true);
@@ -28,7 +38,42 @@ export default function CancelamentoClientePage({ onBack }: { onBack: () => void
     finally { setLoading(false); }
   };
 
-  useEffect(() => { fetchData(); }, []);
+  const fetchClienteOpts = async () => {
+    try {
+      const data = await http.get<ClienteOpt[]>('/api/cx/clientes');
+      setClienteOpts(data);
+    } catch { /* silent */ }
+  };
+
+  useEffect(() => { fetchData(); fetchClienteOpts(); }, []);
+
+  const handleSelectCliente = async (cod: number | '') => {
+    setSelectedCod(cod);
+    setClienteInfo(null);
+    if (!cod) return;
+    try {
+      const d = await http.get<ClienteInfo>(`/api/pmo/cancelamento/cliente/${cod}`);
+      setClienteInfo(d);
+    } catch { toast.error('Erro ao buscar dados do cliente'); }
+  };
+
+  const handleCancelar = async () => {
+    if (!selectedCod) { toast.error('Selecione um cliente'); return; }
+    if (!confirm(`Confirma o cancelamento do cliente "${clienteInfo?.razao}"? Esta ação não pode ser desfeita.`)) return;
+    setCancelling(true);
+    try {
+      await http.post('/api/pmo/cancelamento/cancelar', { cod: selectedCod });
+      toast.success('Cliente cancelado com sucesso!');
+      setShowModal(false);
+      setSelectedCod('');
+      setClienteInfo(null);
+      fetchData();
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Erro ao cancelar');
+    } finally { setCancelling(false); }
+  };
+
+  const openModal = () => { setSelectedCod(''); setClienteInfo(null); setShowModal(true); };
 
   const th = { color: '#fff', fontWeight: 700, textTransform: 'uppercase' as const, letterSpacing: '.05em', padding: '10px 12px', textAlign: 'left' as const, fontSize: 10, whiteSpace: 'nowrap' as const };
   const td = { padding: '9px 12px', fontSize: 12, whiteSpace: 'nowrap' as const };
@@ -52,6 +97,9 @@ export default function CancelamentoClientePage({ onBack }: { onBack: () => void
               {loading ? 'Carregando...' : `${clientes.length} cliente(s) inativo(s)`}
             </span>
           </div>
+          <button className="btn btn-sm" style={{ background: '#E74C3C', color: '#fff', fontWeight: 700, fontSize: 12 }} onClick={openModal}>
+            <i className="bi bi-x-circle me-1" />Cancelar Cliente
+          </button>
         </div>
 
         <div style={{ padding: '10px 20px', borderBottom: '1px solid var(--ccm-line)', display: 'flex', gap: 10 }}>
@@ -96,7 +144,6 @@ export default function CancelamentoClientePage({ onBack }: { onBack: () => void
                         {c.status || '—'}
                       </span>
                     </td>
-
                   </tr>
                 ))}
               </tbody>
@@ -104,6 +151,68 @@ export default function CancelamentoClientePage({ onBack }: { onBack: () => void
           )}
         </div>
       </div>
+
+      {/* Modal Cancelar Cliente */}
+      {showModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.65)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: 16 }}>
+          <div style={{ background: '#132230', border: '1px solid #1a3a6e', borderTop: '3px solid #E74C3C', borderRadius: 8, padding: '28px 32px', width: '100%', maxWidth: 500, boxShadow: '0 8px 32px rgba(0,0,0,.4)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <div>
+                <div style={{ color: '#E74C3C', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.18em' }}>PMO — Cancelamento</div>
+                <div style={{ color: '#fff', fontWeight: 900, fontSize: 15, textTransform: 'uppercase' }}>Cancelar Cliente</div>
+              </div>
+              <button onClick={() => setShowModal(false)} style={{ background: 'transparent', border: 'none', color: '#9BA4AB', fontSize: 22, cursor: 'pointer' }}>×</button>
+            </div>
+
+            <div className="row g-3">
+              <div className="col-12">
+                <label style={labelStyle}>Cliente *</label>
+                <select className="form-select mt-1" style={inputStyle}
+                  value={selectedCod} onChange={e => handleSelectCliente(e.target.value ? Number(e.target.value) : '')}>
+                  <option value="">Selecione o cliente...</option>
+                  {clienteOpts.map(c => (
+                    <option key={c.cod} value={c.cod}>{c.razao || c.cliente || `COD ${c.cod}`}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="col-6">
+                <label style={labelStyle}>Qtd. Users</label>
+                <input className="form-control mt-1" style={readStyle} readOnly value={clienteInfo ? clienteInfo.qtdusers : '—'} />
+              </div>
+              <div className="col-6">
+                <label style={labelStyle}>Grupo</label>
+                <input className="form-control mt-1" style={readStyle} readOnly value={clienteInfo ? clienteInfo.grupo || '—' : '—'} />
+              </div>
+              <div className="col-6">
+                <label style={labelStyle}>Status</label>
+                <input className="form-control mt-1" style={readStyle} readOnly value={clienteInfo ? clienteInfo.status || '—' : '—'} />
+              </div>
+              <div className="col-6">
+                <label style={labelStyle}>Obs</label>
+                <input className="form-control mt-1" style={readStyle} readOnly value={clienteInfo ? clienteInfo.caminholoc || '—' : '—'} />
+              </div>
+            </div>
+
+            <div style={{ marginTop: 20, padding: '10px 14px', background: 'rgba(231,76,60,.1)', border: '1px solid rgba(231,76,60,.3)', borderRadius: 6 }}>
+              <div style={{ fontSize: 11, color: '#E74C3C', fontWeight: 700 }}>
+                <i className="bi bi-exclamation-triangle me-2" />
+                Esta ação irá cancelar o cliente e não pode ser desfeita.
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 16 }}>
+              <button className="btn btn-sm" style={{ background: 'rgba(255,255,255,.07)', color: '#9BA4AB', fontSize: 12, padding: '8px 20px' }} onClick={() => setShowModal(false)}>
+                Fechar
+              </button>
+              <button className="btn btn-sm" style={{ background: '#E74C3C', color: '#fff', fontSize: 12, padding: '8px 24px', fontWeight: 700 }}
+                onClick={handleCancelar} disabled={cancelling || !selectedCod}>
+                {cancelling ? <><span className="spinner-border spinner-border-sm me-1" />Cancelando…</> : <><i className="bi bi-x-circle me-1" />Cancelar</>}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

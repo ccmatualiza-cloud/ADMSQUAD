@@ -266,11 +266,86 @@ async def list_inativos(
             where += " AND (razao LIKE :q OR sistema LIKE :q OR serverbd LIKE :q)"
             params["q"] = f"%{q}%"
         result = await session.execute(
-            text(f"SELECT cod, razao, caminholoc, sistema, serverbd, dataoff, status, qtdusers FROM tbl_linx {where} ORDER BY razao"),
+            text(f"SELECT cod, razao, caminholoc, sistema, serverbd, dataoff, status, qtdusers FROM tbl_linx {where} ORDER BY dataoff DESC, razao ASC"),
             params
         )
         rows = result.fetchall()
         keys = list(result.keys())
         return [ClienteInativoItem(**dict(zip(keys, r))) for r in rows]
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+# ── Cancelamento actions ──────────────────────────────────────────────────────
+
+@router.get("/cancelamento/cliente/{cod}")
+async def get_cliente_cancelamento(
+    cod: int,
+    _: Annotated[dict, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> dict:
+    try:
+        result = await session.execute(
+            text("SELECT cod, razao, qtdusers, grupo, status, caminholoc FROM tbl_linx WHERE cod = :cod"),
+            {"cod": cod}
+        )
+        row = result.fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail="Cliente não encontrado")
+        keys = list(result.keys())
+        d = dict(zip(keys, row))
+        return {
+            "cod": d["cod"], "razao": d["razao"] or "",
+            "qtdusers": d["qtdusers"] or 0, "grupo": d["grupo"] or "",
+            "status": d["status"] or "", "caminholoc": d["caminholoc"] or "",
+        }
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+class CancelamentoBody(BaseModel):
+    cod: int
+
+
+@router.post("/cancelamento/cancelar")
+async def cancelar_cliente(
+    body: CancelamentoBody,
+    _: Annotated[dict, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> dict:
+    try:
+        from datetime import date
+        # Get current qtdusers
+        r = await session.execute(
+            text("SELECT qtdusers FROM tbl_linx WHERE cod = :cod"),
+            {"cod": body.cod}
+        )
+        row = r.fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail="Cliente não encontrado")
+        qtd = int(row[0]) if row[0] else 0
+        dataoff = date.today().strftime("%d/%m/%Y")
+        caminholoc_val = f"Cancelado - QTD users = {qtd}"
+
+        await session.execute(
+            text("""UPDATE tbl_linx SET
+                caminholoc       = :caminholoc,
+                qtdusers         = 0,
+                bd               = 'CANCELADO',
+                grupo            = 'INT',
+                status           = '9 - INATIVO',
+                srvtreino        = 'C',
+                descricaotreino  = 'CANCELADO-TOTAL',
+                dataoff          = :dataoff,
+                bdtreino         = 'CANCELADO-TOTAL'
+            WHERE cod = :cod"""),
+            {"caminholoc": caminholoc_val, "dataoff": dataoff, "cod": body.cod}
+        )
+        await session.commit()
+        return {"cancelled": True}
+    except HTTPException:
+        raise
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
