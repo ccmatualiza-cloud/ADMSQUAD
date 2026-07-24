@@ -100,16 +100,8 @@ export default function BiPage({ onBack }: { onBack: () => void }) {
   };
 
   const AtualizacoesChart = () => {
-    if (atualizData.length === 0) return (
-      <div style={{ background: '#fff', border: '1px solid var(--ccm-line)', borderRadius: 8, padding: '16px 18px', boxShadow: '0 1px 4px rgba(12,25,33,.06)' }}>
-        <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--ccm-ink)', marginBottom: 12 }}>Quantidade de atualizações</div>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 160, background: '#F7F8FA', borderRadius: 4 }}>
-          <span style={{ fontSize: 12, color: 'var(--ccm-gray-medium)' }}>Carregando...</span>
-        </div>
-      </div>
-    );
     const W = 360, H = 160, PAD = { t: 12, r: 8, b: 36, l: 30 };
-    const maxV = Math.max(...atualizData.map(d => d.total), 1);
+    const maxV = atualizData.length > 0 ? Math.max(...atualizData.map(d => d.total), 1) : 1;
     const iW = W - PAD.l - PAD.r, iH = H - PAD.t - PAD.b;
     const n = atualizData.length;
     const pts = atualizData.map((d, i) => ({
@@ -124,30 +116,30 @@ export default function BiPage({ onBack }: { onBack: () => void }) {
     return (
       <div style={{ background: '#fff', border: '1px solid var(--ccm-line)', borderRadius: 8, padding: '16px 18px', boxShadow: '0 1px 4px rgba(12,25,33,.06)' }}>
         <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--ccm-ink)', marginBottom: 12 }}>Quantidade de atualizações</div>
-        <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{ overflow: 'visible' }}>
-          {/* grid lines */}
-          {[0,.25,.5,.75,1].map((f,i) => (
-            <line key={i} x1={PAD.l} x2={W-PAD.r} y1={PAD.t+iH*(1-f)} y2={PAD.t+iH*(1-f)} stroke="#F0F0F0" strokeWidth={1} />
-          ))}
-          {/* area */}
-          <path d={area} fill="rgba(0,176,250,0.12)" />
-          {/* line */}
-          <path d={path} fill="none" stroke="#00B0FA" strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
-          {/* dots */}
-          {pts.map((p, i) => <circle key={i} cx={p.x} cy={p.y} r={3} fill="#00B0FA" />)}
-          {/* x labels */}
-          {pts.filter((_, i) => i % step === 0 || i === n-1).map((p, i) => (
-            <text key={i} x={p.x} y={H-4} textAnchor="middle" fontSize="7" fill="#9BA4AB">
-              {p.data.substring(0,5)}
-            </text>
-          ))}
-          {/* y labels */}
-          {[0,.5,1].map((f,i) => (
-            <text key={i} x={PAD.l-4} y={PAD.t+iH*(1-f)+3} textAnchor="end" fontSize="8" fill="#9BA4AB">
-              {Math.round(maxV*f)}
-            </text>
-          ))}
-        </svg>
+        {atualizData.length === 0 ? (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 160, background: '#F7F8FA', borderRadius: 4 }}>
+            <span style={{ fontSize: 12, color: 'var(--ccm-gray-medium)' }}>Carregando...</span>
+          </div>
+        ) : (
+          <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{ overflow: 'visible' }}>
+            {[0,.25,.5,.75,1].map((f,i) => (
+              <line key={i} x1={PAD.l} x2={W-PAD.r} y1={PAD.t+iH*(1-f)} y2={PAD.t+iH*(1-f)} stroke="#F0F0F0" strokeWidth={1} />
+            ))}
+            <path d={area} fill="rgba(0,176,250,0.12)" />
+            <path d={path} fill="none" stroke="#00B0FA" strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
+            {pts.map((p, i) => <circle key={i} cx={p.x} cy={p.y} r={3} fill="#00B0FA" />)}
+            {pts.filter((_, i) => i % step === 0 || i === n-1).map((p, i) => (
+              <text key={i} x={p.x} y={H-4} textAnchor="middle" fontSize="7" fill="#9BA4AB">
+                {p.data.substring(0,5)}
+              </text>
+            ))}
+            {[0,.5,1].map((f,i) => (
+              <text key={i} x={PAD.l-4} y={PAD.t+iH*(1-f)+3} textAnchor="end" fontSize="8" fill="#9BA4AB">
+                {Math.round(maxV*f)}
+              </text>
+            ))}
+          </svg>
+        )}
       </div>
     );
   };
