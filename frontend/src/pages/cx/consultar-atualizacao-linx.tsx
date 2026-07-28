@@ -93,10 +93,11 @@ export default function ConsultarAtualizacaoLinx({ onBack }: { onBack: () => voi
               <thead>
                 <tr style={{ background: 'var(--ccm-blue)' }}>
                   <th style={th}>Razão Social</th>
-                  <th style={th}>Cliente</th>
                   <th style={th}>Sistema</th>
                   <th style={th}>Versão</th>
-                  <th style={th}>Agendado</th>
+                  <th style={th}>Versão Web</th>
+                  <th style={th}>2Cam Aut</th>
+                  <th style={th}>3Cam Aut</th>
                   <th style={th}>Código-C</th>
                   <th style={th}>Grupo</th>
                   <th style={th}>Última Atualização</th>
