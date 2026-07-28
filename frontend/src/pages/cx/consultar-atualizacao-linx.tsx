@@ -109,10 +109,11 @@ export default function ConsultarAtualizacaoLinx({ onBack }: { onBack: () => voi
                 ) : clientes.map((c, i) => (
                   <tr key={c.cod} style={{ background: i % 2 === 0 ? '#fff' : '#F7F8FA', borderBottom: '1px solid var(--ccm-line)' }}>
                     <td style={{ ...td, fontWeight: 600, color: 'var(--ccm-ink)', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.razao || '—'}</td>
-                    <td style={{ ...td, color: 'var(--ccm-gray-dark)', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.cliente || '—'}</td>
                     <td style={{ ...td, color: 'var(--ccm-blue)', fontWeight: 600 }}>{c.sistema || '—'}</td>
                     <td style={td}>{c.versao || '—'}</td>
-                    <td style={td}>{c.useragend || '—'}</td>
+                    <td style={td}>{c.linxwebver || '—'}</td>
+                    <td style={td}>{c.linx2camaut || '—'}</td>
+                    <td style={td}>{c.linx3camaut || '—'}</td>
                     <td style={td}>{c.codigoc || '—'}</td>
                     <td style={td}>{c.grupo || '—'}</td>
                     <td style={td}>{c.dt_atualiza || '—'}</td>
