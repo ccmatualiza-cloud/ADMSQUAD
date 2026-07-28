@@ -2,9 +2,10 @@ import { useEffect, useState } from 'react';
 import { http } from '../../lib/http-client';
 
 interface ConsultaItem {
-  cod: number; razao: string | null; cliente: string | null;
-  sistema: string | null; versao: string | null;
-  useragend: string | null; codigoc: string | null; grupo: string | null;
+  cod: number; razao: string | null; sistema: string | null;
+  versao: string | null; linxwebver: string | null;
+  linx2camaut: string | null; linx3camaut: string | null;
+  codigoc: string | null; grupo: string | null;
   dt_atualiza: string | null; concluido: string | number | null;
 }
 
@@ -104,7 +105,7 @@ export default function ConsultarAtualizacaoLinx({ onBack }: { onBack: () => voi
               </thead>
               <tbody>
                 {clientes.length === 0 ? (
-                  <tr><td colSpan={9} style={{ padding: 32, textAlign: 'center', color: 'var(--ccm-gray-dark)' }}>Nenhum cliente encontrado</td></tr>
+                  <tr><td colSpan={10} style={{ padding: 32, textAlign: 'center', color: 'var(--ccm-gray-dark)' }}>Nenhum cliente encontrado</td></tr>
                 ) : clientes.map((c, i) => (
                   <tr key={c.cod} style={{ background: i % 2 === 0 ? '#fff' : '#F7F8FA', borderBottom: '1px solid var(--ccm-line)' }}>
                     <td style={{ ...td, fontWeight: 600, color: 'var(--ccm-ink)', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.razao || '—'}</td>

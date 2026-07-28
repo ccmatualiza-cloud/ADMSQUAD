@@ -627,10 +627,11 @@ async def update_cliente(
 class ConsultaItem(BaseModel):
     cod: int
     razao: str | None = None
-    cliente: str | None = None
     sistema: str | None = None
     versao: str | None = None
-    useragend: str | None = None
+    linxwebver: str | None = None
+    linx2camaut: str | None = None
+    linx3camaut: str | None = None
     codigoc: str | None = None
     grupo: str | None = None
     dt_atualiza: str | None = None
@@ -654,7 +655,7 @@ async def list_consultar_atualizacao(
             where += " AND dt_atualiza = :data_filter"
             params["data_filter"] = data_filter
         result = await session.execute(
-            text(f"SELECT cod, razao, cliente, sistema, versao, useragend, codigoc, grupo, dt_atualiza, concluido FROM tbl_linx {where} ORDER BY razao"),
+            text(f"SELECT cod, razao, sistema, versao, linxwebver, linx2camaut, linx3camaut, codigoc, grupo, dt_atualiza, concluido FROM tbl_linx {where} ORDER BY razao"),
             params
         )
         rows = result.fetchall()
