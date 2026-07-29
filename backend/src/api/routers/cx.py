@@ -75,6 +75,8 @@ class ClienteDetalhe(BaseModel):
 async def list_clientes(
     q: str = "",
     status_filter: str = "",
+    grupo_filter: str = "",
+    serverbd_filter: str = "",
     _: Annotated[dict, Depends(get_current_user)] = None,
     session: Annotated[AsyncSession, Depends(get_db)] = None,
 ) -> list[ClienteItem]:
@@ -87,6 +89,12 @@ async def list_clientes(
         if status_filter:
             where += " AND status = :status"
             params["status"] = status_filter
+        if grupo_filter:
+            where += " AND grupo = :grupo"
+            params["grupo"] = grupo_filter
+        if serverbd_filter:
+            where += " AND serverbd LIKE :serverbd"
+            params["serverbd"] = f"%{serverbd_filter}%"
         result = await session.execute(
             text(f"SELECT cod, razao, cliente, sistema, versao, qtdusers, qtdusersts, serverbd, codigoc, grupo, status, doc FROM tbl_linx {where} ORDER BY razao"),
             params

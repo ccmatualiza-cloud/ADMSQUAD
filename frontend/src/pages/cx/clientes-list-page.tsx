@@ -85,19 +85,23 @@ export default function ClientesListPage({ onBack }: { onBack: () => void }) {
   const [statusOpts, setStatusOpts]   = useState<string[]>([]);
   const [loading, setLoading]         = useState(true);
   const [search, setSearch]           = useState('');
-  const [filterStatus, setFilterStatus] = useState('');
+  const [filterStatus, setFilterStatus]   = useState('');
+  const [filterGrupo, setFilterGrupo]     = useState('');
+  const [filterServerbd, setFilterServerbd] = useState('');
   const [detalhe, setDetalhe]         = useState<ClienteDetalhe | null>(null);
   const [loadingDet, setLoadingDet]   = useState(false);
   const [editItem, setEditItem]       = useState<ClienteDetalhe | null>(null);
   const [editForm, setEditForm]       = useState<EditForm>(emptyEditForm);
   const [savingEdit, setSavingEdit]   = useState(false);
 
-  const fetchClientes = async (q = '', s = '') => {
+  const fetchClientes = async (q = '', s = '', g = '', srv = '') => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
       if (q) params.set('q', q);
       if (s) params.set('status_filter', s);
+      if (g) params.set('grupo_filter', g);
+      if (srv) params.set('serverbd_filter', srv);
       const data = await http.get<Cliente[]>(`/api/cx/clientes?${params}`);
       setClientes(data);
     } catch { /* silent */ }
@@ -109,7 +113,7 @@ export default function ClientesListPage({ onBack }: { onBack: () => void }) {
     http.get<string[]>('/api/cx/clientes/status-options').then(setStatusOpts).catch(() => {});
   }, []);
 
-  const handleSearch = () => fetchClientes(search, filterStatus);
+  const handleSearch = () => fetchClientes(search, filterStatus, filterGrupo, filterServerbd);
   const handleKeyDown = (e: React.KeyboardEvent) => { if (e.key === 'Enter') handleSearch(); };
 
   const openDetalhe = async (cod: number) => {
@@ -156,7 +160,7 @@ export default function ClientesListPage({ onBack }: { onBack: () => void }) {
       await http.put(`/api/cx/clientes/${editItem.cod}`, body);
       toast.success('Cliente atualizado!');
       setEditItem(null);
-      fetchClientes(search, filterStatus);
+      fetchClientes(search, filterStatus, filterGrupo, filterServerbd);
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'Erro ao salvar');
     } finally { setSavingEdit(false); }
@@ -198,6 +202,12 @@ export default function ClientesListPage({ onBack }: { onBack: () => void }) {
             <option value="">Todos os status</option>
             {statusOpts.map(s => <option key={s} value={s}>{s}</option>)}
           </select>
+          <input type="text" className="form-control" placeholder="Grupo..."
+            value={filterGrupo} onChange={e => setFilterGrupo(e.target.value)}
+            onKeyDown={handleKeyDown} style={{ maxWidth: 120, fontSize: 13 }} />
+          <input type="text" className="form-control" placeholder="Server BD..."
+            value={filterServerbd} onChange={e => setFilterServerbd(e.target.value)}
+            onKeyDown={handleKeyDown} style={{ maxWidth: 140, fontSize: 13 }} />
           <button className="btn btn-ccm-primary btn-sm" onClick={handleSearch} style={{ padding: '7px 18px' }}>
             <i className="bi bi-search me-1" />Buscar
           </button>
