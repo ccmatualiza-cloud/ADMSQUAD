@@ -135,6 +135,7 @@ export default function ApoiosHelpPage({ onBack }: { onBack: () => void }) {
               <thead>
                 <tr style={{ background: 'var(--ccm-blue)' }}>
                   <th style={th}>Requisitante</th>
+                  <th style={th}>Ticket</th>
                   <th style={th}>Tipo</th>
                   <th style={th}>Assunto</th>
                   <th style={th}>Squad</th>
@@ -146,12 +147,13 @@ export default function ApoiosHelpPage({ onBack }: { onBack: () => void }) {
               </thead>
               <tbody>
                 {filtered.length === 0 ? (
-                  <tr><td colSpan={8} style={{ padding: 32, textAlign: 'center', color: 'var(--ccm-gray-dark)' }}>Nenhum registro encontrado</td></tr>
+                  <tr><td colSpan={9} style={{ padding: 32, textAlign: 'center', color: 'var(--ccm-gray-dark)' }}>Nenhum registro encontrado</td></tr>
                 ) : filtered.map((a, i) => {
                   const si = STATUS_INFO[a.status] ?? { color: '#444', bg: '#eee' };
                   return (
                     <tr key={a.cod} style={{ background: i % 2 === 0 ? '#fff' : '#F7F8FA', borderBottom: '1px solid var(--ccm-line)' }}>
                       <td style={{ ...td, fontWeight: 600, color: 'var(--ccm-ink)' }}>{a.requisitante}</td>
+                      <td style={{ ...td, color: 'var(--ccm-blue)', fontWeight: 600 }}>{a.ticket || '—'}</td>
                       <td style={td}>{a.tipo}</td>
                       <td style={{ ...td, maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis' }}>{a.assunto}</td>
                       <td style={td}>{a.squad || '—'}</td>
