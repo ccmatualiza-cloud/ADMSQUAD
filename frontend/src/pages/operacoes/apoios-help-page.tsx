@@ -84,6 +84,11 @@ export default function ApoiosHelpPage({ onBack }: { onBack: () => void }) {
     catch { toast.error('Erro ao excluir'); }
   };
 
+  const handleConcluir = async (cod: number) => {
+    try { await http.put(`/api/operacoes/apoios/${cod}`, { status: 'Concluido' }); toast.success('Apoio concluído!'); fetchData(); }
+    catch { toast.error('Erro ao concluir'); }
+  };
+
   const filtered = items.filter(i => filterStatus ? i.status === filterStatus : true);
   const th = { color: '#fff', fontWeight: 700, textTransform: 'uppercase' as const, letterSpacing: '.05em', padding: '10px 12px', textAlign: 'left' as const, fontSize: 10, whiteSpace: 'nowrap' as const };
   const td = { padding: '9px 12px', fontSize: 12, whiteSpace: 'nowrap' as const };
@@ -135,12 +140,13 @@ export default function ApoiosHelpPage({ onBack }: { onBack: () => void }) {
                   <th style={th}>Squad</th>
                   <th style={th}>Apoiador</th>
                   <th style={{ ...th, textAlign: 'center' }}>Status</th>
+                  <th style={th}>KB / Link</th>
                   <th style={{ ...th, textAlign: 'center' }}>Ações</th>
                 </tr>
               </thead>
               <tbody>
                 {filtered.length === 0 ? (
-                  <tr><td colSpan={7} style={{ padding: 32, textAlign: 'center', color: 'var(--ccm-gray-dark)' }}>Nenhum registro encontrado</td></tr>
+                  <tr><td colSpan={8} style={{ padding: 32, textAlign: 'center', color: 'var(--ccm-gray-dark)' }}>Nenhum registro encontrado</td></tr>
                 ) : filtered.map((a, i) => {
                   const si = STATUS_INFO[a.status] ?? { color: '#444', bg: '#eee' };
                   return (
@@ -153,11 +159,30 @@ export default function ApoiosHelpPage({ onBack }: { onBack: () => void }) {
                       <td style={{ ...td, textAlign: 'center' }}>
                         <span style={{ background: si.bg, color: si.color, borderRadius: 99, padding: '2px 9px', fontSize: 10, fontWeight: 700 }}>{a.status}</span>
                       </td>
+                      <td style={td}>
+                        {a.kb ? (
+                          <a href={a.kb.startsWith('http') ? a.kb : `https://${a.kb}`} target="_blank" rel="noopener noreferrer"
+                            style={{ color: '#1DB954', fontSize: 11, textDecoration: 'none' }}>
+                            <i className="bi bi-box-arrow-up-right me-1" />Ver KB
+                          </a>
+                        ) : (
+                          <span style={{ fontSize: 10, fontStyle: 'italic', color: 'var(--ccm-gray-medium)' }}>Aguardando KB</span>
+                        )}
+                      </td>
                       <td style={{ ...td, textAlign: 'center' }}>
                         <div style={{ display: 'flex', gap: 4, justifyContent: 'center' }}>
                           <button className="btn btn-sm" style={{ background: 'var(--ccm-blue)', color: '#fff', fontSize: 10, padding: '3px 9px' }} onClick={() => openEdit(a)}>
                             <i className="bi bi-pencil-fill me-1" />Editar
                           </button>
+                          {a.status !== 'Concluido' && (
+                            <button className="btn btn-sm"
+                              style={{ background: a.kb ? '#1DB954' : '#ccc', color: '#fff', fontSize: 10, padding: '3px 9px' }}
+                              disabled={!a.kb}
+                              title={!a.kb ? 'Preencha o KB antes de concluir' : ''}
+                              onClick={() => handleConcluir(a.cod)}>
+                              <i className="bi bi-check-lg me-1" />Concluir
+                            </button>
+                          )}
                           <button className="btn btn-sm" style={{ background: '#E74C3C', color: '#fff', fontSize: 10, padding: '3px 9px' }} onClick={() => handleDelete(a.cod)}>
                             <i className="bi bi-trash me-1" />Excluir
                           </button>
