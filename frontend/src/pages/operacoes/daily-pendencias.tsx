@@ -30,7 +30,8 @@ export default function DailyPendencias({ onBack }: { onBack: () => void }) {
   const [form, setForm]             = useState(emptyForm);
   const [saving, setSaving]         = useState(false);
   const [search, setSearch]         = useState('');
-  const [filterStatus, setFilterStatus] = useState('');
+  const [filterStatus, setFilterStatus]     = useState('');
+  const [filterAnalista, setFilterAnalista] = useState('');
   const [clienteSugs, setClienteSugs] = useState<string[]>([]);
   const [showSugs, setShowSugs]     = useState(false);
   const clienteRef                  = useRef<HTMLDivElement>(null);
@@ -92,7 +93,8 @@ export default function DailyPendencias({ onBack }: { onBack: () => void }) {
 
   const filtered = pendencias.filter(p =>
     [p.cliente, p.ticket, p.descritivo, p.analista].some(v => v.toLowerCase().includes(search.toLowerCase())) &&
-    (filterStatus ? p.status === filterStatus : true)
+    (filterStatus ? p.status === filterStatus : true) &&
+    (filterAnalista ? p.analista === filterAnalista : true)
   );
 
   return (
@@ -116,6 +118,10 @@ export default function DailyPendencias({ onBack }: { onBack: () => void }) {
         </div>
         <div style={{ padding:'12px 20px', borderBottom:'1px solid var(--ccm-line)', display:'flex', gap:12, flexWrap:'wrap' }}>
           <input type="text" className="form-control" placeholder="Buscar cliente, ticket, analista..." value={search} onChange={e => setSearch(e.target.value)} style={{ maxWidth:340, fontSize:13 }} />
+          <select className="form-select" value={filterAnalista} onChange={e => setFilterAnalista(e.target.value)} style={{ maxWidth:180, fontSize:13 }}>
+            <option value="">Todos analistas</option>
+            {analistas.map(a => <option key={a.id} value={a.name}>{a.name}</option>)}
+          </select>
           <select className="form-select" value={filterStatus} onChange={e => { setFilterStatus(e.target.value); fetchData(e.target.value); }} style={{ maxWidth:180, fontSize:13 }}>
             <option value="">Todos os status</option>
             {STATUS_OPTIONS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
