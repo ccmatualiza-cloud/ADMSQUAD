@@ -349,3 +349,39 @@ async def cancelar_cliente(
         raise
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
+
+
+# ── Ações rápidas implantação ─────────────────────────────────────────────────
+
+@router.put("/clientes/{cod}/concluir-implantacao")
+async def concluir_implantacao(
+    cod: int,
+    _: Annotated[dict, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> dict:
+    try:
+        await session.execute(
+            text("UPDATE tbl_linx SET stimplant = 'CONCLUIDO', status = '1 - PRIMEIRO CONTATO' WHERE cod = :cod"),
+            {"cod": cod}
+        )
+        await session.commit()
+        return {"updated": True}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@router.put("/clientes/{cod}/cancelar-implantacao")
+async def cancelar_implantacao(
+    cod: int,
+    _: Annotated[dict, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> dict:
+    try:
+        await session.execute(
+            text("UPDATE tbl_linx SET stimplant = 'CANCELADO', status = '5 - EM CANCELAMENTO' WHERE cod = :cod"),
+            {"cod": cod}
+        )
+        await session.commit()
+        return {"updated": True}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))

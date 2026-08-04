@@ -29,7 +29,7 @@ const inputStyle = { background: 'var(--ccm-ink)', border: '1px solid #1a3a6e', 
 const labelStyle = { color: '#9BA4AB', fontSize: 10, fontWeight: 700 as const, textTransform: 'uppercase' as const, letterSpacing: '.14em' };
 
 const SISTEMA_OPTS = ['APOLLO', 'AUTOSHOP', 'BRAVOS', 'HPE', 'APOLLO / HPE', 'APOLLO / BRAVOS'];
-const STIMPLANT_OPTS = ['PLANEJAMENTO','ANDAMENTO','MIGRACAO','HOMOLOGACAO','GO-LIVE','ACOMPANHAMENTO','ENCERRAMENTO','CONCLUIDO','CANCELADO'];
+const STIMPLANT_OPTS = ['PLANEJAMENTO','ANDAMENTO','MIGRACAO','HOMOLOGACAO','GO-LIVE','ACOMPANHAMENTO','ENCERRAMENTO'];
 
 function toDateInput(val: string): string {
   if (!val) return '';
@@ -128,6 +128,19 @@ export default function ClientesPmoPage({ onBack }: { onBack: () => void }) {
     } finally { setSaving(false); }
   };
 
+  const handleAcaoRapida = async (cod: number, acao: 'concluir' | 'cancelar') => {
+    const msgs = { concluir: 'Confirma concluir esta implantação?', cancelar: 'Confirma cancelar esta implantação?' };
+    if (!confirm(msgs[acao])) return;
+    try {
+      await http.put(`/api/pmo/clientes/${cod}/${acao}-implantacao`, {});
+      const ok = { concluir: 'Implantação concluída!', cancelar: 'Implantação cancelada!' };
+      toast.success(ok[acao]);
+      fetchData();
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Erro');
+    }
+  };
+
   const th = { color: '#fff', fontWeight: 700, textTransform: 'uppercase' as const, letterSpacing: '.05em', padding: '10px 12px', textAlign: 'left' as const, fontSize: 10, whiteSpace: 'nowrap' as const };
   const td = { padding: '9px 12px', fontSize: 12, whiteSpace: 'nowrap' as const };
 
@@ -207,9 +220,17 @@ export default function ClientesPmoPage({ onBack }: { onBack: () => void }) {
                       ) : '—'}
                     </td>
                     <td style={{ ...td, textAlign: 'center' }}>
-                      <button className="btn btn-sm" style={{ background: 'var(--ccm-blue)', color: '#fff', fontSize: 10, padding: '3px 10px' }} onClick={() => openEdit(c)}>
-                        <i className="bi bi-pencil-fill me-1" />Editar
-                      </button>
+                      <div style={{ display: 'flex', gap: 4, justifyContent: 'center' }}>
+                        <button className="btn btn-sm" style={{ background: 'var(--ccm-blue)', color: '#fff', fontSize: 10, padding: '3px 8px' }} onClick={() => openEdit(c)}>
+                          <i className="bi bi-pencil-fill me-1" />Editar
+                        </button>
+                        <button className="btn btn-sm" style={{ background: '#1DB954', color: '#fff', fontSize: 10, padding: '3px 8px' }} onClick={() => handleAcaoRapida(c.cod, 'concluir')}>
+                          <i className="bi bi-check-lg me-1" />Concluir
+                        </button>
+                        <button className="btn btn-sm" style={{ background: '#E74C3C', color: '#fff', fontSize: 10, padding: '3px 8px' }} onClick={() => handleAcaoRapida(c.cod, 'cancelar')}>
+                          <i className="bi bi-x-lg me-1" />Cancelar
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
