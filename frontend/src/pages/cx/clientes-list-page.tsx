@@ -63,7 +63,7 @@ function Field({ label, value }: { label: string; value: string | number | null 
 const GRUPO_OPTS = ['SEG','SMT','TER','QUA','QUI','SEX','CCM','INT','PMO','FRQ','CLI','AUT','2AI','3AI','4AI','5AI'];
 const STATUS_OPTS = [
   '0 - IMPLANTAÇÃO','1 - PRIMEIRO CONTATO','2 - SMART CLOUD','3 - SMART DBA',
-  '4 - BASE','5 - CONFIGURAR ATUALIZADOR','6 - ATIVO','7 - ATIVO VPU',
+  '4 - BASE','5 - EM CANCELAMENTO','6 - ATIVO','7 - ATIVO VPU',
   '8 - CONSULTA','9 - INATIVO','X - ATIVO COMPLEMENTO',
 ];
 
