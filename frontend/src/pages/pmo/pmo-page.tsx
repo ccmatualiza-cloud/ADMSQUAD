@@ -2,9 +2,10 @@ import { useState } from 'react';
 import ClientesPmoPage     from './clientes-pmo-page';
 import FranquiasPage       from './franquias-page';
 import ClientesListPage          from '../cx/clientes-list-page';
-import CancelamentoClientePage from './cancelamento-cliente-page';
+import CancelamentoClientePage  from './cancelamento-cliente-page';
+import ZohoProjectsDashboard   from './zoho-projects-dashboard';
 
-type SubPage = null | 'implantacao' | 'franquias' | 'clientes' | 'cancelamento';
+type SubPage = null | 'implantacao' | 'franquias' | 'clientes' | 'cancelamento' | 'zoho';
 
 export default function PmoPage() {
   const [subPage, setSubPage] = useState<SubPage>(null);
@@ -13,6 +14,7 @@ export default function PmoPage() {
   if (subPage === 'franquias')   return <FranquiasPage    onBack={() => setSubPage(null)} />;
   if (subPage === 'clientes')      return <ClientesListPage          onBack={() => setSubPage(null)} />;
   if (subPage === 'cancelamento')  return <CancelamentoClientePage  onBack={() => setSubPage(null)} />;
+  if (subPage === 'zoho')          return <ZohoProjectsDashboard    onBack={() => setSubPage(null)} />;
 
   const Card = ({ title, desc, color, icon, onClick }: { title: string; desc: string; color: string; icon: string; onClick: () => void }) => (
     <div className="col-12 col-md-4 col-lg-3">
@@ -41,7 +43,8 @@ export default function PmoPage() {
         <Card title="Novo Cliente"     desc="Clientes em processo de implantação."              color="#1DB954" icon="bi-person-plus-fill"  onClick={() => setSubPage('implantacao')} />
         <Card title="Clientes"         desc="Consultar e visualizar dados dos clientes parceria Linx." color="#00B0FA" icon="bi-people-fill" onClick={() => setSubPage('clientes')} />
         <Card title="Franquias Linx"       desc="Gerenciar franquias e parceiros Linx."             color="#7F77DD" icon="bi-building"          onClick={() => setSubPage('franquias')} />
-        <Card title="Cancelamento de Cliente" desc="Clientes inativos com status 9 - INATIVO."          color="#E74C3C" icon="bi-x-circle-fill"     onClick={() => setSubPage('cancelamento')} />
+        <Card title="Cancelamento de Cliente"  desc="Clientes inativos com status 9 - INATIVO."          color="#E74C3C" icon="bi-x-circle-fill"     onClick={() => setSubPage('cancelamento')} />
+        <Card title="Dashboard Zoho Projects"   desc="Informações de projetos da squad."               color="#1A73E8" icon="bi-kanban-fill"        onClick={() => setSubPage('zoho')} />
         <div className="col-12 col-md-4 col-lg-3">
           <div style={{ background: '#F7F8FA', border: '1px dashed var(--ccm-line)', borderRadius: 6, padding: '20px 22px', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 120, color: 'var(--ccm-gray-medium)', fontSize: 12, letterSpacing: '.08em' }}>
             <i className="bi bi-plus-circle me-2" />Em breve
