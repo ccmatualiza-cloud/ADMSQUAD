@@ -29,7 +29,7 @@ async def clientes_cx(
 ) -> dict:
     # Apenas ATIVO e ATIVO VPU
     result = await session.execute(
-        text("SELECT COUNT(*) FROM tbl_linx WHERE status IN ('6 - ATIVO', '7 - ATIVO VPU')")
+        text("SELECT COUNT(*) FROM tbl_linx WHERE status IN ('6 - ATIVO', '7 - ATIVO VPU', '1 - PRIMEIRO CONTATO')")
     )
     row = result.fetchone()
     return {"total": int(row[0]) if row else 0}
