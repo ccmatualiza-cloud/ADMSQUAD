@@ -16,7 +16,7 @@ async def clientes_ativos(
 ) -> dict:
     # ATIVO + ATIVO VPU + IMPLANTAÇÃO (excluindo X - ATIVO COMPLEMENTO)
     result = await session.execute(
-        text("SELECT COUNT(*) FROM tbl_linx WHERE status IN ('6 - ATIVO', '7 - ATIVO VPU', '0 - IMPLANTAÇÃO')")
+        text("SELECT COUNT(*) FROM tbl_linx WHERE status IN ('6 - ATIVO', '7 - ATIVO VPU', '0 - IMPLANTAÇÃO', '1 - PRIMEIRO CONTATO')")
     )
     row = result.fetchone()
     return {"total": int(row[0]) if row else 0}
