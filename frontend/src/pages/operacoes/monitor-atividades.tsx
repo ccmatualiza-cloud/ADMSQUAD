@@ -30,6 +30,8 @@ export default function MonitorAtividades({ onBack }: { onBack: () => void }) {
   const [showModal, setShowModal] = useState(false);
   const [form, setForm]           = useState(emptyForm);
   const [saving, setSaving]       = useState(false);
+  const [timeModal, setTimeModal] = useState<{ cod: number; action: 'iniciar' | 'terminar' } | null>(null);
+  const [timeInput, setTimeInput] = useState('');
   const [filterStatus, setFilterStatus]   = useState('');
   const [filterCliente, setFilterCliente] = useState('');
   const [filterAtividade, setFilterAtividade] = useState('');
@@ -90,11 +92,28 @@ export default function MonitorAtividades({ onBack }: { onBack: () => void }) {
     } finally { setSaving(false); }
   };
 
-  const handleAction = async (cod: number, action: 'iniciar' | 'terminar' | 'cancelar') => {
+  const handleAction = (cod: number, action: 'iniciar' | 'terminar' | 'cancelar') => {
+    if (action === 'cancelar') {
+      http.put(`/api/operacoes/atividades/${cod}/cancelar`, {})
+        .then(() => { toast.success('Atividade cancelada!'); fetchData(); })
+        .catch((err: unknown) => toast.error(err instanceof Error ? err.message : 'Erro'));
+    } else {
+      const now = new Date();
+      const hh = String(now.getHours()).padStart(2, '0');
+      const mm = String(now.getMinutes()).padStart(2, '0');
+      setTimeInput(`${hh}:${mm}`);
+      setTimeModal({ cod, action });
+    }
+  };
+
+  const handleTimeConfirm = async () => {
+    if (!timeModal) return;
+    if (!/^\d{2}:\d{2}$/.test(timeInput)) { toast.error('Horário inválido. Use o formato hh:mm'); return; }
     try {
-      await http.put(`/api/operacoes/atividades/${cod}/${action}`, {});
-      const msgs = { iniciar: 'Atividade iniciada!', terminar: 'Atividade concluída!', cancelar: 'Atividade cancelada!' };
-      toast.success(msgs[action]);
+      await http.put(`/api/operacoes/atividades/${timeModal.cod}/${timeModal.action}`, { horario: timeInput });
+      const msgs = { iniciar: 'Atividade iniciada!', terminar: 'Atividade concluída!' };
+      toast.success(msgs[timeModal.action]);
+      setTimeModal(null);
       fetchData();
     } catch (err: unknown) { toast.error(err instanceof Error ? err.message : 'Erro'); }
   };
@@ -291,6 +310,31 @@ export default function MonitorAtividades({ onBack }: { onBack: () => void }) {
               <button className="btn btn-sm" style={{ background: 'rgba(255,255,255,.07)', color: '#9BA4AB', fontSize: 12, padding: '8px 20px' }} onClick={() => setShowModal(false)}>Cancelar</button>
               <button className="btn btn-sm" style={{ background: '#7F77DD', color: '#fff', fontSize: 12, padding: '8px 24px', fontWeight: 700 }} onClick={handleSave} disabled={saving}>
                 {saving ? <><span className="spinner-border spinner-border-sm me-1" />Salvando…</> : <><i className="bi bi-check-lg me-1" />Registrar</>}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Time Modal */}
+      {timeModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: 16 }}>
+          <div style={{ background: '#132230', border: '1px solid #1a3a6e', borderTop: `3px solid ${timeModal.action === 'iniciar' ? '#0F6E56' : '#204294'}`, borderRadius: 8, padding: '28px 32px', width: '100%', maxWidth: 340, boxShadow: '0 8px 32px rgba(0,0,0,.4)' }}>
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ color: timeModal.action === 'iniciar' ? '#0F6E56' : '#204294', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.18em' }}>Monitor de Atividades</div>
+              <div style={{ color: '#fff', fontWeight: 900, fontSize: 15, textTransform: 'uppercase' }}>
+                {timeModal.action === 'iniciar' ? 'Horário de Início' : 'Horário de Término'}
+              </div>
+            </div>
+            <div className="mb-4">
+              <label style={{ color: '#9BA4AB', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.14em' }}>Horário (hh:mm) *</label>
+              <input type="time" className="form-control mt-1"
+                style={{ background: 'var(--ccm-ink)', border: '1px solid #1a3a6e', color: '#fff', fontSize: 18, fontWeight: 700, textAlign: 'center' }}
+                value={timeInput} onChange={e => setTimeInput(e.target.value)} />
+            </div>
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+              <button className="btn btn-sm" style={{ background: 'rgba(255,255,255,.07)', color: '#9BA4AB', fontSize: 12, padding: '8px 20px' }} onClick={() => setTimeModal(null)}>Cancelar</button>
+              <button className="btn btn-sm" style={{ background: timeModal.action === 'iniciar' ? '#0F6E56' : '#204294', color: '#fff', fontSize: 12, padding: '8px 24px', fontWeight: 700 }} onClick={handleTimeConfirm}>
+                <i className="bi bi-check-lg me-1" />Confirmar
               </button>
             </div>
           </div>

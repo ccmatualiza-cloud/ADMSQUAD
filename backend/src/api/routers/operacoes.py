@@ -285,16 +285,21 @@ async def create_atividade(
         raise HTTPException(status_code=500, detail=str(exc))
 
 
+class HorarioBody(BaseModel):
+    horario: str  # hh:mm
+
+
 @router.put("/atividades/{cod}/iniciar")
 async def iniciar_atividade(
     cod: int,
+    body: HorarioBody,
     _: Annotated[dict, Depends(get_current_user)],
     session: Annotated[AsyncSession, Depends(get_db)],
 ) -> dict:
     try:
         await session.execute(
-            text("UPDATE tbl_atividades SET status='Em Andamento', horainicio=DATE_FORMAT(NOW(),'%H:%i') WHERE cod=:cod"),
-            {"cod": cod}
+            text("UPDATE tbl_atividades SET status='Em Andamento', horainicio=:horainicio WHERE cod=:cod"),
+            {"horainicio": body.horario, "cod": cod}
         )
         await session.commit()
         return {"updated": True}
