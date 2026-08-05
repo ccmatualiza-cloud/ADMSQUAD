@@ -46,8 +46,8 @@ export default function BiPage({ onBack }: { onBack: () => void }) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 5, overflowY: 'auto', maxHeight: 440 }}>
             {vpuData.map((d, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <div style={{ fontSize: 9, fontWeight: 700, color: 'var(--ccm-ink)', width: 170, textAlign: 'right', flexShrink: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={d.razao}>{d.razao}</div>
-                <div style={{ flex: 1, height: 7, background: '#F0F4FA', borderRadius: 99, overflow: 'hidden' }}>
+                <div style={{ fontSize: 9, fontWeight: 700, color: 'var(--ccm-ink)', width: 200, textAlign: 'right', flexShrink: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={d.razao}>{d.razao}</div>
+                <div style={{ flex: 1, height: 4, background: '#F0F4FA', borderRadius: 99, overflow: 'hidden' }}>
                   <div style={{ width: `${Math.round((d.qtdusers / max) * 100)}%`, height: '100%', background: 'var(--ccm-blue)', borderRadius: 99 }} />
                 </div>
                 <div style={{ fontSize: 9, fontWeight: 700, color: 'var(--ccm-blue)', width: 34, textAlign: 'left', flexShrink: 0 }}>
