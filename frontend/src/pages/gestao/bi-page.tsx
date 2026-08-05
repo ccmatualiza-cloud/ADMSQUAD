@@ -83,7 +83,7 @@ export default function BiPage({ onBack }: { onBack: () => void }) {
     const yLabels = [0, 0.5, 1];
     return (
       <div style={{ background: '#fff', border: '1px solid var(--ccm-line)', borderRadius: 8, padding: '16px 18px', boxShadow: '0 1px 4px rgba(12,25,33,.06)' }}>
-        <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--ccm-ink)', marginBottom: 12 }}>Quantidade de atualizações</div>
+        <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--ccm-ink)', marginBottom: 12, textAlign: 'center', textTransform: 'uppercase', letterSpacing: '.08em' }}>Quantidade de atualizações</div>
         {n === 0 ? (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 160, background: '#F7F8FA', borderRadius: 4 }}>
             <span style={{ fontSize: 12, color: 'var(--ccm-gray-medium)' }}>Carregando...</span>
@@ -96,6 +96,9 @@ export default function BiPage({ onBack }: { onBack: () => void }) {
             {areaPath && <path d={areaPath} fill="rgba(0,176,250,0.12)" />}
             <path d={linePath} fill="none" stroke="#00B0FA" strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
             {pts.map((p) => <circle key={p.data} cx={p.x} cy={p.y} r={3} fill="#00B0FA" />)}
+            {pts.map((p) => (
+              <text key={`v-${p.data}`} x={p.x} y={p.y - 6} textAnchor="middle" fontSize="7" fontWeight="700" fill="#00B0FA">{p.total}</text>
+            ))}
             {pts.filter((_p, i) => i % step === 0 || i === n - 1).map((p) => (
               <text key={p.data} x={p.x} y={H - 4} textAnchor="middle" fontSize="7" fill="#9BA4AB">{p.data.substring(0, 5)}</text>
             ))}
