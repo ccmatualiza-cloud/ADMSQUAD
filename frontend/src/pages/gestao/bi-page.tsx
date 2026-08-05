@@ -116,22 +116,26 @@ export default function BiPage({ onBack }: { onBack: () => void }) {
     const maxG = gruposData.length > 0 ? gruposData[0].total : 1;
     return (
       <div style={{ background: '#fff', border: '1px solid var(--ccm-line)', borderRadius: 8, padding: '16px 18px', boxShadow: '0 1px 4px rgba(12,25,33,.06)' }}>
-        <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--ccm-ink)', marginBottom: 12 }}>Grupos de atualização</div>
+        <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--ccm-ink)', marginBottom: 12, textAlign: 'center', textTransform: 'uppercase', letterSpacing: '.08em' }}>Grupos de atualização</div>
         {gruposData.length === 0 ? (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 160, background: '#F7F8FA', borderRadius: 4 }}>
             <span style={{ fontSize: 12, color: 'var(--ccm-gray-medium)' }}>Carregando...</span>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-            {gruposData.map((d, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <div style={{ fontSize: 9, fontWeight: 700, color: 'var(--ccm-gray-dark)', width: 60, textAlign: 'right', flexShrink: 0 }}>{d.grupo}</div>
-                <div style={{ flex: 1, height: 16, background: '#F0F4FA', borderRadius: 99, overflow: 'hidden' }}>
-                  <div style={{ width: `${Math.round((d.total / maxG) * 100)}%`, height: '100%', background: '#7F77DD', borderRadius: 99 }} />
+            {gruposData.map((d, i) => {
+              const BAR_COLORS = ['#7F77DD','#00B0FA','#1DB954','#F9A825','#E74C3C','#204294','#25D366','#F97316','#0EA5E9','#8B5CF6','#EC4899','#14B8A6'];
+              const color = BAR_COLORS[i % BAR_COLORS.length];
+              return (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div style={{ fontSize: 9, fontWeight: 700, color: 'var(--ccm-gray-dark)', width: 60, textAlign: 'right', flexShrink: 0 }}>{d.grupo}</div>
+                  <div style={{ flex: 1, height: 16, background: '#F0F4FA', borderRadius: 99, overflow: 'hidden' }}>
+                    <div style={{ width: `${Math.round((d.total / maxG) * 100)}%`, height: '100%', background: color, borderRadius: 99 }} />
+                  </div>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: '#1a2e3e', width: 30, flexShrink: 0 }}>{d.total}</div>
                 </div>
-                <div style={{ fontSize: 10, fontWeight: 700, color: '#7F77DD', width: 30, flexShrink: 0 }}>{d.total}</div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
