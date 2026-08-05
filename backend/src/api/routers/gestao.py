@@ -435,3 +435,45 @@ async def bi_stats(
         return {"total_users": total_users, "oracle_count": oracle_count, "sqlserver_count": sqlserver_count, "ccm_vpu": ccm_vpu, "linx_ativo": linx_ativo, "ativos_total": ativos_total, "cancelados": cancelados}
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
+
+
+# ── Caminho BD ────────────────────────────────────────────────────────────────
+
+@router.get("/caminho-bd/status")
+async def get_caminho_bd_status(
+    _: Annotated[dict, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> dict:
+    try:
+        result = await session.execute(
+            text("SELECT caminhobd, databd FROM tbl_auto LIMIT 1")
+        )
+        row = result.fetchone()
+        if not row:
+            return {"caminhobd": "N", "databd": ""}
+        return {"caminhobd": row[0] or "N", "databd": row[1] or ""}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+class CaminhoBdBody(BaseModel):
+    valor: str  # "S" ou "N"
+
+
+@router.put("/caminho-bd/update")
+async def update_caminho_bd(
+    body: CaminhoBdBody,
+    _: Annotated[dict, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> dict:
+    try:
+        from datetime import date
+        databd = date.today().strftime("%d/%m/%Y")
+        await session.execute(
+            text("UPDATE tbl_auto SET caminhobd = :caminhobd, databd = :databd"),
+            {"caminhobd": body.valor, "databd": databd}
+        )
+        await session.commit()
+        return {"updated": True, "caminhobd": body.valor, "databd": databd}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
