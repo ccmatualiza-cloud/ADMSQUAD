@@ -477,3 +477,41 @@ async def update_caminho_bd(
         return {"updated": True, "caminhobd": body.valor, "databd": databd}
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
+
+
+# ── Caminho Updates ────────────────────────────────────────────────────────────
+
+@router.get("/caminho-updates/status")
+async def get_caminho_updates_status(
+    _: Annotated[dict, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> dict:
+    try:
+        result = await session.execute(
+            text("SELECT caminhoup, dataup FROM tbl_auto LIMIT 1")
+        )
+        row = result.fetchone()
+        if not row:
+            return {"caminhoup": "N", "dataup": ""}
+        return {"caminhoup": row[0] or "N", "dataup": row[1] or ""}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@router.put("/caminho-updates/update")
+async def update_caminho_updates(
+    body: CaminhoBdBody,
+    _: Annotated[dict, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> dict:
+    try:
+        from datetime import date
+        dataup = date.today().strftime("%d/%m/%Y")
+        await session.execute(
+            text("UPDATE tbl_auto SET caminhoup = :caminhoup, dataup = :dataup"),
+            {"caminhoup": body.valor, "dataup": dataup}
+        )
+        await session.commit()
+        return {"updated": True, "caminhoup": body.valor, "dataup": dataup}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
