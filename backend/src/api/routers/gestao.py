@@ -415,7 +415,7 @@ async def bi_stats(
         result = await session.execute(
             text(
                 "SELECT COALESCE(SUM(CASE WHEN status IN ('6 - ATIVO','7 - ATIVO VPU','0 - IMPLANTAÇÃO','1 - PRIMEIRO CONTATO') THEN qtdusers ELSE 0 END),0) as total_users,"
-                " SUM(CASE WHEN bd='ORACLE' AND status IN ('6 - ATIVO','7 - ATIVO VPU','1 - PRIMEIRO CONTATO') THEN 1 ELSE 0 END) as oracle_count,"
+                " SUM(CASE WHEN bd='ORACLE' AND status IN ('6 - ATIVO','7 - ATIVO VPU','0 - IMPLANTAÇÃO','1 - PRIMEIRO CONTATO') THEN 1 ELSE 0 END) as oracle_count,"
                 " SUM(CASE WHEN bd='SQLSERVER' AND status IN ('6 - ATIVO','7 - ATIVO VPU','1 - PRIMEIRO CONTATO') THEN 1 ELSE 0 END) as sqlserver_count,"
                 " SUM(CASE WHEN status = '7 - ATIVO VPU' THEN 1 ELSE 0 END) as ccm_vpu,"
                 " SUM(CASE WHEN status IN ('6 - ATIVO','0 - IMPLANTAÇÃO','1 - PRIMEIRO CONTATO') THEN 1 ELSE 0 END) as linx_ativo,"
