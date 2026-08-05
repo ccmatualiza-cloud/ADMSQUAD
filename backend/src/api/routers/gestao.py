@@ -304,7 +304,7 @@ async def bi_vpu_users(
         result = await session.execute(
             text(
                 "SELECT razao, COALESCE(qtdusers,0) as qtdusers FROM tbl_linx "
-                "WHERE status IN ('6 - ATIVO','7 - ATIVO VPU','1 - PRIMEIRO CONTATO') AND qtdusers > 0 "
+                "WHERE status IN ('6 - ATIVO','7 - ATIVO VPU','0 - IMPLANTAÇÃO','1 - PRIMEIRO CONTATO') AND qtdusers > 0 "
                 "ORDER BY qtdusers DESC LIMIT 25"
             )
         )
