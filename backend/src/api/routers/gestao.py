@@ -304,7 +304,7 @@ async def bi_vpu_users(
         result = await session.execute(
             text(
                 "SELECT razao, COALESCE(qtdusers,0) as qtdusers FROM tbl_linx "
-                "WHERE status IN ('6 - ATIVO','7 - ATIVO VPU') AND qtdusers > 0 "
+                "WHERE status IN ('6 - ATIVO','7 - ATIVO VPU','1 - PRIMEIRO CONTATO') AND qtdusers > 0 "
                 "ORDER BY qtdusers DESC LIMIT 25"
             )
         )
@@ -323,7 +323,7 @@ async def bi_grupos_atualizacao(
         result = await session.execute(
             text(
                 "SELECT COALESCE(NULLIF(TRIM(grupo),''), 'SEM GRUPO') as grupo, COUNT(*) as total "
-                "FROM tbl_linx WHERE status = '6 - ATIVO' "
+                "FROM tbl_linx WHERE status IN ('6 - ATIVO','1 - PRIMEIRO CONTATO') "
                 "GROUP BY grupo ORDER BY total DESC"
             )
         )
@@ -389,7 +389,7 @@ async def bi_faixas_users(
                 "  SUM(CASE WHEN qtdusers BETWEEN 51  AND 100  THEN 1 ELSE 0 END) as f51_100, "
                 "  SUM(CASE WHEN qtdusers BETWEEN 101 AND 300  THEN 1 ELSE 0 END) as f101_300, "
                 "  SUM(CASE WHEN qtdusers BETWEEN 301 AND 1200 THEN 1 ELSE 0 END) as f301_1200 "
-                "FROM tbl_linx WHERE status = '6 - ATIVO' AND qtdusers > 0"
+                "FROM tbl_linx WHERE status IN ('6 - ATIVO','1 - PRIMEIRO CONTATO') AND qtdusers > 0"
             )
         )
         row = result.fetchone()
@@ -415,11 +415,11 @@ async def bi_stats(
         result = await session.execute(
             text(
                 "SELECT COALESCE(SUM(qtdusers),0) as total_users,"
-                " SUM(CASE WHEN bd='ORACLE' AND status IN ('6 - ATIVO','7 - ATIVO VPU') THEN 1 ELSE 0 END) as oracle_count,"
-                " SUM(CASE WHEN bd='SQLSERVER' AND status IN ('6 - ATIVO','7 - ATIVO VPU') THEN 1 ELSE 0 END) as sqlserver_count,"
-                " SUM(CASE WHEN status='7 - ATIVO VPU' THEN 1 ELSE 0 END) as ccm_vpu,"
-                " SUM(CASE WHEN status='6 - ATIVO' THEN 1 ELSE 0 END) as linx_ativo,"
-                " SUM(CASE WHEN status IN ('6 - ATIVO','7 - ATIVO VPU') THEN 1 ELSE 0 END) as ativos_total,"
+                " SUM(CASE WHEN bd='ORACLE' AND status IN ('6 - ATIVO','7 - ATIVO VPU','1 - PRIMEIRO CONTATO') THEN 1 ELSE 0 END) as oracle_count,"
+                " SUM(CASE WHEN bd='SQLSERVER' AND status IN ('6 - ATIVO','7 - ATIVO VPU','1 - PRIMEIRO CONTATO') THEN 1 ELSE 0 END) as sqlserver_count,"
+                " SUM(CASE WHEN status IN ('7 - ATIVO VPU','1 - PRIMEIRO CONTATO') THEN 1 ELSE 0 END) as ccm_vpu,"
+                " SUM(CASE WHEN status IN ('6 - ATIVO','1 - PRIMEIRO CONTATO') THEN 1 ELSE 0 END) as linx_ativo,"
+                " SUM(CASE WHEN status IN ('6 - ATIVO','7 - ATIVO VPU','1 - PRIMEIRO CONTATO') THEN 1 ELSE 0 END) as ativos_total,"
                 " SUM(CASE WHEN status='9 - INATIVO' THEN 1 ELSE 0 END) as cancelados"
                 " FROM tbl_linx"
             )
