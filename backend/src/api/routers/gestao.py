@@ -421,7 +421,7 @@ async def bi_stats(
                 " SUM(CASE WHEN status IN ('6 - ATIVO','1 - PRIMEIRO CONTATO') THEN 1 ELSE 0 END) as linx_ativo,"
                 " SUM(CASE WHEN status IN ('6 - ATIVO','7 - ATIVO VPU','1 - PRIMEIRO CONTATO') THEN 1 ELSE 0 END) as ativos_total,"
                 " SUM(CASE WHEN status='9 - INATIVO' THEN 1 ELSE 0 END) as cancelados"
-                " FROM tbl_linx"
+                " FROM tbl_linx WHERE status IN ('6 - ATIVO','7 - ATIVO VPU','0 - IMPLANTAÇÃO','1 - PRIMEIRO CONTATO')"
             )
         )
         row = result.fetchone()
