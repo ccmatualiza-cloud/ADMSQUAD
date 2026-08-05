@@ -37,7 +37,7 @@ export default function BiPage({ onBack }: { onBack: () => void }) {
     const max = vpuData.length > 0 ? vpuData[0].qtdusers : 1;
     return (
       <div style={{ background: '#fff', border: '1px solid var(--ccm-line)', borderRadius: 8, padding: '16px 18px', boxShadow: '0 1px 4px rgba(12,25,33,.06)', height: '100%', boxSizing: 'border-box' }}>
-        <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--ccm-ink)', marginBottom: 12 }}>Maiores clientes VPU — nº users</div>
+        <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--ccm-ink)', marginBottom: 12, textAlign: 'center', textTransform: 'uppercase', letterSpacing: '.08em' }}>Maiores clientes VPU — nº users</div>
         {vpuData.length === 0 ? (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 200, background: '#F7F8FA', borderRadius: 4 }}>
             <span style={{ fontSize: 12, color: 'var(--ccm-gray-medium)' }}>Carregando...</span>
@@ -46,8 +46,8 @@ export default function BiPage({ onBack }: { onBack: () => void }) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 5, overflowY: 'auto', maxHeight: 440 }}>
             {vpuData.map((d, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <div style={{ fontSize: 9, fontWeight: 700, color: 'var(--ccm-ink)', width: 140, textAlign: 'right', flexShrink: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={d.razao}>{d.razao}</div>
-                <div style={{ flex: 1, height: 10, background: '#F0F4FA', borderRadius: 99, overflow: 'hidden' }}>
+                <div style={{ fontSize: 9, fontWeight: 700, color: 'var(--ccm-ink)', width: 170, textAlign: 'right', flexShrink: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={d.razao}>{d.razao}</div>
+                <div style={{ flex: 1, height: 7, background: '#F0F4FA', borderRadius: 99, overflow: 'hidden' }}>
                   <div style={{ width: `${Math.round((d.qtdusers / max) * 100)}%`, height: '100%', background: 'var(--ccm-blue)', borderRadius: 99 }} />
                 </div>
                 <div style={{ fontSize: 9, fontWeight: 700, color: 'var(--ccm-blue)', width: 34, textAlign: 'left', flexShrink: 0 }}>
