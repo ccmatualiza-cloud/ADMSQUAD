@@ -198,7 +198,7 @@ export default function BiPage({ onBack }: { onBack: () => void }) {
     const maxF = faixasData.length > 0 ? Math.max(...faixasData.map(d => d.total)) : 1;
     return (
       <div style={{ background: '#fff', border: '1px solid var(--ccm-line)', borderRadius: 8, padding: '16px 18px', boxShadow: '0 1px 4px rgba(12,25,33,.06)' }}>
-        <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--ccm-ink)', marginBottom: 16 }}>Grupos por quantidade de users</div>
+        <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--ccm-ink)', marginBottom: 16, textAlign: 'center', textTransform: 'uppercase', letterSpacing: '.08em' }}>Grupos por quantidade de users</div>
         {faixasData.length === 0 ? (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 160, background: '#F7F8FA', borderRadius: 4 }}>
             <span style={{ fontSize: 12, color: 'var(--ccm-gray-medium)' }}>Carregando...</span>

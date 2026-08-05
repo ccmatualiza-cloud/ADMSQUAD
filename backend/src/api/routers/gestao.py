@@ -389,7 +389,7 @@ async def bi_faixas_users(
                 "  SUM(CASE WHEN qtdusers BETWEEN 51  AND 100  THEN 1 ELSE 0 END) as f51_100, "
                 "  SUM(CASE WHEN qtdusers BETWEEN 101 AND 300  THEN 1 ELSE 0 END) as f101_300, "
                 "  SUM(CASE WHEN qtdusers BETWEEN 301 AND 1200 THEN 1 ELSE 0 END) as f301_1200 "
-                "FROM tbl_linx WHERE status IN ('6 - ATIVO','1 - PRIMEIRO CONTATO') AND qtdusers > 0"
+                "FROM tbl_linx WHERE status IN ('6 - ATIVO','7 - ATIVO VPU','0 - IMPLANTAÇÃO','1 - PRIMEIRO CONTATO') AND qtdusers > 0"
             )
         )
         row = result.fetchone()
