@@ -123,7 +123,7 @@ export default function DashboardPage() {
         </div>
         <div className="col-12 col-lg-4" style={{ display: 'flex', flexDirection: 'column' }}>
           <div className="chart-card" style={{ flex: 1 }}>
-            <div className="chart-card-title">Pendências por Analista — Em Aberto</div>
+            <div className="chart-card-title">Pendências por Analista</div>
             {pendenciasAnalista.length === 0 ? (
               <div style={{ height: 260, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ccm-gray-dark)', fontSize: 13 }}>
                 Nenhuma pendência em aberto
