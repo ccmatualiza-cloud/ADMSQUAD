@@ -99,8 +99,8 @@ export default function DashboardPage() {
       </div>
 
       <div className="row g-3">
-        <div className="col-12 col-lg-5">
-          <div className="chart-card">
+        <div className="col-12 col-lg-5" style={{ display: 'flex', flexDirection: 'column' }}>
+          <div className="chart-card" style={{ flex: 1 }}>
             <div className="chart-card-title">Agendamento de Atualizações Linx — Agente IA vs Humano</div>
             {historico.length === 0 ? (
               <div style={{ height: 260, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ccm-gray-dark)', fontSize: 13 }}>
@@ -121,8 +121,8 @@ export default function DashboardPage() {
             )}
           </div>
         </div>
-        <div className="col-12 col-lg-4">
-          <div className="chart-card">
+        <div className="col-12 col-lg-4" style={{ display: 'flex', flexDirection: 'column' }}>
+          <div className="chart-card" style={{ flex: 1 }}>
             <div className="chart-card-title">Pendências por Analista — Em Aberto</div>
             {pendenciasAnalista.length === 0 ? (
               <div style={{ height: 260, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ccm-gray-dark)', fontSize: 13 }}>
@@ -142,15 +142,15 @@ export default function DashboardPage() {
             )}
           </div>
         </div>
-        <div className="col-12 col-lg-3">
-          <div className="chart-card">
+        <div className="col-12 col-lg-3" style={{ display: 'flex', flexDirection: 'column' }}>
+          <div className="chart-card" style={{ flex: 1 }}>
             <div className="chart-card-title">Pendências por Status</div>
             {pendenciasStatus.length === 0 ? (
               <div style={{ height: 260, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ccm-gray-dark)', fontSize: 13 }}>
                 Nenhuma pendência em aberto
               </div>
             ) : (() => {
-              const COLORS = ['#E74C3C','#F9A825','#204294','#1DB954','#7F77DD','#00B0FA'];
+              const COLORS = ['#1DB954','#F9A825','#00B0FA','#E74C3C','#7F77DD','#204294'];
               const total = pendenciasStatus.reduce((s, d) => s + d.total, 0);
               return (
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
