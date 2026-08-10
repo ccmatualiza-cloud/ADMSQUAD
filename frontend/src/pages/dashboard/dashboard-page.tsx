@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import {
   LineChart, Line, BarChart, Bar,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
+  PieChart, Pie, Cell,
 } from 'recharts';
 import { useAuthStore } from '../../store/auth-store';
 import { http } from '../../lib/http-client';
@@ -38,7 +39,8 @@ export default function DashboardPage() {
   const [loadingPmo, setLoadingPmo] = useState(true);
   const [loadingSrv, setLoadingSrv] = useState(true);
   const [loadingPen, setLoadingPen] = useState(true);
-  const [pendenciasAnalista, setPendenciasAnalista] = useState<{ nome: string; valor: number }[]>([]);
+  const [pendenciasAnalista, setPendenciasAnalista]   = useState<{ nome: string; valor: number }[]>([]);
+  const [pendenciasStatus, setPendenciasStatus]     = useState<{ status: string; total: number }[]>([]);
   const [historico, setHistorico] = useState<{ data: string; agente_ia: number; humano: number }[]>([]);
 
   useEffect(() => {
@@ -54,6 +56,9 @@ export default function DashboardPage() {
       .then(r => setHistorico(r)).catch(() => setHistorico([]));
     http.get<{ nome: string; valor: number }[]>('/api/dashboard/pendencias-por-analista')
       .then(r => setPendenciasAnalista(r)).catch(() => setPendenciasAnalista([]));
+    http.get<{ status: string; total: number }[]>('/api/dashboard/pendencias-por-status')
+      .then(setPendenciasStatus)
+      .catch(() => {});
     http.get<{ total: number }>('/api/dashboard/pendencias-abertas')
       .then(r => setPendencias(r.total)).catch(() => setPendencias(null)).finally(() => setLoadingPen(false));
   }, []);
@@ -94,7 +99,7 @@ export default function DashboardPage() {
       </div>
 
       <div className="row g-3">
-        <div className="col-12 col-lg-7">
+        <div className="col-12 col-lg-5">
           <div className="chart-card">
             <div className="chart-card-title">Agendamento de Atualizações Linx — Agente IA vs Humano</div>
             {historico.length === 0 ? (
@@ -116,7 +121,7 @@ export default function DashboardPage() {
             )}
           </div>
         </div>
-        <div className="col-12 col-lg-5">
+        <div className="col-12 col-lg-4">
           <div className="chart-card">
             <div className="chart-card-title">Pendências por Analista — Em Aberto</div>
             {pendenciasAnalista.length === 0 ? (
@@ -135,6 +140,43 @@ export default function DashboardPage() {
                 </BarChart>
               </ResponsiveContainer>
             )}
+          </div>
+        </div>
+        <div className="col-12 col-lg-3">
+          <div className="chart-card">
+            <div className="chart-card-title">Pendências por Status</div>
+            {pendenciasStatus.length === 0 ? (
+              <div style={{ height: 260, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ccm-gray-dark)', fontSize: 13 }}>
+                Nenhuma pendência em aberto
+              </div>
+            ) : (() => {
+              const COLORS = ['#E74C3C','#F9A825','#204294','#1DB954','#7F77DD','#00B0FA'];
+              const total = pendenciasStatus.reduce((s, d) => s + d.total, 0);
+              return (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                  <ResponsiveContainer width="100%" height={180}>
+                    <PieChart>
+                      <Pie data={pendenciasStatus} dataKey="total" nameKey="status" cx="50%" cy="50%" outerRadius={70} innerRadius={35}>
+                        {pendenciasStatus.map((_entry, i) => (
+                          <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip formatter={(v: number) => [v, 'Pendências']} contentStyle={{ fontSize: 11 }} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4, width: '100%', padding: '0 8px' }}>
+                    {pendenciasStatus.map((d, i) => (
+                      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 10 }}>
+                        <div style={{ width: 10, height: 10, borderRadius: 2, background: COLORS[i % COLORS.length], flexShrink: 0 }} />
+                        <span style={{ flex: 1, color: 'var(--ccm-gray-dark)', textTransform: 'capitalize' }}>{d.status}</span>
+                        <span style={{ fontWeight: 700, color: COLORS[i % COLORS.length] }}>{d.total}</span>
+                        <span style={{ color: 'var(--ccm-gray-medium)' }}>({Math.round((d.total/total)*100)}%)</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         </div>
       </div>

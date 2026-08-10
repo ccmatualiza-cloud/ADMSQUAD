@@ -147,3 +147,24 @@ async def historico_atualizacoes(
         return list(reversed(data))
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
+
+
+@router.get("/pendencias-por-status")
+async def pendencias_por_status(
+    _: Annotated[dict, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> list[dict]:
+    try:
+        result = await session.execute(
+            text("""
+                SELECT status, COUNT(*) as total
+                FROM tbl_pendencias
+                WHERE status != 'resolvido'
+                GROUP BY status
+                ORDER BY total DESC
+            """)
+        )
+        rows = result.fetchall()
+        return [{"status": r[0] or "sem status", "total": int(r[1])} for r in rows]
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
