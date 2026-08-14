@@ -53,6 +53,7 @@ export default function OperacoesPage() {
         <Card title="PMP"                   desc="Acesso aos servidores de clientes."                  color="#204294" bg="#E8EDF7" icon="bi-server"                     external="https://pmp.ccm.local:7272/" />
         <Card title="Zabbix"                desc="Monitoramento de clientes."                          color="#CC0000" bg="#FDEAEA" icon="bi-activity"                   external="https://zbx.ccmcloud.com.br/index.php?request=zabbix.php%3Faction%3Dlatest.view" />
         <Card title="Grafana"               desc="Monitoramento gráfico de clientes."                  color="#F46800" bg="#FEF0E6" icon="bi-bar-chart-line-fill"        external="https://monitor.ccmtecnologia.com.br/login" />
+        <Card title="Smart Time"            desc="Controle ausências, trocas de turno e plantões."      color="#00B0FA" bg="#E8F7FF" icon="bi-clock-history"              external="https://cliq.ccmtecnologia.com.br/company/690505464/bots/smarttimebot" />
         <Card title="Gerador de Código CCM"  desc="Gerar códigos CCM integrado ao sistema."             color="#204294" bg="#E8EDF7" icon="bi-qr-code"                   onClick={() => setSubPage('gerador')} />
         <div className="col-12 col-md-4 col-lg-3">
           <div style={{ background: '#F7F8FA', border: '1px dashed var(--ccm-line)', borderRadius: 6, padding: '20px 22px', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 120, color: 'var(--ccm-gray-medium)', fontSize: 12, letterSpacing: '.08em' }}>
