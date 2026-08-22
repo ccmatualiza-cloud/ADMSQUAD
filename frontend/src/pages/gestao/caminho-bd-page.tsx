@@ -111,6 +111,22 @@ export default function CaminhoBdPage({ onBack }: { onBack: () => void }) {
                   <span className="spinner-border spinner-border-sm me-2" />Salvando...
                 </div>
               )}
+
+              {/* Instructions */}
+              <div style={{ marginTop: 24, background: '#F7F8FA', borderRadius: 8, padding: '16px 20px', textAlign: 'left', borderLeft: '3px solid var(--ccm-blue)' }}>
+                <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.12em', color: 'var(--ccm-blue)', marginBottom: 10 }}>Instruções</div>
+                <ol style={{ margin: 0, paddingLeft: 18, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <li style={{ fontSize: 12, color: 'var(--ccm-gray-dark)', lineHeight: 1.5 }}>
+                    Dentro do servidor All-in-One, colocar o arquivo correto em <code style={{ background: '#E8EDF7', padding: '1px 6px', borderRadius: 4, fontSize: 11 }}>C:\laragon\www\linx\linxcambd\updatebd.zip</code>
+                  </li>
+                  <li style={{ fontSize: 12, color: 'var(--ccm-gray-dark)', lineHeight: 1.5 }}>
+                    Ativar o botão desta página.
+                  </li>
+                  <li style={{ fontSize: 12, color: 'var(--ccm-gray-dark)', lineHeight: 1.5 }}>
+                    Quando o sistema abrir no servidor do cliente, ele irá substituir o arquivo de conexão com banco.
+                  </li>
+                </ol>
+              </div>
             </>
           )}
         </div>
