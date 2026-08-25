@@ -111,6 +111,27 @@ export default function CaminhoUpdatesPage({ onBack }: { onBack: () => void }) {
                   <span className="spinner-border spinner-border-sm me-2" />Salvando...
                 </div>
               )}
+
+              {/* Instructions */}
+              <div style={{ marginTop: 24, background: '#F7F8FA', borderRadius: 8, padding: '16px 20px', textAlign: 'left', borderLeft: '3px solid #7F77DD' }}>
+                <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.12em', color: '#7F77DD', marginBottom: 10 }}>Instruções</div>
+                <ol style={{ margin: 0, paddingLeft: 18, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <li style={{ fontSize: 12, color: 'var(--ccm-gray-dark)', lineHeight: 1.5 }}>
+                    Dentro do servidor All-in-One, colocar os arquivos corretos em:
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 6 }}>
+                      <code style={{ background: '#E8EDF7', padding: '2px 8px', borderRadius: 4, fontSize: 11, display: 'block' }}>C:\laragon\www\linx\5.19\ess\SistemaCorrespondente\sistemaess.zip</code>
+                      <code style={{ background: '#E8EDF7', padding: '2px 8px', borderRadius: 4, fontSize: 11, display: 'block' }}>C:\laragon\www\linx\5.19\evo\SistemaCorrespondente\sistemaevo.zip</code>
+                      <code style={{ background: '#E8EDF7', padding: '2px 8px', borderRadius: 4, fontSize: 11, display: 'block' }}>C:\laragon\www\linx\linxdmsweb\sistemaWeb.zip</code>
+                    </div>
+                  </li>
+                  <li style={{ fontSize: 12, color: 'var(--ccm-gray-dark)', lineHeight: 1.5 }}>
+                    Ativar o botão desta página.
+                  </li>
+                  <li style={{ fontSize: 12, color: 'var(--ccm-gray-dark)', lineHeight: 1.5 }}>
+                    Quando o sistema abrir no servidor do cliente, ele irá substituir os arquivos que contém links para baixar pacotes do DVI-Linx.
+                  </li>
+                </ol>
+              </div>
             </>
           )}
         </div>
