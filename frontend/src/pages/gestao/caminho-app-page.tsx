@@ -111,6 +111,25 @@ export default function CaminhoAppPage({ onBack }: { onBack: () => void }) {
                   <span className="spinner-border spinner-border-sm me-2" />Salvando...
                 </div>
               )}
+
+              {/* Instructions */}
+              <div style={{ marginTop: 24, background: '#F7F8FA', borderRadius: 8, padding: '16px 20px', textAlign: 'left', borderLeft: '3px solid #F9A825' }}>
+                <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.12em', color: '#F9A825', marginBottom: 10 }}>Instruções</div>
+                <ol style={{ margin: 0, paddingLeft: 18, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <li style={{ fontSize: 12, color: 'var(--ccm-gray-dark)', lineHeight: 1.5 }}>
+                    Dentro do servidor All-in-One, colocar os arquivos corretos em:
+                    <div style={{ marginTop: 6 }}>
+                      <code style={{ background: '#E8EDF7', padding: '2px 8px', borderRadius: 4, fontSize: 11, display: 'block' }}>C:\laragon\www\linx\linxapp\Linxapp.zip</code>
+                    </div>
+                  </li>
+                  <li style={{ fontSize: 12, color: 'var(--ccm-gray-dark)', lineHeight: 1.5 }}>
+                    Ativar o botão desta página.
+                  </li>
+                  <li style={{ fontSize: 12, color: 'var(--ccm-gray-dark)', lineHeight: 1.5 }}>
+                    Quando o sistema abrir no servidor do cliente, ele irá substituir os arquivos que contém app para baixar e instalar além das atualizações normais dos pacotes do DVI-Linx.
+                  </li>
+                </ol>
+              </div>
             </>
           )}
         </div>
