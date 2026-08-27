@@ -50,7 +50,7 @@ export default function ConsultarAtualizacaoLinx({ onBack }: { onBack: () => voi
   const handleCancelar = async (cod: number, razao: string) => {
     if (!confirm(`Cancelar agendamento de "${razao}"? Isso zerará a data e marcará como concluído.`)) return;
     try {
-      await http.del(`/api/cx/agendar-atualizacao/${cod}`);
+      await http.del(`/api/cx/consultar-atualizacao/${cod}/cancelar`);
       fetchClientes(search, dataFiltro);
     } catch { /* silent */ }
   };

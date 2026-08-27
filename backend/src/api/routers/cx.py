@@ -672,3 +672,37 @@ async def list_consultar_atualizacao(
         return [ConsultaItem(**dict(zip(keys, r))) for r in rows]
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
+
+
+@router.delete("/consultar-atualizacao/{cod}/cancelar")
+async def cancelar_agendamento_consulta(
+    cod: int,
+    _: Annotated[dict, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> dict:
+    try:
+        # Busca dados antes
+        r = await session.execute(
+            text("SELECT cliente, dt_atualiza FROM tbl_linx WHERE cod = :cod"),
+            {"cod": cod}
+        )
+        row = r.fetchone()
+
+        # UPDATE tbl_linx — zera data e marca concluido=100
+        await session.execute(
+            text("UPDATE tbl_linx SET dt_atualiza = '00/00/0000', concluido = 100 WHERE cod = :cod"),
+            {"cod": cod}
+        )
+
+        # DELETE tbl_history
+        if row:
+            cliente, data = row
+            await session.execute(
+                text("DELETE FROM tbl_history WHERE cliente = :cliente AND data = :data"),
+                {"cliente": cliente or "", "data": data or ""}
+            )
+
+        await session.commit()
+        return {"cancelled": True}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
