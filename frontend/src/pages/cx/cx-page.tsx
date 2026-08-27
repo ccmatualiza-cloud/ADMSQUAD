@@ -4,9 +4,10 @@ import MonitorAtualizacoes  from './monitor-atualizacoes';
 import AgendarAtualizacao   from './agendar-atualizacao';
 import AdiantarAtendimentos from './adiantar-atendimentos';
 import ZohoDeskDashboard    from './zoho-desk-dashboard';
+import TouchPointsPage      from './touchpoints-page';
 import ConsultarAtualizacaoLinx from './consultar-atualizacao-linx';
 
-type SubPage = null | 'clientes' | 'monitor' | 'agendar' | 'consultar' | 'adiantar' | 'zoho';
+type SubPage = null | 'clientes' | 'monitor' | 'agendar' | 'consultar' | 'adiantar' | 'zoho' | 'touchpoints';
 
 export default function CxPage() {
   const [subPage, setSubPage] = useState<SubPage>(null);
@@ -16,7 +17,8 @@ export default function CxPage() {
   if (subPage === 'agendar')   return <AgendarAtualizacao  onBack={() => setSubPage(null)} />;
   if (subPage === 'consultar') return <ConsultarAtualizacaoLinx onBack={() => setSubPage(null)} />;
   if (subPage === 'adiantar')  return <AdiantarAtendimentos onBack={() => setSubPage(null)} />;
-  if (subPage === 'zoho')      return <ZohoDeskDashboard     onBack={() => setSubPage(null)} />;
+  if (subPage === 'zoho')        return <ZohoDeskDashboard   onBack={() => setSubPage(null)} />;
+  if (subPage === 'touchpoints') return <TouchPointsPage     onBack={() => setSubPage(null)} />;
 
   const Card = ({ title, desc, color, icon, onClick }: { title: string; desc: string; color: string; icon: string; onClick: () => void }) => (
     <div className="col-12 col-md-4 col-lg-3">
@@ -48,6 +50,7 @@ export default function CxPage() {
         <Card title="Consultar Atualização Linx" desc="Consultar última atualização do cliente."                   color="#F9A825" icon="bi-search"               onClick={() => setSubPage('consultar')} />
         <Card title="Adiantar Atendimento Linx"  desc="Registrar atendimentos sem ticket aberto."                  color="#E74C3C" icon="bi-ticket-detailed"      onClick={() => setSubPage('adiantar')} />
         <Card title="Dashboard Zoho Desk"         desc="Informações de tickets da squad."                          color="#E44C37" icon="bi-headset"               onClick={() => setSubPage('zoho')} />
+        <Card title="TouchPoints"                 desc="Controle de contatos e interações com clientes."          color="#1DB954" icon="bi-telephone-fill"        onClick={() => setSubPage('touchpoints')} />
         <div className="col-12 col-md-4 col-lg-3">
           <div style={{ background: '#F7F8FA', border: '1px dashed var(--ccm-line)', borderRadius: 6, padding: '20px 22px', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 120, color: 'var(--ccm-gray-medium)', fontSize: 12, letterSpacing: '.08em' }}>
             <i className="bi bi-plus-circle me-2" />Em breve

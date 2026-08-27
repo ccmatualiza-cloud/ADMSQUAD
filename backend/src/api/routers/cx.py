@@ -706,3 +706,127 @@ async def cancelar_agendamento_consulta(
         return {"cancelled": True}
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
+
+
+# ── TouchPoints ────────────────────────────────────────────────────────────────
+
+class TouchPointItem(BaseModel):
+    cod: int
+    cliente: str
+    data: str | None = None
+    periodo: str | None = None
+    hora: str | None = None
+    nota_contato: str | None = None
+    crm: str | None = None
+    status: str
+    created_at: str | None = None
+
+
+class TouchPointCreate(BaseModel):
+    cliente: str
+    data: str = ""
+    periodo: str = ""
+    hora: str = ""
+    nota_contato: str = ""
+    crm: str = ""
+    status: str = "Aberto"
+
+
+class TouchPointUpdate(BaseModel):
+    cliente: str | None = None
+    data: str | None = None
+    periodo: str | None = None
+    hora: str | None = None
+    nota_contato: str | None = None
+    crm: str | None = None
+    status: str | None = None
+
+
+@router.get("/touchpoints", response_model=list[TouchPointItem])
+async def list_touchpoints(
+    q: str = "",
+    _: Annotated[dict, Depends(get_current_user)] = None,
+    session: Annotated[AsyncSession, Depends(get_db)] = None,
+) -> list[TouchPointItem]:
+    try:
+        where = "WHERE 1=1"
+        params: dict = {}
+        if q:
+            where += " AND (cliente LIKE :q OR crm LIKE :q)"
+            params["q"] = f"%{q}%"
+        result = await session.execute(
+            text(f"SELECT cod, cliente, data, periodo, hora, nota_contato, crm, status, created_at FROM tbl_touchpoints {where} ORDER BY created_at DESC"),
+            params
+        )
+        rows = result.fetchall()
+        keys = list(result.keys())
+        items = []
+        for r in rows:
+            d = dict(zip(keys, r))
+            items.append(TouchPointItem(
+                cod=d["cod"], cliente=d["cliente"], data=d.get("data"),
+                periodo=d.get("periodo"), hora=d.get("hora"),
+                nota_contato=d.get("nota_contato"), crm=d.get("crm"),
+                status=d["status"],
+                created_at=str(d["created_at"]) if d.get("created_at") else None,
+            ))
+        return items
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@router.post("/touchpoints", status_code=status.HTTP_201_CREATED)
+async def create_touchpoint(
+    body: TouchPointCreate,
+    _: Annotated[dict, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> dict:
+    try:
+        result = await session.execute(
+            text("INSERT INTO tbl_touchpoints (cliente, data, periodo, hora, nota_contato, crm, status) VALUES (:cliente, :data, :periodo, :hora, :nota_contato, :crm, :status)"),
+            {"cliente": body.cliente, "data": body.data, "periodo": body.periodo,
+             "hora": body.hora, "nota_contato": body.nota_contato,
+             "crm": body.crm, "status": body.status}
+        )
+        await session.commit()
+        return {"created": True, "id": result.lastrowid}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@router.put("/touchpoints/{cod}")
+async def update_touchpoint(
+    cod: int,
+    body: TouchPointUpdate,
+    _: Annotated[dict, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> dict:
+    try:
+        sets, params = [], {"cod": cod}
+        if body.cliente      is not None: sets.append("cliente=:cliente");           params["cliente"]      = body.cliente
+        if body.data         is not None: sets.append("data=:data");                 params["data"]         = body.data
+        if body.periodo      is not None: sets.append("periodo=:periodo");           params["periodo"]      = body.periodo
+        if body.hora         is not None: sets.append("hora=:hora");                 params["hora"]         = body.hora
+        if body.nota_contato is not None: sets.append("nota_contato=:nota_contato"); params["nota_contato"] = body.nota_contato
+        if body.crm          is not None: sets.append("crm=:crm");                   params["crm"]          = body.crm
+        if body.status       is not None: sets.append("status=:status");             params["status"]       = body.status
+        if not sets:
+            raise HTTPException(status_code=400, detail="Nada para atualizar")
+        await session.execute(text(f"UPDATE tbl_touchpoints SET {', '.join(sets)} WHERE cod = :cod"), params)
+        await session.commit()
+        return {"updated": True}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@router.delete("/touchpoints/{cod}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_touchpoint(
+    cod: int,
+    _: Annotated[dict, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> None:
+    try:
+        await session.execute(text("DELETE FROM tbl_touchpoints WHERE cod = :cod"), {"cod": cod})
+        await session.commit()
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
