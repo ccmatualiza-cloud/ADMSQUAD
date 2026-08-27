@@ -9,14 +9,14 @@ interface TouchPoint {
 }
 
 const STATUS_OPTS = ['Agendado', 'Concluido', 'Cancelado'];
-const PERIODO_OPTS = ['Manhã', 'Tarde', 'Noite'];
+const PERIODO_OPTS = ['Mensal', 'Bimestral', 'Trimestral'];
 const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
   'Agendado':  { bg: '#E8EDF7', color: '#204294' },
   'Concluido': { bg: '#D4F5E2', color: '#0E7E3B' },
   'Cancelado': { bg: '#FDDEDE', color: '#9B2020' },
 };
 
-const emptyForm = { cliente: '', data: '', periodo: 'Manhã', hora: '', nota_contato: '', nota: null as number | null, crm: '', status: 'Agendado' };
+const emptyForm = { cliente: '', data: '', periodo: 'Mensal', hora: '', nota_contato: '', nota: null as number | null, crm: '', status: 'Agendado' };
 const inputStyle = { background: 'var(--ccm-ink)', border: '1px solid #1a3a6e', color: '#fff', fontSize: 13 };
 const labelStyle = { color: '#9BA4AB', fontSize: 10, fontWeight: 700 as const, textTransform: 'uppercase' as const, letterSpacing: '.14em' };
 
@@ -50,7 +50,7 @@ export default function TouchPointsPage({ onBack }: { onBack: () => void }) {
   const openCreate = () => { setEditCod(null); setForm(emptyForm); setShowModal(true); };
   const openEdit = (t: TouchPoint) => {
     setEditCod(t.cod);
-    setForm({ cliente: t.cliente, data: t.data ?? '', periodo: t.periodo ?? 'Manhã',
+    setForm({ cliente: t.cliente, data: t.data ?? '', periodo: t.periodo ?? 'Mensal',
               hora: t.hora ?? '', nota_contato: t.nota_contato ?? '',
               nota: t.nota ?? null, crm: t.crm ?? '', status: t.status });
     setShowModal(true);
