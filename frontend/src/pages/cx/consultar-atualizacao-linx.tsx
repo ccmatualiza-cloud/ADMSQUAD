@@ -51,9 +51,8 @@ export default function ConsultarAtualizacaoLinx({ onBack }: { onBack: () => voi
     if (!confirm('Cancelar este agendamento?')) return;
     try {
       await http.del(`/api/cx/agendar-atualizacao/${cod}`);
-      toast.success('Agendamento cancelado!');
-      fetchData();
-    } catch { toast.error('Erro ao cancelar'); }
+      fetchClientes(search, dataFiltro);
+    } catch { /* silent */ }
   };
 
   const th = { color: '#fff', fontWeight: 700, textTransform: 'uppercase' as const, letterSpacing: '.05em', padding: '10px 12px', textAlign: 'left' as const, fontSize: 10, whiteSpace: 'nowrap' as const };
