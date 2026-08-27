@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { http } from '../../lib/http-client';
 
+interface ClienteOpt { cod: number; razao: string | null; }
+
 interface TouchPoint {
   cod: number; cliente: string; data: string | null; periodo: string | null;
   hora: string | null; nota_contato: string | null; nota: number | null;
@@ -30,6 +32,7 @@ export default function TouchPointsPage({ onBack }: { onBack: () => void }) {
   const [search, setSearch]       = useState('');
   const [filterStatus, setFilterStatus] = useState('');
   const [dataIni, setDataIni]     = useState('');
+  const [clientes, setClientes]   = useState<ClienteOpt[]>([]);
   const [dataFim, setDataFim]     = useState('');
 
   const fetchData = async (q = '', ini = dataIni, fim = dataFim) => {
@@ -45,7 +48,17 @@ export default function TouchPointsPage({ onBack }: { onBack: () => void }) {
     finally { setLoading(false); }
   };
 
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => {
+    fetchData();
+    http.get<ClienteOpt[]>('/api/cx/clientes?status_filter=6%20-%20ATIVO')
+      .then(d => {
+        http.get<ClienteOpt[]>('/api/cx/clientes?status_filter=7%20-%20ATIVO%20VPU').then(d2 => {
+          const merged = [...d, ...d2].sort((a, b) => (a.razao || '').localeCompare(b.razao || ''));
+          setClientes(merged);
+        });
+      })
+      .catch(() => {});
+  }, []);
 
   const openCreate = () => { setEditCod(null); setForm(emptyForm); setShowModal(true); };
   const openEdit = (t: TouchPoint) => {
@@ -183,7 +196,14 @@ export default function TouchPointsPage({ onBack }: { onBack: () => void }) {
                         ) : '—'}
                       </td>
                       <td style={{ ...td, maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.nota_contato || '—'}</td>
-                      <td style={{ ...td, maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.crm || '—'}</td>
+                      <td style={{ ...td, maxWidth: 140 }}>
+                        {t.crm ? (
+                          <a href={t.crm.startsWith('http') ? t.crm : `https://${t.crm}`} target="_blank" rel="noopener noreferrer"
+                            style={{ color: '#1DB954', fontSize: 11, textDecoration: 'none' }}>
+                            <i className="bi bi-box-arrow-up-right me-1" />Abrir CRM
+                          </a>
+                        ) : '—'}
+                      </td>
                       <td style={{ ...td, textAlign: 'center' }}>
                         <span style={{ background: si.bg, color: si.color, borderRadius: 99, padding: '2px 9px', fontSize: 10, fontWeight: 700 }}>{t.status}</span>
                       </td>
@@ -221,8 +241,11 @@ export default function TouchPointsPage({ onBack }: { onBack: () => void }) {
             <div className="row g-3">
               <div className="col-12">
                 <label style={labelStyle}>Cliente *</label>
-                <input type="text" className="form-control mt-1" style={inputStyle}
-                  value={form.cliente} onChange={e => setForm(f => ({ ...f, cliente: e.target.value }))} placeholder="Nome do cliente" />
+                <select className="form-select mt-1" style={inputStyle}
+                  value={form.cliente} onChange={e => setForm(f => ({ ...f, cliente: e.target.value }))}>
+                  <option value="">Selecione o cliente...</option>
+                  {clientes.map(c => <option key={c.cod} value={c.razao || ''}>{c.razao || '—'}</option>)}
+                </select>
               </div>
               <div className="col-12 col-md-4">
                 <label style={labelStyle}>Data</label>
@@ -265,9 +288,17 @@ export default function TouchPointsPage({ onBack }: { onBack: () => void }) {
                   value={form.nota_contato} onChange={e => setForm(f => ({ ...f, nota_contato: e.target.value }))} placeholder="Descreva o contato..." />
               </div>
               <div className="col-12 col-md-8">
-                <label style={labelStyle}>CRM</label>
-                <input type="text" className="form-control mt-1" style={inputStyle}
-                  value={form.crm} onChange={e => setForm(f => ({ ...f, crm: e.target.value }))} placeholder="Link ou referência CRM" />
+                <label style={labelStyle}>CRM (Link)</label>
+                <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginTop: 4 }}>
+                  <input type="url" className="form-control" style={inputStyle}
+                    value={form.crm} onChange={e => setForm(f => ({ ...f, crm: e.target.value }))} placeholder="https://..." />
+                  {form.crm && (
+                    <a href={form.crm.startsWith('http') ? form.crm : `https://${form.crm}`} target="_blank" rel="noopener noreferrer"
+                      style={{ color: '#1DB954', fontSize: 18, flexShrink: 0 }} title="Abrir link">
+                      <i className="bi bi-box-arrow-up-right" />
+                    </a>
+                  )}
+                </div>
               </div>
               <div className="col-12 col-md-4">
                 <label style={labelStyle}>Status</label>
