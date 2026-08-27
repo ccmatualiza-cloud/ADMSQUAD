@@ -190,7 +190,7 @@ export default function TouchPointsPage({ onBack }: { onBack: () => void }) {
                   return (
                     <tr key={t.cod} style={{ background: i % 2 === 0 ? '#fff' : '#F7F8FA', borderBottom: '1px solid var(--ccm-line)' }}>
                       <td style={{ ...td, fontWeight: 600, color: 'var(--ccm-ink)', maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.cliente}</td>
-                      <td style={td}>{t.data || '—'}</td>
+                      <td style={td}>{t.data ? (t.data.includes('-') ? t.data.split('-').reverse().join('/') : t.data) : '—'}</td>
                       <td style={td}>{t.periodo || '—'}</td>
                       <td style={td}>{t.hora || '—'}</td>
                       <td style={td}>{t.analista || '—'}</td>
