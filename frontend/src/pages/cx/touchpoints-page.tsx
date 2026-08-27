@@ -7,7 +7,7 @@ interface ClienteOpt { cod: number; razao: string | null; }
 interface TouchPoint {
   cod: number; cliente: string; data: string | null; periodo: string | null;
   hora: string | null; nota_contato: string | null; nota: number | null;
-  crm: string | null; status: string;
+  analista: string | null; crm: string | null; status: string;
 }
 
 const STATUS_OPTS = ['Agendado', 'Concluido', 'Cancelado'];
@@ -18,7 +18,7 @@ const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
   'Cancelado': { bg: '#FDDEDE', color: '#9B2020' },
 };
 
-const emptyForm = { cliente: '', data: '', periodo: 'Mensal', hora: '', nota_contato: '', nota: null as number | null, crm: '', status: 'Agendado' };
+const emptyForm = { cliente: '', data: '', periodo: 'Mensal', hora: '', nota_contato: '', nota: null as number | null, analista: '', crm: '', status: 'Agendado' };
 const inputStyle = { background: 'var(--ccm-ink)', border: '1px solid #1a3a6e', color: '#fff', fontSize: 13 };
 const labelStyle = { color: '#9BA4AB', fontSize: 10, fontWeight: 700 as const, textTransform: 'uppercase' as const, letterSpacing: '.14em' };
 
@@ -33,6 +33,7 @@ export default function TouchPointsPage({ onBack }: { onBack: () => void }) {
   const [filterStatus, setFilterStatus] = useState('');
   const [dataIni, setDataIni]     = useState('');
   const [clientes, setClientes]   = useState<ClienteOpt[]>([]);
+  const [usuarios, setUsuarios]   = useState<{ id: number; name: string }[]>([]);
   const [dataFim, setDataFim]     = useState('');
 
   const fetchData = async (q = '', ini = dataIni, fim = dataFim) => {
@@ -50,6 +51,9 @@ export default function TouchPointsPage({ onBack }: { onBack: () => void }) {
 
   useEffect(() => {
     fetchData();
+    http.get<{ id: number; name: string }[]>('/api/user/by-role')
+      .then(d => setUsuarios([...d].sort((a, b) => a.name.localeCompare(b.name))))
+      .catch(() => {});
     http.get<ClienteOpt[]>('/api/cx/clientes?status_filter=6%20-%20ATIVO')
       .then(d => {
         http.get<ClienteOpt[]>('/api/cx/clientes?status_filter=7%20-%20ATIVO%20VPU').then(d2 => {
@@ -65,7 +69,7 @@ export default function TouchPointsPage({ onBack }: { onBack: () => void }) {
     setEditCod(t.cod);
     setForm({ cliente: t.cliente, data: t.data ?? '', periodo: t.periodo ?? 'Mensal',
               hora: t.hora ?? '', nota_contato: t.nota_contato ?? '',
-              nota: t.nota ?? null, crm: t.crm ?? '', status: t.status });
+              nota: t.nota ?? null, analista: t.analista ?? '', crm: t.crm ?? '', status: t.status });
     setShowModal(true);
   };
 
@@ -170,6 +174,7 @@ export default function TouchPointsPage({ onBack }: { onBack: () => void }) {
                   <th style={th}>Data</th>
                   <th style={th}>Período</th>
                   <th style={th}>Hora</th>
+                  <th style={th}>Analista</th>
                   <th style={th}>Nota</th>
                   <th style={th}>Relato do Contato</th>
                   <th style={th}>CRM</th>
@@ -179,7 +184,7 @@ export default function TouchPointsPage({ onBack }: { onBack: () => void }) {
               </thead>
               <tbody>
                 {filtered.length === 0 ? (
-                  <tr><td colSpan={9} style={{ padding: 32, textAlign: 'center', color: 'var(--ccm-gray-dark)' }}>Nenhum registro encontrado</td></tr>
+                  <tr><td colSpan={10} style={{ padding: 32, textAlign: 'center', color: 'var(--ccm-gray-dark)' }}>Nenhum registro encontrado</td></tr>
                 ) : filtered.map((t, i) => {
                   const si = STATUS_COLORS[t.status] ?? { bg: '#eee', color: '#444' };
                   return (
@@ -188,6 +193,7 @@ export default function TouchPointsPage({ onBack }: { onBack: () => void }) {
                       <td style={td}>{t.data || '—'}</td>
                       <td style={td}>{t.periodo || '—'}</td>
                       <td style={td}>{t.hora || '—'}</td>
+                      <td style={td}>{t.analista || '—'}</td>
                       <td style={{ ...td, textAlign: 'center' }}>
                         {t.nota !== null && t.nota !== undefined ? (
                           <span style={{ background: t.nota >= 8 ? '#D4F5E2' : t.nota >= 5 ? '#FFF8CC' : '#FDDEDE', color: t.nota >= 8 ? '#0E7E3B' : t.nota >= 5 ? '#8A6800' : '#9B2020', borderRadius: 99, padding: '2px 10px', fontSize: 11, fontWeight: 700 }}>
@@ -264,6 +270,15 @@ export default function TouchPointsPage({ onBack }: { onBack: () => void }) {
                 <input type="time" className="form-control mt-1" style={inputStyle}
                   value={form.hora} onChange={e => setForm(f => ({ ...f, hora: e.target.value }))} />
               </div>
+              <div className="col-12 col-md-6">
+                <label style={labelStyle}>Analista</label>
+                <select className="form-select mt-1" style={inputStyle}
+                  value={form.analista} onChange={e => setForm(f => ({ ...f, analista: e.target.value }))}>
+                  <option value="">Selecione...</option>
+                  {usuarios.map(u => <option key={u.id} value={u.name}>{u.name}</option>)}
+                </select>
+              </div>
+
               <div className="col-12">
                 <label style={labelStyle}>Nota do Cliente (1 a 10)</label>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 8 }}>
