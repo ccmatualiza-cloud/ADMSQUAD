@@ -769,7 +769,7 @@ async def list_touchpoints(
             where += " AND STR_TO_DATE(data, '%d/%m/%Y') <= STR_TO_DATE(:data_fim, '%d/%m/%Y')"
             params["data_fim"] = data_fim
         result = await session.execute(
-            text(f"SELECT cod, cliente, data, periodo, hora, nota_contato, nota, analista, crm, status, created_at FROM tbl_touchpoints {where} ORDER BY created_at DESC"),
+            text(f"SELECT cod, cliente, data, periodo, hora, nota_contato, nota, analista, crm, status, created_at FROM tbl_touchpoints {where} ORDER BY STR_TO_DATE(data, '%d/%m/%Y') DESC, created_at DESC"),
             params
         )
         rows = result.fetchall()
