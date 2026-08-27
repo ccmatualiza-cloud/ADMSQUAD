@@ -122,11 +122,11 @@ export default function ConsultarAtualizacaoLinx({ onBack }: { onBack: () => voi
                   <tr key={c.cod} style={{ background: i % 2 === 0 ? '#fff' : '#F7F8FA', borderBottom: '1px solid var(--ccm-line)' }}>
                     <td style={{ ...td, fontSize: 11, fontWeight: 600, color: 'var(--ccm-ink)', maxWidth: 220, minWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.razao || '—'}</td>
                     <td style={{ ...td, fontSize: 11, color: 'var(--ccm-blue)', fontWeight: 600 }}>{c.sistema || '—'}</td>
-                    <td style={{ ...td, fontSize: 11 }}>{c.versao || '—'}</td>
+                    <td style={{ ...td, fontSize: 11, maxWidth: 60, overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.versao || '—'}</td>
                     <td style={{ ...td, fontSize: 11 }}>{c.linxwebver || '—'}</td>
                     <td style={{ ...td, fontSize: 11 }}>{c.linx2camaut || '—'}</td>
                     <td style={{ ...td, fontSize: 11 }}>{c.linx3camaut || '—'}</td>
-                    <td style={{ ...td, fontSize: 11, maxWidth: 80, overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.codigoc || '—'}</td>
+                    <td style={{ ...td, fontSize: 11, maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.codigoc || '—'}</td>
                     <td style={{ ...td, fontSize: 11 }}>{c.pacote || '—'}</td>
                     <td style={{ ...td, fontSize: 11 }}>{c.useragend ? c.useragend.toUpperCase() : '—'}</td>
                     <td style={{ ...td, fontSize: 11 }}>{c.dt_atualiza || '—'}</td>
