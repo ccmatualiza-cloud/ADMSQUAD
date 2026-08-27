@@ -133,13 +133,13 @@ export default function TouchPointsPage({ onBack }: { onBack: () => void }) {
             value={search} onChange={e => setSearch(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && fetchData(search)}
             style={{ maxWidth: 220, fontSize: 13 }} />
-          <input type="date" className="form-control" title="Data início"
+          <input type="text" className="form-control" placeholder="dd/mm/aaaa"
             value={dataIni} onChange={e => setDataIni(e.target.value)}
-            style={{ maxWidth: 150, fontSize: 13 }} />
+            style={{ maxWidth: 130, fontSize: 13 }} maxLength={10} />
           <span style={{ color: 'var(--ccm-gray-dark)', fontSize: 12 }}>até</span>
-          <input type="date" className="form-control" title="Data fim"
+          <input type="text" className="form-control" placeholder="dd/mm/aaaa"
             value={dataFim} onChange={e => setDataFim(e.target.value)}
-            style={{ maxWidth: 150, fontSize: 13 }} />
+            style={{ maxWidth: 130, fontSize: 13 }} maxLength={10} />
           <select className="form-select" value={filterStatus} onChange={e => setFilterStatus(e.target.value)} style={{ maxWidth: 160, fontSize: 13 }}>
             <option value="">Todos os status</option>
             {STATUS_OPTS.map(s => <option key={s} value={s}>{s}</option>)}
@@ -255,8 +255,9 @@ export default function TouchPointsPage({ onBack }: { onBack: () => void }) {
               </div>
               <div className="col-12 col-md-4">
                 <label style={labelStyle}>Data</label>
-                <input type="date" className="form-control mt-1" style={inputStyle}
-                  value={form.data} onChange={e => setForm(f => ({ ...f, data: e.target.value }))} />
+                <input type="text" className="form-control mt-1" style={inputStyle}
+                  value={form.data} onChange={e => setForm(f => ({ ...f, data: e.target.value }))}
+                  placeholder="dd/mm/aaaa" maxLength={10} />
               </div>
               <div className="col-12 col-md-4">
                 <label style={labelStyle}>Período</label>

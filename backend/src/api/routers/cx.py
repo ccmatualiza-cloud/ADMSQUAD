@@ -763,10 +763,10 @@ async def list_touchpoints(
             where += " AND (cliente LIKE :q OR crm LIKE :q)"
             params["q"] = f"%{q}%"
         if data_ini:
-            where += " AND STR_TO_DATE(data, '%Y-%m-%d') >= STR_TO_DATE(:data_ini, '%Y-%m-%d')"
+            where += " AND STR_TO_DATE(data, '%d/%m/%Y') >= STR_TO_DATE(:data_ini, '%d/%m/%Y')"
             params["data_ini"] = data_ini
         if data_fim:
-            where += " AND STR_TO_DATE(data, '%Y-%m-%d') <= STR_TO_DATE(:data_fim, '%Y-%m-%d')"
+            where += " AND STR_TO_DATE(data, '%d/%m/%Y') <= STR_TO_DATE(:data_fim, '%d/%m/%Y')"
             params["data_fim"] = data_fim
         result = await session.execute(
             text(f"SELECT cod, cliente, data, periodo, hora, nota_contato, nota, analista, crm, status, created_at FROM tbl_touchpoints {where} ORDER BY created_at DESC"),
