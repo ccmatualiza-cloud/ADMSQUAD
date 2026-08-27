@@ -717,6 +717,7 @@ class TouchPointItem(BaseModel):
     periodo: str | None = None
     hora: str | None = None
     nota_contato: str | None = None
+    nota: int | None = None
     crm: str | None = None
     status: str
     created_at: str | None = None
@@ -728,8 +729,9 @@ class TouchPointCreate(BaseModel):
     periodo: str = ""
     hora: str = ""
     nota_contato: str = ""
+    nota: int | None = None
     crm: str = ""
-    status: str = "Aberto"
+    status: str = "Agendado"
 
 
 class TouchPointUpdate(BaseModel):
@@ -738,6 +740,7 @@ class TouchPointUpdate(BaseModel):
     periodo: str | None = None
     hora: str | None = None
     nota_contato: str | None = None
+    nota: int | None = None
     crm: str | None = None
     status: str | None = None
 
@@ -745,6 +748,8 @@ class TouchPointUpdate(BaseModel):
 @router.get("/touchpoints", response_model=list[TouchPointItem])
 async def list_touchpoints(
     q: str = "",
+    data_ini: str = "",
+    data_fim: str = "",
     _: Annotated[dict, Depends(get_current_user)] = None,
     session: Annotated[AsyncSession, Depends(get_db)] = None,
 ) -> list[TouchPointItem]:
@@ -754,8 +759,14 @@ async def list_touchpoints(
         if q:
             where += " AND (cliente LIKE :q OR crm LIKE :q)"
             params["q"] = f"%{q}%"
+        if data_ini:
+            where += " AND STR_TO_DATE(data, '%Y-%m-%d') >= STR_TO_DATE(:data_ini, '%Y-%m-%d')"
+            params["data_ini"] = data_ini
+        if data_fim:
+            where += " AND STR_TO_DATE(data, '%Y-%m-%d') <= STR_TO_DATE(:data_fim, '%Y-%m-%d')"
+            params["data_fim"] = data_fim
         result = await session.execute(
-            text(f"SELECT cod, cliente, data, periodo, hora, nota_contato, crm, status, created_at FROM tbl_touchpoints {where} ORDER BY created_at DESC"),
+            text(f"SELECT cod, cliente, data, periodo, hora, nota_contato, nota, crm, status, created_at FROM tbl_touchpoints {where} ORDER BY created_at DESC"),
             params
         )
         rows = result.fetchall()
@@ -766,7 +777,7 @@ async def list_touchpoints(
             items.append(TouchPointItem(
                 cod=d["cod"], cliente=d["cliente"], data=d.get("data"),
                 periodo=d.get("periodo"), hora=d.get("hora"),
-                nota_contato=d.get("nota_contato"), crm=d.get("crm"),
+                nota_contato=d.get("nota_contato"), nota=d.get("nota"), crm=d.get("crm"),
                 status=d["status"],
                 created_at=str(d["created_at"]) if d.get("created_at") else None,
             ))
@@ -783,9 +794,9 @@ async def create_touchpoint(
 ) -> dict:
     try:
         result = await session.execute(
-            text("INSERT INTO tbl_touchpoints (cliente, data, periodo, hora, nota_contato, crm, status) VALUES (:cliente, :data, :periodo, :hora, :nota_contato, :crm, :status)"),
+            text("INSERT INTO tbl_touchpoints (cliente, data, periodo, hora, nota_contato, nota, crm, status) VALUES (:cliente, :data, :periodo, :hora, :nota_contato, :nota, :crm, :status)"),
             {"cliente": body.cliente, "data": body.data, "periodo": body.periodo,
-             "hora": body.hora, "nota_contato": body.nota_contato,
+             "hora": body.hora, "nota_contato": body.nota_contato, "nota": body.nota,
              "crm": body.crm, "status": body.status}
         )
         await session.commit()
@@ -808,6 +819,7 @@ async def update_touchpoint(
         if body.periodo      is not None: sets.append("periodo=:periodo");           params["periodo"]      = body.periodo
         if body.hora         is not None: sets.append("hora=:hora");                 params["hora"]         = body.hora
         if body.nota_contato is not None: sets.append("nota_contato=:nota_contato"); params["nota_contato"] = body.nota_contato
+        if body.nota          is not None: sets.append("nota=:nota");                 params["nota"]          = body.nota
         if body.crm          is not None: sets.append("crm=:crm");                   params["crm"]          = body.crm
         if body.status       is not None: sets.append("status=:status");             params["status"]       = body.status
         if not sets:

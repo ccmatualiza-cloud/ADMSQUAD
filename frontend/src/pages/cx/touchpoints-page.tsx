@@ -4,18 +4,19 @@ import { http } from '../../lib/http-client';
 
 interface TouchPoint {
   cod: number; cliente: string; data: string | null; periodo: string | null;
-  hora: string | null; nota_contato: string | null; crm: string | null; status: string;
+  hora: string | null; nota_contato: string | null; nota: number | null;
+  crm: string | null; status: string;
 }
 
-const STATUS_OPTS = ['Aberto', 'Concluido', 'Cancelado'];
+const STATUS_OPTS = ['Agendado', 'Concluido', 'Cancelado'];
 const PERIODO_OPTS = ['Manhã', 'Tarde', 'Noite'];
 const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
-  'Aberto':    { bg: '#E8EDF7', color: '#204294' },
+  'Agendado':  { bg: '#E8EDF7', color: '#204294' },
   'Concluido': { bg: '#D4F5E2', color: '#0E7E3B' },
   'Cancelado': { bg: '#FDDEDE', color: '#9B2020' },
 };
 
-const emptyForm = { cliente: '', data: '', periodo: 'Manhã', hora: '', nota_contato: '', crm: '', status: 'Aberto' };
+const emptyForm = { cliente: '', data: '', periodo: 'Manhã', hora: '', nota_contato: '', nota: null as number | null, crm: '', status: 'Agendado' };
 const inputStyle = { background: 'var(--ccm-ink)', border: '1px solid #1a3a6e', color: '#fff', fontSize: 13 };
 const labelStyle = { color: '#9BA4AB', fontSize: 10, fontWeight: 700 as const, textTransform: 'uppercase' as const, letterSpacing: '.14em' };
 
@@ -28,12 +29,17 @@ export default function TouchPointsPage({ onBack }: { onBack: () => void }) {
   const [saving, setSaving]       = useState(false);
   const [search, setSearch]       = useState('');
   const [filterStatus, setFilterStatus] = useState('');
+  const [dataIni, setDataIni]     = useState('');
+  const [dataFim, setDataFim]     = useState('');
 
-  const fetchData = async (q = '') => {
+  const fetchData = async (q = '', ini = dataIni, fim = dataFim) => {
     setLoading(true);
     try {
-      const params = q ? `?q=${encodeURIComponent(q)}` : '';
-      const data = await http.get<TouchPoint[]>(`/api/cx/touchpoints${params}`);
+      const p = new URLSearchParams();
+      if (q) p.set('q', q);
+      if (ini) p.set('data_ini', ini);
+      if (fim) p.set('data_fim', fim);
+      const data = await http.get<TouchPoint[]>(`/api/cx/touchpoints${p.toString() ? '?' + p.toString() : ''}`);
       setItems(data);
     } catch { toast.error('Erro ao carregar touchpoints'); }
     finally { setLoading(false); }
@@ -46,7 +52,7 @@ export default function TouchPointsPage({ onBack }: { onBack: () => void }) {
     setEditCod(t.cod);
     setForm({ cliente: t.cliente, data: t.data ?? '', periodo: t.periodo ?? 'Manhã',
               hora: t.hora ?? '', nota_contato: t.nota_contato ?? '',
-              crm: t.crm ?? '', status: t.status });
+              nota: t.nota ?? null, crm: t.crm ?? '', status: t.status });
     setShowModal(true);
   };
 
@@ -73,6 +79,12 @@ export default function TouchPointsPage({ onBack }: { onBack: () => void }) {
   };
 
   const filtered = items.filter(i => filterStatus ? i.status === filterStatus : true);
+  const totalReg = filtered.length;
+  const notasPreenchidas = filtered.filter(i => i.nota !== null && i.nota !== undefined);
+  const mediaNota = notasPreenchidas.length > 0
+    ? (notasPreenchidas.reduce((s, i) => s + (i.nota ?? 0), 0) / notasPreenchidas.length).toFixed(1)
+    : '—';
+
   const th = { color: '#fff', fontWeight: 700, textTransform: 'uppercase' as const, letterSpacing: '.05em', padding: '10px 12px', textAlign: 'left' as const, fontSize: 10, whiteSpace: 'nowrap' as const };
   const td = { padding: '9px 12px', fontSize: 12, whiteSpace: 'nowrap' as const };
 
@@ -91,27 +103,45 @@ export default function TouchPointsPage({ onBack }: { onBack: () => void }) {
         <div style={{ background: 'var(--ccm-ink)', padding: '12px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderRadius: '6px 6px 0 0' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <i className="bi bi-telephone-fill" style={{ color: '#1DB954', fontSize: 16 }} />
-            <span style={{ color: '#fff', fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.12em' }}>
-              {loading ? 'Carregando...' : `${filtered.length} registro(s)`}
-            </span>
+            <span style={{ color: '#fff', fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.12em' }}>TouchPoints</span>
           </div>
           <button className="btn btn-ccm-primary btn-sm" onClick={openCreate}>
             <i className="bi bi-plus-lg me-1" />Novo
           </button>
         </div>
 
-        <div style={{ padding: '10px 20px', borderBottom: '1px solid var(--ccm-line)', display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+        {/* Filters */}
+        <div style={{ padding: '10px 20px', borderBottom: '1px solid var(--ccm-line)', display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
           <input type="text" className="form-control" placeholder="Buscar cliente, CRM..."
             value={search} onChange={e => setSearch(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && fetchData(search)}
-            style={{ maxWidth: 280, fontSize: 13 }} />
-          <select className="form-select" value={filterStatus} onChange={e => setFilterStatus(e.target.value)} style={{ maxWidth: 180, fontSize: 13 }}>
+            style={{ maxWidth: 220, fontSize: 13 }} />
+          <input type="date" className="form-control" title="Data início"
+            value={dataIni} onChange={e => setDataIni(e.target.value)}
+            style={{ maxWidth: 150, fontSize: 13 }} />
+          <span style={{ color: 'var(--ccm-gray-dark)', fontSize: 12 }}>até</span>
+          <input type="date" className="form-control" title="Data fim"
+            value={dataFim} onChange={e => setDataFim(e.target.value)}
+            style={{ maxWidth: 150, fontSize: 13 }} />
+          <select className="form-select" value={filterStatus} onChange={e => setFilterStatus(e.target.value)} style={{ maxWidth: 160, fontSize: 13 }}>
             <option value="">Todos os status</option>
             {STATUS_OPTS.map(s => <option key={s} value={s}>{s}</option>)}
           </select>
-          <button className="btn btn-ccm-primary btn-sm" onClick={() => fetchData(search)}>
+          <button className="btn btn-ccm-primary btn-sm" onClick={() => fetchData(search, dataIni, dataFim)}>
             <i className="bi bi-search me-1" />Buscar
           </button>
+
+          {/* Mini cards */}
+          <div style={{ marginLeft: 'auto', display: 'flex', gap: 10 }}>
+            <div style={{ background: '#E8EDF7', borderRadius: 6, padding: '6px 16px', textAlign: 'center', minWidth: 80 }}>
+              <div style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', color: '#204294', letterSpacing: '.1em' }}>Registros</div>
+              <div style={{ fontSize: 18, fontWeight: 900, color: '#204294' }}>{loading ? '…' : totalReg}</div>
+            </div>
+            <div style={{ background: '#D4F5E2', borderRadius: 6, padding: '6px 16px', textAlign: 'center', minWidth: 80 }}>
+              <div style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', color: '#0E7E3B', letterSpacing: '.1em' }}>Nota Média</div>
+              <div style={{ fontSize: 18, fontWeight: 900, color: '#0E7E3B' }}>{loading ? '…' : mediaNota}</div>
+            </div>
+          </div>
         </div>
 
         <div style={{ overflowX: 'auto' }}>
@@ -127,7 +157,8 @@ export default function TouchPointsPage({ onBack }: { onBack: () => void }) {
                   <th style={th}>Data</th>
                   <th style={th}>Período</th>
                   <th style={th}>Hora</th>
-                  <th style={th}>Nota Contato</th>
+                  <th style={th}>Nota</th>
+                  <th style={th}>Relato do Contato</th>
                   <th style={th}>CRM</th>
                   <th style={{ ...th, textAlign: 'center' }}>Status</th>
                   <th style={{ ...th, textAlign: 'center' }}>Ações</th>
@@ -135,17 +166,24 @@ export default function TouchPointsPage({ onBack }: { onBack: () => void }) {
               </thead>
               <tbody>
                 {filtered.length === 0 ? (
-                  <tr><td colSpan={8} style={{ padding: 32, textAlign: 'center', color: 'var(--ccm-gray-dark)' }}>Nenhum registro encontrado</td></tr>
+                  <tr><td colSpan={9} style={{ padding: 32, textAlign: 'center', color: 'var(--ccm-gray-dark)' }}>Nenhum registro encontrado</td></tr>
                 ) : filtered.map((t, i) => {
                   const si = STATUS_COLORS[t.status] ?? { bg: '#eee', color: '#444' };
                   return (
                     <tr key={t.cod} style={{ background: i % 2 === 0 ? '#fff' : '#F7F8FA', borderBottom: '1px solid var(--ccm-line)' }}>
-                      <td style={{ ...td, fontWeight: 600, color: 'var(--ccm-ink)', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.cliente}</td>
+                      <td style={{ ...td, fontWeight: 600, color: 'var(--ccm-ink)', maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.cliente}</td>
                       <td style={td}>{t.data || '—'}</td>
                       <td style={td}>{t.periodo || '—'}</td>
                       <td style={td}>{t.hora || '—'}</td>
+                      <td style={{ ...td, textAlign: 'center' }}>
+                        {t.nota !== null && t.nota !== undefined ? (
+                          <span style={{ background: t.nota >= 8 ? '#D4F5E2' : t.nota >= 5 ? '#FFF8CC' : '#FDDEDE', color: t.nota >= 8 ? '#0E7E3B' : t.nota >= 5 ? '#8A6800' : '#9B2020', borderRadius: 99, padding: '2px 10px', fontSize: 11, fontWeight: 700 }}>
+                            {t.nota}/10
+                          </span>
+                        ) : '—'}
+                      </td>
                       <td style={{ ...td, maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.nota_contato || '—'}</td>
-                      <td style={{ ...td, maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.crm || '—'}</td>
+                      <td style={{ ...td, maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.crm || '—'}</td>
                       <td style={{ ...td, textAlign: 'center' }}>
                         <span style={{ background: si.bg, color: si.color, borderRadius: 99, padding: '2px 9px', fontSize: 10, fontWeight: 700 }}>{t.status}</span>
                       </td>
@@ -171,7 +209,7 @@ export default function TouchPointsPage({ onBack }: { onBack: () => void }) {
       {/* Modal */}
       {showModal && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: 16 }}>
-          <div style={{ background: '#132230', border: '1px solid #1a3a6e', borderTop: '3px solid #1DB954', borderRadius: 8, padding: '28px 32px', width: '100%', maxWidth: 560, boxShadow: '0 8px 32px rgba(0,0,0,.4)', maxHeight: '90vh', overflowY: 'auto' }}>
+          <div style={{ background: '#132230', border: '1px solid #1a3a6e', borderTop: '3px solid #1DB954', borderRadius: 8, padding: '28px 32px', width: '100%', maxWidth: 580, boxShadow: '0 8px 32px rgba(0,0,0,.4)', maxHeight: '90vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
               <div>
                 <div style={{ color: '#1DB954', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.18em' }}>CX — TouchPoints</div>
@@ -204,7 +242,25 @@ export default function TouchPointsPage({ onBack }: { onBack: () => void }) {
                   value={form.hora} onChange={e => setForm(f => ({ ...f, hora: e.target.value }))} />
               </div>
               <div className="col-12">
-                <label style={labelStyle}>Nota de Contato</label>
+                <label style={labelStyle}>Nota do Cliente (1 a 10)</label>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 8 }}>
+                  {[1,2,3,4,5,6,7,8,9,10].map(n => (
+                    <button key={n} type="button"
+                      onClick={() => setForm(f => ({ ...f, nota: f.nota === n ? null : n }))}
+                      style={{
+                        width: 38, height: 38, borderRadius: 6, border: '2px solid',
+                        borderColor: form.nota === n ? (n >= 8 ? '#1DB954' : n >= 5 ? '#F9A825' : '#E74C3C') : '#1a3a6e',
+                        background: form.nota === n ? (n >= 8 ? '#1DB954' : n >= 5 ? '#F9A825' : '#E74C3C') : 'transparent',
+                        color: form.nota === n ? '#fff' : '#9BA4AB',
+                        fontWeight: 700, fontSize: 13, cursor: 'pointer',
+                      }}>
+                      {n}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="col-12">
+                <label style={labelStyle}>Relato do Contato</label>
                 <textarea className="form-control mt-1" rows={3} style={{ ...inputStyle, resize: 'vertical' }}
                   value={form.nota_contato} onChange={e => setForm(f => ({ ...f, nota_contato: e.target.value }))} placeholder="Descreva o contato..." />
               </div>
