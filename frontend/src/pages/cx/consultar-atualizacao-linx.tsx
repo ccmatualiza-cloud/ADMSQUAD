@@ -47,8 +47,8 @@ export default function ConsultarAtualizacaoLinx({ onBack }: { onBack: () => voi
   const handleSearch = () => fetchClientes(search, dataFiltro);
   const handleKeyDown = (e: React.KeyboardEvent) => { if (e.key === 'Enter') handleSearch(); };
 
-  const handleCancelar = async (cod: number) => {
-    if (!confirm('Cancelar este agendamento?')) return;
+  const handleCancelar = async (cod: number, razao: string) => {
+    if (!confirm(`Cancelar agendamento de "${razao}"? Isso zerará a data e marcará como concluído.`)) return;
     try {
       await http.del(`/api/cx/agendar-atualizacao/${cod}`);
       fetchClientes(search, dataFiltro);
@@ -133,7 +133,7 @@ export default function ConsultarAtualizacaoLinx({ onBack }: { onBack: () => voi
                     <td style={{ ...td, textAlign: 'center' }}>{concluidoBadge(c.concluido)}</td>
                     <td style={{ ...td, textAlign: 'center' }}>
                       <button className="btn btn-sm" style={{ background: '#E74C3C', color: '#fff', fontSize: 10, padding: '2px 8px', lineHeight: 1 }}
-                        onClick={() => handleCancelar(c.cod)} title="Cancelar agendamento">
+                        onClick={() => handleCancelar(c.cod, c.razao || '')} title="Cancelar agendamento">
                         <i className="bi bi-x-lg" />
                       </button>
                     </td>
