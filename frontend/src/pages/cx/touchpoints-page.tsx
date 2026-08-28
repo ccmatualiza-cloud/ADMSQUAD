@@ -18,7 +18,7 @@ const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
   'Cancelado': { bg: '#FDDEDE', color: '#9B2020' },
 };
 
-const emptyForm = { cliente: '', data: '', periodo: 'Mensal', hora: '', nota_contato: '', nota: null as number | null, analista: '', crm: '', status: 'Agendado' };
+const emptyForm = { cliente: '', contato: '', data: '', periodo: 'Mensal', hora: '', nota_contato: '', nota: null as number | null, analista: '', crm: '', status: 'Agendado' };
 const inputStyle = { background: 'var(--ccm-ink)', border: '1px solid #1a3a6e', color: '#fff', fontSize: 13 };
 const labelStyle = { color: '#9BA4AB', fontSize: 10, fontWeight: 700 as const, textTransform: 'uppercase' as const, letterSpacing: '.14em' };
 
@@ -67,7 +67,7 @@ export default function TouchPointsPage({ onBack }: { onBack: () => void }) {
   const openCreate = () => { setEditCod(null); setForm(emptyForm); setShowModal(true); };
   const openEdit = (t: TouchPoint) => {
     setEditCod(t.cod);
-    setForm({ cliente: t.cliente, data: t.data ?? '', periodo: t.periodo ?? 'Mensal',
+    setForm({ cliente: t.cliente, contato: t.contato ?? '', data: t.data ?? '', periodo: t.periodo ?? 'Mensal',
               hora: t.hora ?? '', nota_contato: t.nota_contato ?? '',
               nota: t.nota ?? null, analista: t.analista ?? '', crm: t.crm ?? '', status: t.status });
     setShowModal(true);
@@ -171,6 +171,7 @@ export default function TouchPointsPage({ onBack }: { onBack: () => void }) {
               <thead>
                 <tr style={{ background: 'var(--ccm-blue)' }}>
                   <th style={th}>Cliente</th>
+                  <th style={th}>Contato</th>
                   <th style={th}>Data</th>
                   <th style={th}>Período</th>
                   <th style={th}>Hora</th>
@@ -184,12 +185,13 @@ export default function TouchPointsPage({ onBack }: { onBack: () => void }) {
               </thead>
               <tbody>
                 {filtered.length === 0 ? (
-                  <tr><td colSpan={10} style={{ padding: 32, textAlign: 'center', color: 'var(--ccm-gray-dark)' }}>Nenhum registro encontrado</td></tr>
+                  <tr><td colSpan={11} style={{ padding: 32, textAlign: 'center', color: 'var(--ccm-gray-dark)' }}>Nenhum registro encontrado</td></tr>
                 ) : filtered.map((t, i) => {
                   const si = STATUS_COLORS[t.status] ?? { bg: '#eee', color: '#444' };
                   return (
                     <tr key={t.cod} style={{ background: i % 2 === 0 ? '#fff' : '#F7F8FA', borderBottom: '1px solid var(--ccm-line)' }}>
                       <td style={{ ...td, fontWeight: 600, color: 'var(--ccm-ink)', maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.cliente}</td>
+                      <td style={{ ...td, maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.contato || '—'}</td>
                       <td style={td}>{t.data ? (t.data.includes('-') ? t.data.split('-').reverse().join('/') : t.data) : '—'}</td>
                       <td style={td}>{t.periodo || '—'}</td>
                       <td style={td}>{t.hora || '—'}</td>
@@ -253,6 +255,12 @@ export default function TouchPointsPage({ onBack }: { onBack: () => void }) {
                   {clientes.map(c => <option key={c.cod} value={c.razao || ''}>{c.razao || '—'}</option>)}
                 </select>
               </div>
+              <div className="col-12">
+                <label style={labelStyle}>Contato</label>
+                <input type="text" className="form-control mt-1" style={inputStyle}
+                  value={form.contato} onChange={e => setForm(f => ({ ...f, contato: e.target.value }))} placeholder="Nome do contato" />
+              </div>
+
               <div className="col-12 col-md-4">
                 <label style={labelStyle}>Data</label>
                 <input type="text" className="form-control mt-1" style={inputStyle}

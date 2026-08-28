@@ -512,6 +512,7 @@ class AdiantarCreate(BaseModel):
 
 class AdiantarUpdate(BaseModel):
     cliente: str | None = None
+    contato: str | None = None
     data: str | None = None
     analista: str | None = None
     ticket_linx: str | None = None
@@ -713,6 +714,7 @@ async def cancelar_agendamento_consulta(
 class TouchPointItem(BaseModel):
     cod: int
     cliente: str
+    contato: str | None = None
     data: str | None = None
     periodo: str | None = None
     hora: str | None = None
@@ -726,6 +728,7 @@ class TouchPointItem(BaseModel):
 
 class TouchPointCreate(BaseModel):
     cliente: str
+    contato: str = ""
     data: str = ""
     periodo: str = ""
     hora: str = ""
@@ -738,6 +741,7 @@ class TouchPointCreate(BaseModel):
 
 class TouchPointUpdate(BaseModel):
     cliente: str | None = None
+    contato: str | None = None
     data: str | None = None
     periodo: str | None = None
     hora: str | None = None
@@ -769,7 +773,7 @@ async def list_touchpoints(
             where += " AND STR_TO_DATE(data, '%d/%m/%Y') <= STR_TO_DATE(:data_fim, '%d/%m/%Y')"
             params["data_fim"] = data_fim
         result = await session.execute(
-            text(f"SELECT cod, cliente, data, periodo, hora, nota_contato, nota, analista, crm, status, created_at FROM tbl_touchpoints {where} ORDER BY STR_TO_DATE(data, '%d/%m/%Y') DESC, created_at DESC"),
+            text(f"SELECT cod, cliente, contato, data, periodo, hora, nota_contato, nota, analista, crm, status, created_at FROM tbl_touchpoints {where} ORDER BY STR_TO_DATE(data, '%d/%m/%Y') DESC, created_at DESC"),
             params
         )
         rows = result.fetchall()
@@ -778,7 +782,7 @@ async def list_touchpoints(
         for r in rows:
             d = dict(zip(keys, r))
             items.append(TouchPointItem(
-                cod=d["cod"], cliente=d["cliente"], data=d.get("data"),
+                cod=d["cod"], cliente=d["cliente"], contato=d.get("contato"), data=d.get("data"),
                 periodo=d.get("periodo"), hora=d.get("hora"),
                 nota_contato=d.get("nota_contato"), nota=d.get("nota"), analista=d.get("analista"), crm=d.get("crm"),
                 status=d["status"],
@@ -797,8 +801,8 @@ async def create_touchpoint(
 ) -> dict:
     try:
         result = await session.execute(
-            text("INSERT INTO tbl_touchpoints (cliente, data, periodo, hora, nota_contato, nota, analista, crm, status) VALUES (:cliente, :data, :periodo, :hora, :nota_contato, :nota, :analista, :crm, :status)"),
-            {"cliente": body.cliente, "data": body.data, "periodo": body.periodo,
+            text("INSERT INTO tbl_touchpoints (cliente, contato, data, periodo, hora, nota_contato, nota, analista, crm, status) VALUES (:cliente, :contato, :data, :periodo, :hora, :nota_contato, :nota, :analista, :crm, :status)"),
+            {"cliente": body.cliente, "contato": body.contato, "data": body.data, "periodo": body.periodo,
              "hora": body.hora, "nota_contato": body.nota_contato, "nota": body.nota, "analista": body.analista,
              "crm": body.crm, "status": body.status}
         )
@@ -818,6 +822,7 @@ async def update_touchpoint(
     try:
         sets, params = [], {"cod": cod}
         if body.cliente      is not None: sets.append("cliente=:cliente");           params["cliente"]      = body.cliente
+        if body.contato      is not None: sets.append("contato=:contato");           params["contato"]      = body.contato
         if body.data         is not None: sets.append("data=:data");                 params["data"]         = body.data
         if body.periodo      is not None: sets.append("periodo=:periodo");           params["periodo"]      = body.periodo
         if body.hora         is not None: sets.append("hora=:hora");                 params["hora"]         = body.hora
