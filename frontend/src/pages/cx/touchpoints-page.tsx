@@ -5,7 +5,7 @@ import { http } from '../../lib/http-client';
 interface ClienteOpt { cod: number; razao: string | null; }
 
 interface TouchPoint {
-  cod: number; cliente: string; data: string | null; periodo: string | null;
+  cod: number; cliente: string; contato: string | null; data: string | null; periodo: string | null;
   hora: string | null; nota_contato: string | null; nota: number | null;
   analista: string | null; crm: string | null; status: string;
 }
