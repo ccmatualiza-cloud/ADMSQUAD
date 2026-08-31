@@ -576,3 +576,20 @@ async def delete_consulta_analista(
         await session.commit()
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
+
+
+# ── Consultas Analistas PUBLIC (sem auth) ─────────────────────────────────────
+
+@router.get("/consultas-analistas/public", response_model=list[ConsultaAnalistaItem])
+async def list_consultas_analistas_public(
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> list[ConsultaAnalistaItem]:
+    try:
+        result = await session.execute(
+            text("SELECT cod, nome, analista, link FROM tbl_consultas_analistas ORDER BY analista ASC, nome ASC")
+        )
+        rows = result.fetchall()
+        keys = list(result.keys())
+        return [ConsultaAnalistaItem(**dict(zip(keys, r))) for r in rows]
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))

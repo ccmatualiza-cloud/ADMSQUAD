@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Consultas Analistas — CCM Tecnologia</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: #F0F2F5; color: #1a2e3e; min-height: 100vh; }
+
+    header {
+      background: #0d1c28;
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 8px rgba(0,0,0,.3);
+    }
+    header .logo { display: flex; align-items: center; gap: 12px; }
+    header .logo-text { color: #fff; font-size: 16px; font-weight: 900; letter-spacing: .05em; }
+    header .logo-sub { color: #00B0FA; font-size: 10px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; }
+
+    .container { max-width: 1100px; margin: 0 auto; padding: 28px 16px; }
+
+    .page-title { font-size: 22px; font-weight: 900; color: #1a2e3e; margin-bottom: 4px; }
+    .page-sub   { font-size: 13px; color: #6b7c8d; margin-bottom: 24px; }
+
+    .search-bar {
+      display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 24px;
+    }
+    .search-bar input {
+      flex: 1; min-width: 220px; max-width: 380px;
+      padding: 10px 14px; border: 1px solid #dde2e8; border-radius: 6px;
+      font-size: 13px; font-family: inherit; outline: none; background: #fff;
+      transition: border .2s;
+    }
+    .search-bar input:focus { border-color: #00B0FA; }
+
+    .analista-section { margin-bottom: 28px; }
+    .analista-header {
+      font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .15em;
+      color: #00B0FA; border-bottom: 2px solid #00B0FA; padding-bottom: 6px; margin-bottom: 12px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .analista-count { font-size: 10px; color: #9BA4AB; font-weight: 400; text-transform: none; letter-spacing: 0; }
+
+    .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px; }
+
+    .card {
+      background: #fff; border: 1px solid #e2e8ef; border-radius: 8px;
+      padding: 14px 16px; display: flex; align-items: flex-start;
+      gap: 12px; transition: box-shadow .2s, transform .15s;
+    }
+    .card:hover { box-shadow: 0 4px 16px rgba(0,176,250,.12); transform: translateY(-1px); }
+    .card-icon { width: 36px; height: 36px; border-radius: 8px; background: #E8F7FF; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .card-icon svg { width: 18px; height: 18px; fill: #00B0FA; }
+    .card-body { flex: 1; min-width: 0; }
+    .card-name { font-size: 13px; font-weight: 700; color: #1a2e3e; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .card-link a { font-size: 11px; color: #00B0FA; text-decoration: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+    .card-link a:hover { text-decoration: underline; }
+    .no-link { font-size: 11px; color: #b0b8c1; }
+
+    .empty { text-align: center; padding: 48px 16px; color: #9BA4AB; font-size: 14px; }
+    .empty svg { width: 48px; height: 48px; fill: #d0d8e0; display: block; margin: 0 auto 12px; }
+
+    .loading { text-align: center; padding: 60px; color: #9BA4AB; font-size: 14px; }
+    .spinner { width: 32px; height: 32px; border: 3px solid #e2e8ef; border-top-color: #00B0FA; border-radius: 50%; animation: spin .7s linear infinite; display: inline-block; margin-bottom: 12px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .badge { display: inline-flex; align-items: center; gap: 4px; background: #E8F7FF; color: #00B0FA; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 99px; }
+
+    footer { text-align: center; padding: 24px; color: #b0b8c1; font-size: 11px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div>
+      <div class="logo-sub">CCM Tecnologia</div>
+      <div class="logo-text">Consultas Analistas</div>
+    </div>
+  </div>
+  <div id="header-count" class="badge" style="display:none"></div>
+</header>
+
+<div class="container">
+  <div class="page-title">Consultas por Analista</div>
+  <div class="page-sub">Links e consultas organizados por analista da equipe</div>
+
+  <div class="search-bar">
+    <input type="text" id="search" placeholder="Buscar por nome ou analista..." oninput="render()" />
+  </div>
+
+  <div id="content">
+    <div class="loading">
+      <div class="spinner"></div>
+      <div>Carregando consultas...</div>
+    </div>
+  </div>
+</div>
+
+<footer>CCM Tecnologia &copy; 2026 — ADMSQUAD</footer>
+
+<script>
+  let allItems = [];
+
+  async function load() {
+    try {
+      const res = await fetch('/api/operacoes/consultas-analistas/public');
+      if (!res.ok) throw new Error('Erro ao carregar');
+      allItems = await res.json();
+      render();
+    } catch (e) {
+      document.getElementById('content').innerHTML = `
+        <div class="empty">
+          <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+          Erro ao carregar os dados. Tente novamente mais tarde.
+        </div>`;
+    }
+  }
+
+  function render() {
+    const q = document.getElementById('search').value.toLowerCase();
+    const filtered = allItems.filter(i =>
+      (i.nome || '').toLowerCase().includes(q) ||
+      (i.analista || '').toLowerCase().includes(q) ||
+      (i.link || '').toLowerCase().includes(q)
+    );
+
+    const count = document.getElementById('header-count');
+    count.style.display = 'inline-flex';
+    count.textContent = filtered.length + ' consulta' + (filtered.length !== 1 ? 's' : '');
+
+    if (filtered.length === 0) {
+      document.getElementById('content').innerHTML = `
+        <div class="empty">
+          <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+          Nenhuma consulta encontrada
+        </div>`;
+      return;
+    }
+
+    const analistas = [...new Set(filtered.map(i => i.analista || 'Outros'))].sort();
+    let html = '';
+
+    analistas.forEach(analista => {
+      const items = filtered.filter(i => (i.analista || 'Outros') === analista);
+      html += `
+        <div class="analista-section">
+          <div class="analista-header">
+            <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:#00B0FA;flex-shrink:0"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+            ${analista}
+            <span class="analista-count">(${items.length} consulta${items.length !== 1 ? 's' : ''})</span>
+          </div>
+          <div class="cards-grid">
+            ${items.map(item => `
+              <div class="card">
+                <div class="card-icon">
+                  <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14l-5-5 1.41-1.41L12 14.17l7.59-7.59L21 8l-9 9z"/></svg>
+                </div>
+                <div class="card-body">
+                  <div class="card-name" title="${item.nome || ''}">${item.nome || '—'}</div>
+                  <div class="card-link">
+                    ${item.link
+                      ? `<a href="${item.link.startsWith('http') ? item.link : 'https://' + item.link}" target="_blank" rel="noopener">
+                          ↗ ${item.link}
+                        </a>`
+                      : '<span class="no-link">Sem link</span>'}
+                  </div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>`;
+    });
+
+    document.getElementById('content').innerHTML = html;
+  }
+
+  load();
+</script>
+</body>
+</html>
