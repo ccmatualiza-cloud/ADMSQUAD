@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useAuthStore } from '../../store/auth-store';
 import { toast } from 'sonner';
 import { http } from '../../lib/http-client';
 
@@ -11,6 +12,8 @@ const inputStyle = { background: 'var(--ccm-ink)', border: '1px solid #1a3a6e', 
 const labelStyle = { color: '#9BA4AB', fontSize: 10, fontWeight: 700 as const, textTransform: 'uppercase' as const, letterSpacing: '.14em' };
 
 export default function ConsultasAnalistasPage({ onBack }: { onBack: () => void }) {
+  const user    = useAuthStore(s => s.user);
+  const isAdmin = user?.role === 'admin' || user?.role === 'gestor';
   const [items, setItems]         = useState<ConsultaItem[]>([]);
   const [usuarios, setUsuarios]   = useState<{ id: number; name: string }[]>([]);
   const [loading, setLoading]     = useState(true);
@@ -66,7 +69,11 @@ export default function ConsultasAnalistasPage({ onBack }: { onBack: () => void 
     catch { toast.error('Erro ao excluir'); }
   };
 
-  const filtered = items.filter(i =>
+  const visibleItems = isAdmin
+    ? items
+    : items.filter(i => (i.analista ?? '').toLowerCase() === (user?.name ?? '').toLowerCase());
+
+  const filtered = visibleItems.filter(i =>
     [i.nome, i.analista, i.link].some(v => (v ?? '').toLowerCase().includes(search.toLowerCase()))
   );
   const analistas = Array.from(new Set(filtered.map(i => i.analista || 'Outros'))).sort();
@@ -90,9 +97,11 @@ export default function ConsultasAnalistasPage({ onBack }: { onBack: () => void 
               {loading ? 'Carregando...' : `${filtered.length} consulta(s)`}
             </span>
           </div>
-          <button className="btn btn-ccm-primary btn-sm" onClick={openCreate}>
-            <i className="bi bi-plus-lg me-1" />Nova Consulta
-          </button>
+          {isAdmin && (
+            <button className="btn btn-ccm-primary btn-sm" onClick={openCreate}>
+              <i className="bi bi-plus-lg me-1" />Nova Consulta
+            </button>
+          )}
         </div>
 
         <div style={{ padding: '10px 20px', borderBottom: '1px solid var(--ccm-line)' }}>
@@ -130,14 +139,16 @@ export default function ConsultasAnalistasPage({ onBack }: { onBack: () => void 
                               </a>
                             ) : <span style={{ fontSize: 11, color: 'var(--ccm-gray-medium)' }}>Sem link</span>}
                           </div>
-                          <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
-                            <button className="btn btn-sm" style={{ background: 'var(--ccm-blue)', color: '#fff', fontSize: 10, padding: '3px 8px' }} onClick={() => openEdit(item)}>
-                              <i className="bi bi-pencil-fill" />
-                            </button>
-                            <button className="btn btn-sm" style={{ background: '#E74C3C', color: '#fff', fontSize: 10, padding: '3px 8px' }} onClick={() => handleDelete(item.cod)}>
-                              <i className="bi bi-trash" />
-                            </button>
-                          </div>
+                          {isAdmin && (
+                            <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
+                              <button className="btn btn-sm" style={{ background: 'var(--ccm-blue)', color: '#fff', fontSize: 10, padding: '3px 8px' }} onClick={() => openEdit(item)}>
+                                <i className="bi bi-pencil-fill" />
+                              </button>
+                              <button className="btn btn-sm" style={{ background: '#E74C3C', color: '#fff', fontSize: 10, padding: '3px 8px' }} onClick={() => handleDelete(item.cod)}>
+                                <i className="bi bi-trash" />
+                              </button>
+                            </div>
+                          )}
                         </div>
                       </div>
                     ))}
