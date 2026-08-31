@@ -481,3 +481,98 @@ async def delete_apoio(
         await session.commit()
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
+
+
+# ── Consultas Analistas ────────────────────────────────────────────────────────
+
+class ConsultaAnalistaItem(BaseModel):
+    cod: int
+    nome: str | None = None
+    analista: str | None = None
+    link: str | None = None
+
+
+class ConsultaAnalistaCreate(BaseModel):
+    nome: str
+    analista: str
+    link: str = ""
+
+
+class ConsultaAnalistaUpdate(BaseModel):
+    nome: str | None = None
+    analista: str | None = None
+    link: str | None = None
+
+
+@router.get("/consultas-analistas", response_model=list[ConsultaAnalistaItem])
+async def list_consultas_analistas(
+    q: str = "",
+    _: Annotated[dict, Depends(get_current_user)] = None,
+    session: Annotated[AsyncSession, Depends(get_db)] = None,
+) -> list[ConsultaAnalistaItem]:
+    try:
+        where = "WHERE 1=1"
+        params: dict = {}
+        if q:
+            where += " AND (nome LIKE :q OR analista LIKE :q)"
+            params["q"] = f"%{q}%"
+        result = await session.execute(
+            text(f"SELECT cod, nome, analista, link FROM tbl_consultas_analistas {where} ORDER BY analista ASC, nome ASC"),
+            params
+        )
+        rows = result.fetchall()
+        keys = list(result.keys())
+        return [ConsultaAnalistaItem(**dict(zip(keys, r))) for r in rows]
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@router.post("/consultas-analistas", status_code=status.HTTP_201_CREATED)
+async def create_consulta_analista(
+    body: ConsultaAnalistaCreate,
+    _: Annotated[dict, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> dict:
+    try:
+        result = await session.execute(
+            text("INSERT INTO tbl_consultas_analistas (nome, analista, link) VALUES (:nome, :analista, :link)"),
+            {"nome": body.nome, "analista": body.analista, "link": body.link}
+        )
+        await session.commit()
+        return {"created": True, "id": result.lastrowid}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@router.put("/consultas-analistas/{cod}")
+async def update_consulta_analista(
+    cod: int,
+    body: ConsultaAnalistaUpdate,
+    _: Annotated[dict, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> dict:
+    try:
+        sets, params = [], {"cod": cod}
+        if body.nome     is not None: sets.append("nome=:nome");         params["nome"]     = body.nome
+        if body.analista is not None: sets.append("analista=:analista"); params["analista"] = body.analista
+        if body.link     is not None: sets.append("link=:link");         params["link"]     = body.link
+        if not sets:
+            raise HTTPException(status_code=400, detail="Nada para atualizar")
+        await session.execute(text(f"UPDATE tbl_consultas_analistas SET {', '.join(sets)} WHERE cod = :cod"), params)
+        await session.commit()
+        return {"updated": True}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@router.delete("/consultas-analistas/{cod}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_consulta_analista(
+    cod: int,
+    _: Annotated[dict, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> None:
+    try:
+        await session.execute(text("DELETE FROM tbl_consultas_analistas WHERE cod = :cod"), {"cod": cod})
+        await session.commit()
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))

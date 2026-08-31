@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import DailyPendencias  from './daily-pendencias';
 import TarefasPage      from './tarefas-page';
-import MonitorAtividades from './monitor-atividades';
+import MonitorAtividades       from './monitor-atividades';
+import ConsultasAnalistasPage from './consultas-analistas-page';
 import ApoiosHelpPage    from './apoios-help-page';
 import GeradorCodigoCCM from './gerador-codigo-ccm';
 
-type SubPage = null | 'daily' | 'tarefas' | 'atividades' | 'gerador' | 'apoios';
+type SubPage = null | 'daily' | 'tarefas' | 'atividades' | 'gerador' | 'apoios' | 'consultas';
 
 export default function OperacoesPage() {
   const [subPage, setSubPage] = useState<SubPage>(null);
@@ -14,7 +15,8 @@ export default function OperacoesPage() {
   if (subPage === 'tarefas')    return <TarefasPage        onBack={() => setSubPage(null)} />;
   if (subPage === 'atividades') return <MonitorAtividades  onBack={() => setSubPage(null)} />;
   if (subPage === 'gerador')    return <GeradorCodigoCCM    onBack={() => setSubPage(null)} />;
-  if (subPage === 'apoios')     return <ApoiosHelpPage       onBack={() => setSubPage(null)} />;
+  if (subPage === 'apoios')     return <ApoiosHelpPage         onBack={() => setSubPage(null)} />;
+  if (subPage === 'consultas')  return <ConsultasAnalistasPage  onBack={() => setSubPage(null)} />;
 
   const Card = ({ title, desc, color, bg, icon, onClick, external }: { title: string; desc: string; color: string; bg: string; icon: string; onClick?: () => void; external?: string }) => (
     <div className="col-12 col-md-4 col-lg-3">
@@ -42,6 +44,7 @@ export default function OperacoesPage() {
       <div className="section-title mb-4">Operações</div>
       <div className="row g-3">
         <Card title="Daily — Pendências"    desc="Registrar pendências e impedimentos da equipe."      color="#F9E000" bg="#FFF8CC" icon="bi-exclamation-triangle-fill" onClick={() => setSubPage('daily')} />
+        <Card title="Consultas Analistas"   desc="Consultas e relatórios por analista."               color="#00B0FA" bg="#E8F7FF" icon="bi-person-lines-fill"         onClick={() => setSubPage('consultas')} />
         <Card title="Apoios — Help"          desc="Registrar e acompanhar apoios e solicitações de help." color="#F9A825" bg="#FFF3E0" icon="bi-life-preserver"            onClick={() => setSubPage('apoios')} />
         <Card title="Tarefas"              desc="Consultar tarefas e atualizações dos clientes."       color="#00B0FA" bg="#E8F7FF" icon="bi-list-task"                 onClick={() => setSubPage('tarefas')} />
         <Card title="Monitor de Atividades" desc="Registrar e monitorar atividades da equipe."         color="#7F77DD" bg="#F0EEFF" icon="bi-activity"                  onClick={() => setSubPage('atividades')} />
