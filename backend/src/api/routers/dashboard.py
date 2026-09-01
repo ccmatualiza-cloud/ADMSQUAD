@@ -192,3 +192,19 @@ async def ausencias_proximas(
         return [dict(zip(keys, r)) for r in rows]
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
+
+
+@router.get("/bh-colaboradores")
+async def bh_colaboradores(
+    _: Annotated[dict, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> list[dict]:
+    try:
+        result = await session.execute(
+            text("SELECT colab, bh FROM tbl_gcolab WHERE status = 'Ativo' AND bh != '' ORDER BY colab ASC")
+        )
+        rows = result.fetchall()
+        keys = list(result.keys())
+        return [dict(zip(keys, r)) for r in rows]
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))

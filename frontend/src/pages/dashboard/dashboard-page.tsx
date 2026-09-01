@@ -46,7 +46,8 @@ export default function DashboardPage() {
   const [loadingPen, setLoadingPen] = useState(true);
   const [pendenciasAnalista, setPendenciasAnalista]   = useState<{ nome: string; valor: number }[]>([]);
   const [pendenciasStatus, setPendenciasStatus]     = useState<{ status: string; total: number }[]>([]);
-  const [ausencias, setAusencias]                   = useState<AusenciaItem[]>([]);
+  const [ausencias, setAusencias]       = useState<AusenciaItem[]>([]);
+  const [bhColab, setBhColab]           = useState<{ colab: string; bh: string }[]>([]);
   const [historico, setHistorico] = useState<{ data: string; agente_ia: number; humano: number }[]>([]);
 
   useEffect(() => {
@@ -67,6 +68,9 @@ export default function DashboardPage() {
       .catch(() => {});
     http.get<AusenciaItem[]>('/api/dashboard/ausencias-proximas')
       .then(setAusencias)
+      .catch(() => {});
+    http.get<{ colab: string; bh: string }[]>('/api/dashboard/bh-colaboradores')
+      .then(setBhColab)
       .catch(() => {});
     http.get<{ total: number }>('/api/dashboard/pendencias-abertas')
       .then(r => setPendencias(r.total)).catch(() => setPendencias(null)).finally(() => setLoadingPen(false));
@@ -222,17 +226,17 @@ export default function DashboardPage() {
                         <i className="bi bi-person-fill" style={{ color: '#204294', fontSize: 13 }} />
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontWeight: 700, fontSize: 11, color: 'var(--ccm-ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.colaborador}</div>
-                        <div style={{ fontSize: 9, color: 'var(--ccm-gray-dark)' }}>{a.area || '—'}</div>
+                        <div style={{ fontWeight: 700, fontSize: 12, color: 'var(--ccm-ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.colaborador}</div>
+                        <div style={{ fontSize: 10, color: 'var(--ccm-gray-dark)' }}>{a.area || '—'}</div>
                       </div>
-                      <span style={{ background: tc.bg, color: tc.color, borderRadius: 99, padding: '2px 8px', fontSize: 9, fontWeight: 700, flexShrink: 0 }}>{a.tipo}</span>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, color: 'var(--ccm-gray-dark)', flexShrink: 0 }}>
-                        <i className="bi bi-calendar3" style={{ color: '#204294', fontSize: 10 }} />
+                      <span style={{ background: tc.bg, color: tc.color, borderRadius: 99, padding: '2px 8px', fontSize: 10, fontWeight: 700, flexShrink: 0 }}>{a.tipo}</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'var(--ccm-gray-dark)', flexShrink: 0 }}>
+                        <i className="bi bi-calendar3" style={{ color: '#204294', fontSize: 11 }} />
                         <span>{a.data_ini}{a.data_fim && a.data_fim !== a.data_ini ? <> <span style={{ color: '#b0b8c1' }}>até</span> {a.data_fim}</> : ''}</span>
                       </div>
                       {(a.hora_ini || a.hora_fim) && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: 10, color: 'var(--ccm-gray-dark)', flexShrink: 0 }}>
-                          <i className="bi bi-clock" style={{ fontSize: 10, color: '#204294' }} />
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: 11, color: 'var(--ccm-gray-dark)', flexShrink: 0 }}>
+                          <i className="bi bi-clock" style={{ fontSize: 11, color: '#204294' }} />
                           <span>{a.hora_ini}{a.hora_fim ? ` - ${a.hora_fim}` : ''}</span>
                         </div>
                       )}
@@ -243,8 +247,33 @@ export default function DashboardPage() {
             )}
           </div>
         </div>
-        <div className="col-12 col-lg-7">
-          {/* Espaço reservado para informações futuras */}
+        <div className="col-12 col-lg-7" style={{ display: 'flex', flexDirection: 'column' }}>
+          <div className="chart-card" style={{ flex: 1 }}>
+            <div className="chart-card-title" style={{ marginBottom: 12, fontSize: 12 }}>
+              <i className="bi bi-hourglass-split me-1" style={{ color: '#7F77DD' }} />
+              Banco de Horas — Colaboradores
+              <span style={{ fontSize: 10, fontWeight: 400, color: 'var(--ccm-gray-medium)', marginLeft: 6 }}>({bhColab.length})</span>
+            </div>
+            {bhColab.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '16px 0', color: 'var(--ccm-gray-medium)', fontSize: 11 }}>
+                Nenhum registro de BH encontrado
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 8 }}>
+                {bhColab.map((c, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', background: '#F7F8FA', borderRadius: 6, border: '1px solid var(--ccm-line)' }}>
+                    <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#F0EFFE', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <i className="bi bi-person-fill" style={{ color: '#7F77DD', fontSize: 13 }} />
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontWeight: 700, fontSize: 11, color: 'var(--ccm-ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.colab}</div>
+                      <div style={{ fontSize: 10, color: '#7F77DD', fontWeight: 600 }}>{c.bh}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </>
