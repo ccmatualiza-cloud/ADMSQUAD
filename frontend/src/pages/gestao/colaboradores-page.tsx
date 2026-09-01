@@ -68,9 +68,6 @@ export default function ColaboradoresPage({ onBack }: { onBack: () => void }) {
     finally { setSaving(false); }
   };
 
-  const f = (v: string) => setForm(prev => ({ ...prev }));
-  void f;
-
   const filtered = items.filter(i =>
     [i.colab, i.area, i.depto, i.email].some(v => (v ?? '').toLowerCase().includes(search.toLowerCase()))
   );
