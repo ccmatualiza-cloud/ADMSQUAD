@@ -563,7 +563,9 @@ class ColaboradorItem(BaseModel):
     area: str | None = None
     depto: str | None = None
     dt_admissao: str | None = None
-    prx_calcferias: str | None = None
+    prx_calferias1: str | None = None
+    prx_calferias2: str | None = None
+    prx_calferias3: str | None = None
     prx_anoref: str | None = None
     horario: str | None = None
     almoco: str | None = None
@@ -572,7 +574,7 @@ class ColaboradorItem(BaseModel):
     userr: str | None = None
     email: str | None = None
     saidaemp: str | None = None
-    motivo: str | None = None
+    status: str | None = None
 
 
 class ColaboradorCreate(BaseModel):
@@ -580,7 +582,9 @@ class ColaboradorCreate(BaseModel):
     area: str = ""
     depto: str = ""
     dt_admissao: str = ""
-    prx_calcferias: str = ""
+    prx_calferias1: str = ""
+    prx_calferias2: str = ""
+    prx_calferias3: str = ""
     prx_anoref: str = ""
     horario: str = ""
     almoco: str = ""
@@ -589,7 +593,7 @@ class ColaboradorCreate(BaseModel):
     userr: str = ""
     email: str = ""
     saidaemp: str = ""
-    motivo: str = ""
+    status: str = "Ativo"
 
 
 class ColaboradorUpdate(BaseModel):
@@ -597,7 +601,9 @@ class ColaboradorUpdate(BaseModel):
     area: str | None = None
     depto: str | None = None
     dt_admissao: str | None = None
-    prx_calcferias: str | None = None
+    prx_calferias1: str | None = None
+    prx_calferias2: str | None = None
+    prx_calferias3: str | None = None
     prx_anoref: str | None = None
     horario: str | None = None
     almoco: str | None = None
@@ -606,7 +612,7 @@ class ColaboradorUpdate(BaseModel):
     userr: str | None = None
     email: str | None = None
     saidaemp: str | None = None
-    motivo: str | None = None
+    status: str | None = None
 
 
 @router.get("/colaboradores", response_model=list[ColaboradorItem])
@@ -622,7 +628,7 @@ async def list_colaboradores(
             where += " AND (colab LIKE :q OR area LIKE :q OR depto LIKE :q OR email LIKE :q)"
             params["q"] = f"%{q}%"
         result = await session.execute(
-            text(f"SELECT cod, colab, area, depto, dt_admissao, prx_calcferias, prx_anoref, horario, almoco, almocof, horariof, userr, email, saidaemp, motivo FROM tbl_gcolab {where} ORDER BY colab ASC"),
+            text(f"SELECT cod, colab, area, depto, dt_admissao, prx_calferias1, prx_calferias2, prx_calferias3, prx_anoref, horario, almoco, almocof, horariof, userr, email, saidaemp, status FROM tbl_gcolab {where} ORDER BY colab ASC"),
             params
         )
         rows = result.fetchall()
@@ -640,16 +646,15 @@ async def create_colaborador(
 ) -> dict:
     try:
         result = await session.execute(
-            text("""INSERT INTO tbl_gcolab (colab, area, depto, dt_admissao, prx_calcferias, prx_anoref,
-                 horario, almoco, almocof, horariof, userr, email, saidaemp, motivo)
-                 VALUES (:colab, :area, :depto, :dt_admissao, :prx_calcferias, :prx_anoref,
-                 :horario, :almoco, :almocof, :horariof, :userr, :email, :saidaemp, :motivo)"""),
+            text("""INSERT INTO tbl_gcolab (colab, area, depto, dt_admissao, prx_calferias1, prx_calferias2, prx_calferias3, prx_anoref,
+                 horario, almoco, almocof, horariof, userr, email, saidaemp, status)
+                 VALUES (:colab, :area, :depto, :dt_admissao, :prx_calferias1, :prx_calferias2, :prx_calferias3, :prx_anoref,
+                 :horario, :almoco, :almocof, :horariof, :userr, :email, :saidaemp, :status)"""),
             {"colab": body.colab, "area": body.area, "depto": body.depto,
-             "dt_admissao": body.dt_admissao, "prx_calcferias": body.prx_calcferias,
+             "dt_admissao": body.dt_admissao, "prx_calferias1": body.prx_calferias1, "prx_calferias2": body.prx_calferias2, "prx_calferias3": body.prx_calferias3,
              "prx_anoref": body.prx_anoref, "horario": body.horario,
              "almoco": body.almoco, "almocof": body.almocof, "horariof": body.horariof,
-             "userr": body.userr, "email": body.email, "saidaemp": body.saidaemp,
-             "motivo": body.motivo}
+             "userr": body.userr, "email": body.email, "saidaemp": body.saidaemp, "status": body.status}
         )
         await session.commit()
         return {"created": True, "id": result.lastrowid}
@@ -666,8 +671,8 @@ async def update_colaborador(
 ) -> dict:
     try:
         sets, params = [], {"cod": cod}
-        fields = ["colab","area","depto","dt_admissao","prx_calcferias","prx_anoref",
-                  "horario","almoco","almocof","horariof","userr","email","saidaemp","motivo"]
+        fields = ["colab","area","depto","dt_admissao","prx_calferias1","prx_calferias2","prx_calferias3","prx_anoref",
+                  "horario","almoco","almocof","horariof","userr","email","saidaemp","status"]
         for f in fields:
             v = getattr(body, f)
             if v is not None:

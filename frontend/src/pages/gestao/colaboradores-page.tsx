@@ -4,15 +4,15 @@ import { http } from '../../lib/http-client';
 
 interface Colaborador {
   cod: number; colab: string | null; area: string | null; depto: string | null;
-  dt_admissao: string | null; prx_calcferias: string | null; prx_anoref: string | null;
+  dt_admissao: string | null; prx_calferias1: string | null; prx_calferias2: string | null; prx_calferias3: string | null; prx_anoref: string | null;
   horario: string | null; almoco: string | null; almocof: string | null;
   horariof: string | null; userr: string | null; email: string | null;
-  saidaemp: string | null; motivo: string | null;
+  saidaemp: string | null; status: string | null;
 }
 
 const emptyForm = {
-  colab: '', area: '', depto: '', dt_admissao: '', prx_calcferias: '', prx_anoref: '',
-  horario: '', almoco: '', almocof: '', horariof: '', userr: '', email: '', saidaemp: '', motivo: '',
+  colab: '', area: '', depto: '', dt_admissao: '', prx_calferias1: '', prx_calferias2: '', prx_calferias3: '', prx_anoref: '',
+  horario: '', almoco: '', almocof: '', horariof: '', userr: '', email: '', saidaemp: '', status: 'Ativo',
 };
 
 const inputStyle = { background: 'var(--ccm-ink)', border: '1px solid #1a3a6e', color: '#fff', fontSize: 13 };
@@ -44,10 +44,11 @@ export default function ColaboradoresPage({ onBack }: { onBack: () => void }) {
     setEditCod(c.cod);
     setForm({
       colab: c.colab ?? '', area: c.area ?? '', depto: c.depto ?? '',
-      dt_admissao: c.dt_admissao ?? '', prx_calcferias: c.prx_calcferias ?? '',
+      dt_admissao: c.dt_admissao ?? '', prx_calferias1: c.prx_calferias1 ?? '',
+      prx_calferias2: c.prx_calferias2 ?? '', prx_calferias3: c.prx_calferias3 ?? '',
       prx_anoref: c.prx_anoref ?? '', horario: c.horario ?? '',
       almoco: c.almoco ?? '', almocof: c.almocof ?? '', horariof: c.horariof ?? '',
-      userr: c.userr ?? '', email: c.email ?? '', saidaemp: c.saidaemp ?? '', motivo: c.motivo ?? '',
+      userr: c.userr ?? '', email: c.email ?? '', saidaemp: c.saidaemp ?? '', status: c.status ?? 'Ativo',
     });
     setShowModal(true);
   };
@@ -127,30 +128,38 @@ export default function ColaboradoresPage({ onBack }: { onBack: () => void }) {
                   <th style={th}>Área</th>
                   <th style={th}>Depto</th>
                   <th style={th}>Dt. Admissão</th>
-                  <th style={th}>Prx. Férias</th>
+                  <th style={th}>Prx. Férias 1</th>
+                  <th style={th}>Prx. Férias 2</th>
+                  <th style={th}>Prx. Férias 3</th>
                   <th style={th}>Horário</th>
                   <th style={th}>Horário F.</th>
                   <th style={th}>Almoço</th>
                   <th style={th}>Email</th>
                   <th style={th}>Saída Emp.</th>
+                  <th style={{ ...th, textAlign: 'center' }}>Status</th>
                   <th style={{ ...th, textAlign: 'center' }}>Ações</th>
                 </tr>
               </thead>
               <tbody>
                 {filtered.length === 0 ? (
-                  <tr><td colSpan={11} style={{ padding: 32, textAlign: 'center', color: 'var(--ccm-gray-dark)' }}>Nenhum colaborador encontrado</td></tr>
+                  <tr><td colSpan={14} style={{ padding: 32, textAlign: 'center', color: 'var(--ccm-gray-dark)' }}>Nenhum colaborador encontrado</td></tr>
                 ) : filtered.map((c, i) => (
                   <tr key={c.cod} style={{ background: i % 2 === 0 ? '#fff' : '#F7F8FA', borderBottom: '1px solid var(--ccm-line)' }}>
                     <td style={{ ...td, fontWeight: 600, color: 'var(--ccm-ink)' }}>{c.colab || '—'}</td>
                     <td style={td}>{c.area || '—'}</td>
                     <td style={td}>{c.depto || '—'}</td>
                     <td style={td}>{c.dt_admissao || '—'}</td>
-                    <td style={td}>{c.prx_calcferias || '—'}</td>
+                    <td style={td}>{c.prx_calferias1 || '—'}</td>
+                    <td style={td}>{c.prx_calferias2 || '—'}</td>
+                    <td style={td}>{c.prx_calferias3 || '—'}</td>
                     <td style={td}>{c.horario || '—'}</td>
                     <td style={td}>{c.horariof || '—'}</td>
                     <td style={td}>{c.almoco || '—'}</td>
                     <td style={{ ...td, maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.email || '—'}</td>
                     <td style={td}>{c.saidaemp || '—'}</td>
+                    <td style={{ ...td, textAlign: 'center' }}>
+                      <span style={{ background: c.status === 'Ativo' ? '#D4F5E2' : '#FDDEDE', color: c.status === 'Ativo' ? '#0E7E3B' : '#9B2020', borderRadius: 99, padding: '2px 9px', fontSize: 10, fontWeight: 700 }}>{c.status || 'Ativo'}</span>
+                    </td>
                     <td style={{ ...td, textAlign: 'center' }}>
                       <button className="btn btn-sm" style={{ background: 'var(--ccm-blue)', color: '#fff', fontSize: 10, padding: '3px 10px' }} onClick={() => openEdit(c)}>
                         <i className="bi bi-pencil-fill me-1" />Editar
@@ -185,7 +194,9 @@ export default function ColaboradoresPage({ onBack }: { onBack: () => void }) {
               <Field label="Área"            fkey="area" />
               <Field label="Departamento"    fkey="depto" />
               <Field label="Dt. Admissão"    fkey="dt_admissao" />
-              <Field label="Prx. Calc Férias" fkey="prx_calcferias" />
+              <Field label="Prx. Férias 1" fkey="prx_calferias1" />
+              <Field label="Prx. Férias 2" fkey="prx_calferias2" />
+              <Field label="Prx. Férias 3" fkey="prx_calferias3" />
               <Field label="Prx. Ano Ref."   fkey="prx_anoref" />
               <Field label="Horário"         fkey="horario" />
               <Field label="Horário F."      fkey="horariof" />
@@ -198,10 +209,13 @@ export default function ColaboradoresPage({ onBack }: { onBack: () => void }) {
                   value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder="email@empresa.com" />
               </div>
               <Field label="Saída Emp."      fkey="saidaemp" />
-              <div className="col-12">
-                <label style={labelStyle}>Motivo</label>
-                <input type="text" className="form-control mt-1" style={inputStyle}
-                  value={form.motivo} onChange={e => setForm(f => ({ ...f, motivo: e.target.value }))} placeholder="Motivo de saída (se aplicável)" />
+              <div className="col-12 col-md-4">
+                <label style={labelStyle}>Status</label>
+                <select className="form-select mt-1" style={inputStyle}
+                  value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value }))}>
+                  <option value="Ativo">Ativo</option>
+                  <option value="Inativo">Inativo</option>
+                </select>
               </div>
             </div>
 
