@@ -10,7 +10,7 @@ interface Ausencia {
   data_fim: string | null; hora_fim: string | null;
 }
 
-const TIPO_OPTS = ['Férias','Licença Médica','Folga','Abono','Day Off','Ausência Justificada','Ausência Injustificada','Outro'];
+const TIPO_OPTS = ['Férias','Licença Médica','Banco de Horas','Abono','Day Off','Ausência Justificada','Ausência Injustificada','Outro'];
 const emptyForm = { colaborador: '', tipo: '', data_ini: '', hora_ini: '', data_fim: '', hora_fim: '' };
 const inputStyle = { background: 'var(--ccm-ink)', border: '1px solid #1a3a6e', color: '#fff', fontSize: 13 };
 const labelStyle = { color: '#9BA4AB', fontSize: 10, fontWeight: 700 as const, textTransform: 'uppercase' as const, letterSpacing: '.14em' };
