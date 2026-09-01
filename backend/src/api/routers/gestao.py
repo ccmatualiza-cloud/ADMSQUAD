@@ -624,6 +624,7 @@ class ColaboradorUpdate(BaseModel):
 @router.get("/colaboradores", response_model=list[ColaboradorItem])
 async def list_colaboradores(
     q: str = "",
+    status_filter: str = "",
     _: Annotated[dict, Depends(get_current_user)] = None,
     session: Annotated[AsyncSession, Depends(get_db)] = None,
 ) -> list[ColaboradorItem]:
@@ -631,8 +632,11 @@ async def list_colaboradores(
         where = "WHERE 1=1"
         params: dict = {}
         if q:
-            where += " AND (colab LIKE :q OR area LIKE :q OR depto LIKE :q OR email LIKE :q)"
+            where += " AND (colab LIKE :q OR area LIKE :q OR depto LIKE :q)"
             params["q"] = f"%{q}%"
+        if status_filter:
+            where += " AND status = :status_filter"
+            params["status_filter"] = status_filter
         result = await session.execute(
             text(f"SELECT cod, colab, area, nivel, depto, dt_admissao, prx_calferias1, prx_calferias2, prx_calferias3, prx_anoref, horario, almoco, almocof, horariof, bh, userr, email, saidaemp, status FROM tbl_gcolab {where} ORDER BY colab ASC"),
             params

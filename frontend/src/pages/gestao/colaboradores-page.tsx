@@ -25,13 +25,16 @@ export default function ColaboradoresPage({ onBack }: { onBack: () => void }) {
   const [showModal, setShowModal] = useState(false);
   const [editCod, setEditCod]     = useState<number | null>(null);
   const [form, setForm]           = useState(emptyForm);
-  const [saving, setSaving]       = useState(false);
+  const [saving, setSaving]         = useState(false);
+  const [filterStatus, setFilterStatus] = useState('Ativo');
 
-  const fetchData = async (q = '') => {
+  const fetchData = async (q = '', st = filterStatus) => {
     setLoading(true);
     try {
-      const params = q ? `?q=${encodeURIComponent(q)}` : '';
-      const data = await http.get<Colaborador[]>(`/api/gestao/colaboradores${params}`);
+      const p = new URLSearchParams();
+      if (q) p.set('q', q);
+      if (st) p.set('status_filter', st);
+      const data = await http.get<Colaborador[]>(`/api/gestao/colaboradores${p.toString() ? '?' + p.toString() : ''}`);
       setItems(data);
     } catch { toast.error('Erro ao carregar colaboradores'); }
     finally { setLoading(false); }
@@ -64,14 +67,12 @@ export default function ColaboradoresPage({ onBack }: { onBack: () => void }) {
         await http.post('/api/gestao/colaboradores', form);
         toast.success('Colaborador cadastrado!');
       }
-      setShowModal(false); fetchData(search);
+      setShowModal(false); fetchData(search, filterStatus);
     } catch (err: unknown) { toast.error(err instanceof Error ? err.message : 'Erro'); }
     finally { setSaving(false); }
   };
 
-  const filtered = items.filter(i =>
-    [i.colab, i.area, i.depto, i.email].some(v => (v ?? '').toLowerCase().includes(search.toLowerCase()))
-  );
+  const filtered = items;
 
   const th = { color: '#fff', fontWeight: 700, textTransform: 'uppercase' as const, letterSpacing: '.05em', padding: '10px 12px', textAlign: 'left' as const, fontSize: 10, whiteSpace: 'nowrap' as const };
   const td = { padding: '9px 12px', fontSize: 12, whiteSpace: 'nowrap' as const };
@@ -109,10 +110,18 @@ export default function ColaboradoresPage({ onBack }: { onBack: () => void }) {
         </div>
 
         <div style={{ padding: '10px 20px', borderBottom: '1px solid var(--ccm-line)' }}>
-          <input type="text" className="form-control" placeholder="Buscar por nome, área, depto, email..."
+          <input type="text" className="form-control" placeholder="Buscar por nome, área, depto..."
             value={search} onChange={e => setSearch(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && fetchData(search)}
-            style={{ maxWidth: 360, fontSize: 13 }} />
+            onKeyDown={e => e.key === 'Enter' && fetchData(search, filterStatus)}
+            style={{ maxWidth: 300, fontSize: 13 }} />
+          <select className="form-select" value={filterStatus} onChange={e => { setFilterStatus(e.target.value); fetchData(search, e.target.value); }} style={{ maxWidth: 150, fontSize: 13 }}>
+            <option value="">Todos</option>
+            <option value="Ativo">Ativo</option>
+            <option value="Inativo">Inativo</option>
+          </select>
+          <button className="btn btn-ccm-primary btn-sm" onClick={() => fetchData(search, filterStatus)}>
+            <i className="bi bi-search me-1" />Buscar
+          </button>
         </div>
 
         <div style={{ overflowX: 'auto' }}>
