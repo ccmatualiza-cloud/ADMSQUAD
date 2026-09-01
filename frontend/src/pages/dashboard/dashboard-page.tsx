@@ -27,7 +27,7 @@ function KpiCard({ label, value, sub, borderColor, loading }: {
   label: string; value: string | number; sub: string; borderColor: string; loading?: boolean;
 }) {
   return (
-    <div style={{ background: '#fff', borderRadius: 6, padding: '10px 16px', borderTop: `3px solid ${borderColor}`, boxShadow: '0 1px 4px rgba(12,25,33,.07)' }}>
+    <div style={{ background: '#fff', borderRadius: 6, padding: '7px 14px', borderTop: `3px solid ${borderColor}`, boxShadow: '0 1px 4px rgba(12,25,33,.07)' }}>
       <div className="kpi-label">{label}</div>
       <div className="kpi-value">
         {loading
@@ -119,7 +119,7 @@ export default function DashboardPage() {
       </div>
 
       <div className="row g-3">
-        <div className="col-12 col-lg-5" style={{ display: 'flex', flexDirection: 'column' }}>
+        <div className="col-12 col-lg-6" style={{ display: 'flex', flexDirection: 'column' }}>
           <div className="chart-card" style={{ flex: 1 }}>
             <div className="chart-card-title">Agendamento de Atualizações Linx — Agente IA vs Humano</div>
             {historico.length === 0 ? (
@@ -202,7 +202,7 @@ export default function DashboardPage() {
       </div>
       {/* Ausências próximos 7 dias */}
       <div className="row g-3" style={{ marginTop: 4 }}>
-        <div className="col-12 col-lg-5" style={{ display: 'flex', flexDirection: 'column' }}>
+        <div className="col-12 col-lg-6" style={{ display: 'flex', flexDirection: 'column' }}>
           <div className="chart-card" style={{ flex: 1 }}>
             <div className="chart-card-title" style={{ marginBottom: 12, fontSize: 12 }}>
               <i className="bi bi-calendar-x me-1" style={{ color: '#F9A825' }} />
@@ -254,7 +254,7 @@ export default function DashboardPage() {
             )}
           </div>
         </div>
-        <div className="col-12 col-lg-7" style={{ display: 'flex', flexDirection: 'column' }}>
+        <div className="col-12 col-lg-6" style={{ display: 'flex', flexDirection: 'column' }}>
           <div className="chart-card" style={{ flex: 1 }}>
             <div className="chart-card-title" style={{ marginBottom: 12, fontSize: 12 }}>
               <i className="bi bi-activity me-1" style={{ color: '#1DB954' }} />
