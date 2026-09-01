@@ -194,6 +194,27 @@ async def ausencias_proximas(
         raise HTTPException(status_code=500, detail=str(exc))
 
 
+@router.get("/atividades-hoje")
+async def atividades_hoje(
+    _: Annotated[dict, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> list[dict]:
+    try:
+        result = await session.execute(
+            text(
+                "SELECT analista, cliente, ticketproj, atividade, tipoatividade, horainicio, horafim, duracao, status "
+                "FROM tbl_atividades "
+                "WHERE data = DATE_FORMAT(CURDATE(), '%d/%m/%Y') "
+                "ORDER BY analista ASC, horainicio ASC"
+            )
+        )
+        rows = result.fetchall()
+        keys = list(result.keys())
+        return [dict(zip(keys, r)) for r in rows]
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
 @router.get("/bh-colaboradores")
 async def bh_colaboradores(
     _: Annotated[dict, Depends(get_current_user)],

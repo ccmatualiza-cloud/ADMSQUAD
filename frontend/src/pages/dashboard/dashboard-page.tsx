@@ -5,6 +5,13 @@ import {
   PieChart, Pie, Cell,
 } from 'recharts';
 
+interface AtividadeHoje {
+  analista: string; cliente: string; ticketproj: string | null;
+  atividade: string | null; tipoatividade: string | null;
+  horainicio: string | null; horafim: string | null;
+  duracao: string | null; status: string;
+}
+
 interface AusenciaItem {
   colaborador: string; tipo: string; data_ini: string; hora_ini: string;
   data_fim: string; hora_fim: string; area: string | null; depto: string | null;
@@ -47,7 +54,7 @@ export default function DashboardPage() {
   const [pendenciasAnalista, setPendenciasAnalista]   = useState<{ nome: string; valor: number }[]>([]);
   const [pendenciasStatus, setPendenciasStatus]     = useState<{ status: string; total: number }[]>([]);
   const [ausencias, setAusencias]       = useState<AusenciaItem[]>([]);
-  const [bhColab, setBhColab]           = useState<{ colab: string; bh: string }[]>([]);
+  const [atividadesHoje, setAtividadesHoje] = useState<AtividadeHoje[]>([]);
   const [historico, setHistorico] = useState<{ data: string; agente_ia: number; humano: number }[]>([]);
 
   useEffect(() => {
@@ -69,8 +76,8 @@ export default function DashboardPage() {
     http.get<AusenciaItem[]>('/api/dashboard/ausencias-proximas')
       .then(setAusencias)
       .catch(() => {});
-    http.get<{ colab: string; bh: string }[]>('/api/dashboard/bh-colaboradores')
-      .then(setBhColab)
+    http.get<AtividadeHoje[]>('/api/dashboard/atividades-hoje')
+      .then(setAtividadesHoje)
       .catch(() => {});
     http.get<{ total: number }>('/api/dashboard/pendencias-abertas')
       .then(r => setPendencias(r.total)).catch(() => setPendencias(null)).finally(() => setLoadingPen(false));
@@ -250,37 +257,48 @@ export default function DashboardPage() {
         <div className="col-12 col-lg-7" style={{ display: 'flex', flexDirection: 'column' }}>
           <div className="chart-card" style={{ flex: 1 }}>
             <div className="chart-card-title" style={{ marginBottom: 12, fontSize: 12 }}>
-              <i className="bi bi-hourglass-split me-1" style={{ color: '#7F77DD' }} />
-              Banco de Horas — Colaboradores
-              <span style={{ fontSize: 10, fontWeight: 400, color: 'var(--ccm-gray-medium)', marginLeft: 6 }}>({bhColab.length})</span>
+              <i className="bi bi-activity me-1" style={{ color: '#1DB954' }} />
+              Atividades de Hoje
+              <span style={{ fontSize: 10, fontWeight: 400, color: 'var(--ccm-gray-medium)', marginLeft: 6 }}>({atividadesHoje.length})</span>
             </div>
-            {bhColab.length === 0 ? (
+            {atividadesHoje.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '16px 0', color: 'var(--ccm-gray-medium)', fontSize: 11 }}>
-                Nenhum registro de BH encontrado
+                Nenhuma atividade registrada hoje
               </div>
-            ) : (() => {
-              const getBhColor = (bh: string) => {
-                if (!bh) return '#888';
-                if (bh.startsWith('-')) return '#E74C3C';
-                const parts = bh.replace('-','').split(':');
-                const h = parseInt(parts[0] || '0');
-                if (h >= 30) return '#F97316';
-                return '#1DB954';
-              };
-              return (
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4 }}>
-                  {bhColab.map((c, i) => {
-                    const color = getBhColor(c.bh);
-                    return (
-                      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 8px', background: '#F7F8FA', borderRadius: 5, border: '1px solid var(--ccm-line)' }}>
-                        <span style={{ fontSize: 10, fontWeight: 700, color, flexShrink: 0, minWidth: 44 }}>{c.bh}</span>
-                        <span style={{ fontSize: 10, color: 'var(--ccm-ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.colab}</span>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                {atividadesHoje.map((a, i) => {
+                  const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
+                    'Aberto':       { bg: '#E8EDF7', color: '#204294' },
+                    'Em Andamento': { bg: '#FFF8CC', color: '#8A6800' },
+                    'Concluido':    { bg: '#D4F5E2', color: '#0E7E3B' },
+                    'Cancelado':    { bg: '#FDDEDE', color: '#9B2020' },
+                  };
+                  const sc = STATUS_COLORS[a.status] ?? { bg: '#eee', color: '#888' };
+                  return (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', background: '#F7F8FA', borderRadius: 6, border: '1px solid var(--ccm-line)' }}>
+                      <div style={{ width: 26, height: 26, borderRadius: '50%', background: '#E8F7FF', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <i className="bi bi-person-fill" style={{ color: '#00B0FA', fontSize: 12 }} />
                       </div>
-                    );
-                  })}
-                </div>
-              );
-            })()}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontWeight: 700, fontSize: 11, color: 'var(--ccm-ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.analista}</div>
+                        <div style={{ fontSize: 10, color: 'var(--ccm-gray-dark)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.cliente}</div>
+                      </div>
+                      {a.ticketproj && (
+                        <span style={{ fontSize: 9, color: '#00B0FA', fontWeight: 700, flexShrink: 0, background: '#E8F7FF', borderRadius: 99, padding: '1px 6px' }}>#{a.ticketproj}</span>
+                      )}
+                      {a.horainicio && (
+                        <span style={{ fontSize: 9, color: 'var(--ccm-gray-dark)', flexShrink: 0 }}>
+                          <i className="bi bi-clock me-1" style={{ fontSize: 9 }} />
+                          {a.horainicio}{a.horafim ? ` - ${a.horafim}` : ''}
+                        </span>
+                      )}
+                      <span style={{ background: sc.bg, color: sc.color, borderRadius: 99, padding: '1px 7px', fontSize: 9, fontWeight: 700, flexShrink: 0 }}>{a.status}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
       </div>
