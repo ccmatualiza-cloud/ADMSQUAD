@@ -740,7 +740,7 @@ async def list_ausencias(
             where += " AND (colaborador LIKE :q OR tipo LIKE :q)"
             params["q"] = f"%{q}%"
         result = await session.execute(
-            text(f"SELECT cod, colaborador, tipo, data_ini, hora_ini, data_fim, hora_fim FROM tbl_escala {where} ORDER BY colaborador ASC"),
+            text(f"SELECT cod, colaborador, tipo, data_ini, hora_ini, data_fim, hora_fim FROM tbl_escala {where} ORDER BY STR_TO_DATE(data_ini, '%d/%m/%Y') ASC, hora_ini ASC"),
             params
         )
         rows = result.fetchall()
