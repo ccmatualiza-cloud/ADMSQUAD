@@ -109,7 +109,7 @@ export default function ColaboradoresPage({ onBack }: { onBack: () => void }) {
           </button>
         </div>
 
-        <div style={{ padding: '10px 20px', borderBottom: '1px solid var(--ccm-line)' }}>
+        <div style={{ padding: '10px 20px', borderBottom: '1px solid var(--ccm-line)', display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
           <input type="text" className="form-control" placeholder="Buscar por nome, área, depto..."
             value={search} onChange={e => setSearch(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && fetchData(search, filterStatus)}
