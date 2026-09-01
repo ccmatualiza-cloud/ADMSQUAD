@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import AusenciasPage from './ausencias-page';
 import { toast } from 'sonner';
 import { http } from '../../lib/http-client';
 
@@ -25,7 +26,8 @@ export default function ColaboradoresPage({ onBack }: { onBack: () => void }) {
   const [showModal, setShowModal] = useState(false);
   const [editCod, setEditCod]     = useState<number | null>(null);
   const [form, setForm]           = useState(emptyForm);
-  const [saving, setSaving]         = useState(false);
+  const [saving, setSaving]           = useState(false);
+  const [showAusencias, setShowAusencias] = useState(false);
   const [filterStatus, setFilterStatus] = useState('Ativo');
 
   const fetchData = async (q = '', st = filterStatus) => {
@@ -85,6 +87,8 @@ export default function ColaboradoresPage({ onBack }: { onBack: () => void }) {
     </div>
   );
 
+  if (showAusencias) return <AusenciasPage onBack={() => setShowAusencias(false)} />;
+
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
@@ -104,9 +108,14 @@ export default function ColaboradoresPage({ onBack }: { onBack: () => void }) {
               {loading ? 'Carregando...' : `${filtered.length} colaborador(es)`}
             </span>
           </div>
-          <button className="btn btn-ccm-primary btn-sm" onClick={openCreate}>
-            <i className="bi bi-plus-lg me-1" />Novo Colaborador
-          </button>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button className="btn btn-sm" style={{ background: '#F9A825', color: '#5a4000', fontWeight: 700, fontSize: 12 }} onClick={() => setShowAusencias(true)}>
+              <i className="bi bi-calendar-x-fill me-1" />Ausências
+            </button>
+            <button className="btn btn-ccm-primary btn-sm" onClick={openCreate}>
+              <i className="bi bi-plus-lg me-1" />Novo Colaborador
+            </button>
+          </div>
         </div>
 
         <div style={{ padding: '10px 20px', borderBottom: '1px solid var(--ccm-line)', display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>

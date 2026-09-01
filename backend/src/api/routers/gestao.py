@@ -695,3 +695,94 @@ async def update_colaborador(
         return {"updated": True}
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
+
+
+# ── Ausências (tbl_escala) ────────────────────────────────────────────────────
+
+class AusenciaItem(BaseModel):
+    cod: int
+    colaborador: str | None = None
+    tipo: str | None = None
+
+
+class AusenciaCreate(BaseModel):
+    colaborador: str
+    tipo: str = ""
+
+
+class AusenciaUpdate(BaseModel):
+    colaborador: str | None = None
+    tipo: str | None = None
+
+
+@router.get("/ausencias", response_model=list[AusenciaItem])
+async def list_ausencias(
+    q: str = "",
+    _: Annotated[dict, Depends(get_current_user)] = None,
+    session: Annotated[AsyncSession, Depends(get_db)] = None,
+) -> list[AusenciaItem]:
+    try:
+        where = "WHERE 1=1"
+        params: dict = {}
+        if q:
+            where += " AND (colaborador LIKE :q OR tipo LIKE :q)"
+            params["q"] = f"%{q}%"
+        result = await session.execute(
+            text(f"SELECT cod, colaborador, tipo FROM tbl_escala {where} ORDER BY colaborador ASC"),
+            params
+        )
+        rows = result.fetchall()
+        keys = list(result.keys())
+        return [AusenciaItem(**dict(zip(keys, r))) for r in rows]
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@router.post("/ausencias", status_code=status.HTTP_201_CREATED)
+async def create_ausencia(
+    body: AusenciaCreate,
+    _: Annotated[dict, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> dict:
+    try:
+        result = await session.execute(
+            text("INSERT INTO tbl_escala (colaborador, tipo) VALUES (:colaborador, :tipo)"),
+            {"colaborador": body.colaborador, "tipo": body.tipo}
+        )
+        await session.commit()
+        return {"created": True, "id": result.lastrowid}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@router.put("/ausencias/{cod}")
+async def update_ausencia(
+    cod: int,
+    body: AusenciaUpdate,
+    _: Annotated[dict, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> dict:
+    try:
+        sets, params = [], {"cod": cod}
+        if body.colaborador is not None: sets.append("colaborador=:colaborador"); params["colaborador"] = body.colaborador
+        if body.tipo        is not None: sets.append("tipo=:tipo");               params["tipo"]        = body.tipo
+        if not sets:
+            raise HTTPException(status_code=400, detail="Nada para atualizar")
+        await session.execute(text(f"UPDATE tbl_escala SET {', '.join(sets)} WHERE cod = :cod"), params)
+        await session.commit()
+        return {"updated": True}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@router.delete("/ausencias/{cod}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_ausencia(
+    cod: int,
+    _: Annotated[dict, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> None:
+    try:
+        await session.execute(text("DELETE FROM tbl_escala WHERE cod = :cod"), {"cod": cod})
+        await session.commit()
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
