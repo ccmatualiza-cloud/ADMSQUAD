@@ -703,16 +703,28 @@ class AusenciaItem(BaseModel):
     cod: int
     colaborador: str | None = None
     tipo: str | None = None
+    data_ini: str | None = None
+    hora_ini: str | None = None
+    data_fim: str | None = None
+    hora_fim: str | None = None
 
 
 class AusenciaCreate(BaseModel):
     colaborador: str
     tipo: str = ""
+    data_ini: str = ""
+    hora_ini: str = ""
+    data_fim: str = ""
+    hora_fim: str = ""
 
 
 class AusenciaUpdate(BaseModel):
     colaborador: str | None = None
     tipo: str | None = None
+    data_ini: str | None = None
+    hora_ini: str | None = None
+    data_fim: str | None = None
+    hora_fim: str | None = None
 
 
 @router.get("/ausencias", response_model=list[AusenciaItem])
@@ -728,7 +740,7 @@ async def list_ausencias(
             where += " AND (colaborador LIKE :q OR tipo LIKE :q)"
             params["q"] = f"%{q}%"
         result = await session.execute(
-            text(f"SELECT cod, colaborador, tipo FROM tbl_escala {where} ORDER BY colaborador ASC"),
+            text(f"SELECT cod, colaborador, tipo, data_ini, hora_ini, data_fim, hora_fim FROM tbl_escala {where} ORDER BY colaborador ASC"),
             params
         )
         rows = result.fetchall()
@@ -746,8 +758,8 @@ async def create_ausencia(
 ) -> dict:
     try:
         result = await session.execute(
-            text("INSERT INTO tbl_escala (colaborador, tipo) VALUES (:colaborador, :tipo)"),
-            {"colaborador": body.colaborador, "tipo": body.tipo}
+            text("INSERT INTO tbl_escala (colaborador, tipo, data_ini, hora_ini, data_fim, hora_fim) VALUES (:colaborador, :tipo, :data_ini, :hora_ini, :data_fim, :hora_fim)"),
+            {"colaborador": body.colaborador, "tipo": body.tipo, "data_ini": body.data_ini, "hora_ini": body.hora_ini, "data_fim": body.data_fim, "hora_fim": body.hora_fim}
         )
         await session.commit()
         return {"created": True, "id": result.lastrowid}
@@ -766,6 +778,10 @@ async def update_ausencia(
         sets, params = [], {"cod": cod}
         if body.colaborador is not None: sets.append("colaborador=:colaborador"); params["colaborador"] = body.colaborador
         if body.tipo        is not None: sets.append("tipo=:tipo");               params["tipo"]        = body.tipo
+        if body.data_ini   is not None: sets.append("data_ini=:data_ini");       params["data_ini"]    = body.data_ini
+        if body.hora_ini   is not None: sets.append("hora_ini=:hora_ini");       params["hora_ini"]    = body.hora_ini
+        if body.data_fim   is not None: sets.append("data_fim=:data_fim");       params["data_fim"]    = body.data_fim
+        if body.hora_fim   is not None: sets.append("hora_fim=:hora_fim");       params["hora_fim"]    = body.hora_fim
         if not sets:
             raise HTTPException(status_code=400, detail="Nada para atualizar")
         await session.execute(text(f"UPDATE tbl_escala SET {', '.join(sets)} WHERE cod = :cod"), params)

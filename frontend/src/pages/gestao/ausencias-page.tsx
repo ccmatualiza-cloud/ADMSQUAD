@@ -2,18 +2,22 @@ import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { http } from '../../lib/http-client';
 
+interface GcolabItem { cod: number; colab: string | null; }
+
 interface Ausencia {
   cod: number; colaborador: string | null; tipo: string | null;
+  data_ini: string | null; hora_ini: string | null;
+  data_fim: string | null; hora_fim: string | null;
 }
 
 const TIPO_OPTS = ['Férias','Licença Médica','Folga','Abono','Day Off','Ausência Justificada','Ausência Injustificada','Outro'];
-const emptyForm = { colaborador: '', tipo: '' };
+const emptyForm = { colaborador: '', tipo: '', data_ini: '', hora_ini: '', data_fim: '', hora_fim: '' };
 const inputStyle = { background: 'var(--ccm-ink)', border: '1px solid #1a3a6e', color: '#fff', fontSize: 13 };
 const labelStyle = { color: '#9BA4AB', fontSize: 10, fontWeight: 700 as const, textTransform: 'uppercase' as const, letterSpacing: '.14em' };
 
 export default function AusenciasPage({ onBack }: { onBack: () => void }) {
   const [items, setItems]         = useState<Ausencia[]>([]);
-  const [colab, setColab]         = useState<{ id: number; name: string }[]>([]);
+  const [colab, setColab]         = useState<GcolabItem[]>([]);
   const [loading, setLoading]     = useState(true);
   const [search, setSearch]       = useState('');
   const [showModal, setShowModal] = useState(false);
@@ -33,15 +37,15 @@ export default function AusenciasPage({ onBack }: { onBack: () => void }) {
 
   useEffect(() => {
     fetchData();
-    http.get<{ id: number; name: string }[]>('/api/user/by-role')
-      .then(d => setColab([...d].sort((a, b) => a.name.localeCompare(b.name))))
+    http.get<GcolabItem[]>('/api/gestao/colaboradores?status_filter=Ativo')
+      .then(d => setColab([...d].sort((a, b) => (a.colab || '').localeCompare(b.colab || ''))))
       .catch(() => {});
   }, []);
 
   const openCreate = () => { setEditCod(null); setForm(emptyForm); setShowModal(true); };
   const openEdit = (a: Ausencia) => {
     setEditCod(a.cod);
-    setForm({ colaborador: a.colaborador ?? '', tipo: a.tipo ?? '' });
+    setForm({ colaborador: a.colaborador ?? '', tipo: a.tipo ?? '', data_ini: a.data_ini ?? '', hora_ini: a.hora_ini ?? '', data_fim: a.data_fim ?? '', hora_fim: a.hora_fim ?? '' });
     setShowModal(true);
   };
 
@@ -119,12 +123,16 @@ export default function AusenciasPage({ onBack }: { onBack: () => void }) {
                 <tr style={{ background: 'var(--ccm-blue)' }}>
                   <th style={th}>Colaborador</th>
                   <th style={th}>Tipo</th>
+                  <th style={th}>Data Ini.</th>
+                  <th style={th}>Hora Ini.</th>
+                  <th style={th}>Data Fim</th>
+                  <th style={th}>Hora Fim</th>
                   <th style={{ ...th, textAlign: 'center' }}>Ações</th>
                 </tr>
               </thead>
               <tbody>
                 {filtered.length === 0 ? (
-                  <tr><td colSpan={3} style={{ padding: 32, textAlign: 'center', color: 'var(--ccm-gray-dark)' }}>Nenhuma ausência encontrada</td></tr>
+                  <tr><td colSpan={7} style={{ padding: 32, textAlign: 'center', color: 'var(--ccm-gray-dark)' }}>Nenhuma ausência encontrada</td></tr>
                 ) : filtered.map((a, i) => (
                   <tr key={a.cod} style={{ background: i % 2 === 0 ? '#fff' : '#F7F8FA', borderBottom: '1px solid var(--ccm-line)' }}>
                     <td style={{ ...td, fontWeight: 600, color: 'var(--ccm-ink)' }}>{a.colaborador || '—'}</td>
@@ -133,6 +141,10 @@ export default function AusenciasPage({ onBack }: { onBack: () => void }) {
                         {a.tipo || '—'}
                       </span>
                     </td>
+                    <td style={td}>{a.data_ini || '—'}</td>
+                    <td style={td}>{a.hora_ini || '—'}</td>
+                    <td style={td}>{a.data_fim || '—'}</td>
+                    <td style={td}>{a.hora_fim || '—'}</td>
                     <td style={{ ...td, textAlign: 'center' }}>
                       <div style={{ display: 'flex', gap: 4, justifyContent: 'center' }}>
                         <button className="btn btn-sm" style={{ background: 'var(--ccm-blue)', color: '#fff', fontSize: 10, padding: '3px 9px' }} onClick={() => openEdit(a)}>
@@ -169,7 +181,7 @@ export default function AusenciasPage({ onBack }: { onBack: () => void }) {
                 <select className="form-select mt-1" style={inputStyle}
                   value={form.colaborador} onChange={e => setForm(f => ({ ...f, colaborador: e.target.value }))}>
                   <option value="">Selecione...</option>
-                  {colab.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
+                  {colab.map(c => <option key={c.cod} value={c.colab || ''}>{c.colab || '—'}</option>)}
                 </select>
               </div>
               <div className="col-12">
@@ -179,6 +191,26 @@ export default function AusenciasPage({ onBack }: { onBack: () => void }) {
                   <option value="">Selecione...</option>
                   {TIPO_OPTS.map(t => <option key={t} value={t}>{t}</option>)}
                 </select>
+              </div>
+              <div className="col-6">
+                <label style={labelStyle}>Data Inicial</label>
+                <input type="text" className="form-control mt-1" style={inputStyle}
+                  value={form.data_ini} onChange={e => setForm(f => ({ ...f, data_ini: e.target.value }))} placeholder="dd/mm/aaaa" maxLength={10} />
+              </div>
+              <div className="col-6">
+                <label style={labelStyle}>Hora Inicial</label>
+                <input type="time" className="form-control mt-1" style={inputStyle}
+                  value={form.hora_ini} onChange={e => setForm(f => ({ ...f, hora_ini: e.target.value }))} />
+              </div>
+              <div className="col-6">
+                <label style={labelStyle}>Data Final</label>
+                <input type="text" className="form-control mt-1" style={inputStyle}
+                  value={form.data_fim} onChange={e => setForm(f => ({ ...f, data_fim: e.target.value }))} placeholder="dd/mm/aaaa" maxLength={10} />
+              </div>
+              <div className="col-6">
+                <label style={labelStyle}>Hora Final</label>
+                <input type="time" className="form-control mt-1" style={inputStyle}
+                  value={form.hora_fim} onChange={e => setForm(f => ({ ...f, hora_fim: e.target.value }))} />
               </div>
             </div>
 
