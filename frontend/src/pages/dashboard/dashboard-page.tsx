@@ -258,21 +258,29 @@ export default function DashboardPage() {
               <div style={{ textAlign: 'center', padding: '16px 0', color: 'var(--ccm-gray-medium)', fontSize: 11 }}>
                 Nenhum registro de BH encontrado
               </div>
-            ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 8 }}>
-                {bhColab.map((c, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', background: '#F7F8FA', borderRadius: 6, border: '1px solid var(--ccm-line)' }}>
-                    <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#F0EFFE', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      <i className="bi bi-person-fill" style={{ color: '#7F77DD', fontSize: 13 }} />
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontWeight: 700, fontSize: 11, color: 'var(--ccm-ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.colab}</div>
-                      <div style={{ fontSize: 10, color: '#7F77DD', fontWeight: 600 }}>{c.bh}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+            ) : (() => {
+              const getBhColor = (bh: string) => {
+                if (!bh) return '#888';
+                if (bh.startsWith('-')) return '#E74C3C';
+                const parts = bh.replace('-','').split(':');
+                const h = parseInt(parts[0] || '0');
+                if (h >= 30) return '#F97316';
+                return '#1DB954';
+              };
+              return (
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4 }}>
+                  {bhColab.map((c, i) => {
+                    const color = getBhColor(c.bh);
+                    return (
+                      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 8px', background: '#F7F8FA', borderRadius: 5, border: '1px solid var(--ccm-line)' }}>
+                        <span style={{ fontSize: 10, fontWeight: 700, color, flexShrink: 0, minWidth: 44 }}>{c.bh}</span>
+                        <span style={{ fontSize: 10, color: 'var(--ccm-ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.colab}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })()}
           </div>
         </div>
       </div>
