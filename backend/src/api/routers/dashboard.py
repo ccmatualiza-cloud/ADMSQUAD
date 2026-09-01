@@ -168,3 +168,27 @@ async def pendencias_por_status(
         return [{"status": r[0] or "sem status", "total": int(r[1])} for r in rows]
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
+
+
+@router.get("/ausencias-proximas")
+async def ausencias_proximas(
+    _: Annotated[dict, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> list[dict]:
+    try:
+        result = await session.execute(
+            text("""
+                SELECT e.colaborador, e.tipo, e.data_ini, e.hora_ini, e.data_fim, e.hora_fim,
+                       g.area, g.depto, g.almoco
+                FROM tbl_escala e
+                LEFT JOIN tbl_gcolab g ON g.colab = e.colaborador AND g.status = 'Ativo'
+                WHERE STR_TO_DATE(e.data_ini, '%d/%m/%Y') >= CURDATE()
+                  AND STR_TO_DATE(e.data_ini, '%d/%m/%Y') <= DATE_ADD(CURDATE(), INTERVAL 7 DAY)
+                ORDER BY STR_TO_DATE(e.data_ini, '%d/%m/%Y') ASC, e.hora_ini ASC
+            """)
+        )
+        rows = result.fetchall()
+        keys = list(result.keys())
+        return [dict(zip(keys, r)) for r in rows]
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))

@@ -4,6 +4,11 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
   PieChart, Pie, Cell,
 } from 'recharts';
+
+interface AusenciaItem {
+  colaborador: string; tipo: string; data_ini: string; hora_ini: string;
+  data_fim: string; hora_fim: string; area: string | null; depto: string | null;
+}
 import { useAuthStore } from '../../store/auth-store';
 import { http } from '../../lib/http-client';
 
@@ -41,6 +46,7 @@ export default function DashboardPage() {
   const [loadingPen, setLoadingPen] = useState(true);
   const [pendenciasAnalista, setPendenciasAnalista]   = useState<{ nome: string; valor: number }[]>([]);
   const [pendenciasStatus, setPendenciasStatus]     = useState<{ status: string; total: number }[]>([]);
+  const [ausencias, setAusencias]                   = useState<AusenciaItem[]>([]);
   const [historico, setHistorico] = useState<{ data: string; agente_ia: number; humano: number }[]>([]);
 
   useEffect(() => {
@@ -58,6 +64,9 @@ export default function DashboardPage() {
       .then(r => setPendenciasAnalista(r)).catch(() => setPendenciasAnalista([]));
     http.get<{ status: string; total: number }[]>('/api/dashboard/pendencias-por-status')
       .then(setPendenciasStatus)
+      .catch(() => {});
+    http.get<AusenciaItem[]>('/api/dashboard/ausencias-proximas')
+      .then(setAusencias)
       .catch(() => {});
     http.get<{ total: number }>('/api/dashboard/pendencias-abertas')
       .then(r => setPendencias(r.total)).catch(() => setPendencias(null)).finally(() => setLoadingPen(false));
@@ -179,6 +188,63 @@ export default function DashboardPage() {
             })()}
           </div>
         </div>
+      </div>
+      {/* Ausências próximos 7 dias */}
+      <div className="chart-card" style={{ marginTop: 16 }}>
+        <div className="chart-card-title" style={{ marginBottom: 16 }}>
+          <i className="bi bi-calendar-x me-2" style={{ color: '#F9A825' }} />
+          Ausências — Próximos 7 dias
+          <span style={{ fontSize: 11, fontWeight: 400, color: 'var(--ccm-gray-medium)', marginLeft: 8 }}>({ausencias.length} registro{ausencias.length !== 1 ? 's' : ''})</span>
+        </div>
+        {ausencias.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '24px 0', color: 'var(--ccm-gray-medium)', fontSize: 13 }}>
+            <i className="bi bi-check-circle me-2" style={{ color: '#1DB954' }} />
+            Nenhuma ausência nos próximos 7 dias
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {ausencias.map((a, i) => {
+              const TIPO_COLORS: Record<string, { bg: string; color: string }> = {
+                'Férias':                  { bg: '#E8F7FF', color: '#00B0FA' },
+                'Banco de Horas':          { bg: '#FFF8E1', color: '#F9A825' },
+                'Licença Médica':          { bg: '#FDDEDE', color: '#E74C3C' },
+                'Abono':                   { bg: '#E8EDF7', color: '#204294' },
+                'Day Off':                 { bg: '#D4F5E2', color: '#0E7E3B' },
+                'Ausência Justificada':    { bg: '#F0EFFE', color: '#7F77DD' },
+                'Ausência Injustificada':  { bg: '#FDDEDE', color: '#9B2020' },
+              };
+              const tc = TIPO_COLORS[a.tipo] ?? { bg: '#F5F5F5', color: '#888' };
+              return (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', background: '#F7F8FA', borderRadius: 8, border: '1px solid var(--ccm-line)' }}>
+                  {/* Avatar */}
+                  <div style={{ width: 38, height: 38, borderRadius: '50%', background: '#E8EDF7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <i className="bi bi-person-fill" style={{ color: '#204294', fontSize: 18 }} />
+                  </div>
+                  {/* Info */}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--ccm-ink)' }}>{a.colaborador}</div>
+                    <div style={{ fontSize: 11, color: 'var(--ccm-gray-dark)' }}>{a.depto || a.area || '—'}</div>
+                  </div>
+                  {/* Tipo badge */}
+                  <span style={{ background: tc.bg, color: tc.color, borderRadius: 99, padding: '3px 12px', fontSize: 11, fontWeight: 700, flexShrink: 0 }}>{a.tipo}</span>
+                  {/* Datas */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--ccm-gray-dark)', flexShrink: 0 }}>
+                    <i className="bi bi-calendar3" style={{ color: '#204294', fontSize: 12 }} />
+                    <span>{a.data_ini}</span>
+                    {a.data_fim && a.data_fim !== a.data_ini && <><span style={{ color: '#b0b8c1' }}>até</span><span>{a.data_fim}</span></>}
+                  </div>
+                  {/* Horários */}
+                  {(a.hora_ini || a.hora_fim) && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: 'var(--ccm-gray-dark)', flexShrink: 0 }}>
+                      <i className="bi bi-clock" style={{ color: '#204294', fontSize: 12 }} />
+                      <span>{a.hora_ini || ''}{a.hora_fim ? ` - ${a.hora_fim}` : ''}</span>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </>
   );
