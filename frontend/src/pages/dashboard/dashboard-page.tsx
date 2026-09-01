@@ -20,7 +20,7 @@ function KpiCard({ label, value, sub, borderColor, loading }: {
   label: string; value: string | number; sub: string; borderColor: string; loading?: boolean;
 }) {
   return (
-    <div style={{ background: '#fff', borderRadius: 6, padding: '20px 22px', borderTop: `3px solid ${borderColor}`, boxShadow: '0 1px 4px rgba(12,25,33,.07)' }}>
+    <div style={{ background: '#fff', borderRadius: 6, padding: '10px 16px', borderTop: `3px solid ${borderColor}`, boxShadow: '0 1px 4px rgba(12,25,33,.07)' }}>
       <div className="kpi-label">{label}</div>
       <div className="kpi-value">
         {loading
@@ -223,7 +223,7 @@ export default function DashboardPage() {
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ fontWeight: 700, fontSize: 11, color: 'var(--ccm-ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.colaborador}</div>
-                        <div style={{ fontSize: 9, color: 'var(--ccm-gray-dark)' }}>{a.depto || a.area || '—'}</div>
+                        <div style={{ fontSize: 9, color: 'var(--ccm-gray-dark)' }}>{a.area || '—'}</div>
                       </div>
                       <span style={{ background: tc.bg, color: tc.color, borderRadius: 99, padding: '2px 8px', fontSize: 9, fontWeight: 700, flexShrink: 0 }}>{a.tipo}</span>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, color: 'var(--ccm-gray-dark)', flexShrink: 0 }}>
