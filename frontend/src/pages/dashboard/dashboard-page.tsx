@@ -119,7 +119,7 @@ export default function DashboardPage() {
       </div>
 
       <div className="row g-3">
-        <div className="col-12 col-lg-6" style={{ display: 'flex', flexDirection: 'column' }}>
+        <div className="col-12 col-lg-5" style={{ display: 'flex', flexDirection: 'column' }}>
           <div className="chart-card" style={{ flex: 1 }}>
             <div className="chart-card-title">Agendamento de Atualizações Linx — Agente IA vs Humano</div>
             {historico.length === 0 ? (
@@ -258,7 +258,7 @@ export default function DashboardPage() {
           <div className="chart-card" style={{ flex: 1 }}>
             <div className="chart-card-title" style={{ marginBottom: 12, fontSize: 12 }}>
               <i className="bi bi-activity me-1" style={{ color: '#1DB954' }} />
-              Atividades de Hoje
+              Atividades Fora de Horário — de Hoje
               <span style={{ fontSize: 10, fontWeight: 400, color: 'var(--ccm-gray-medium)', marginLeft: 6 }}>({atividadesHoje.length})</span>
             </div>
             {atividadesHoje.length === 0 ? (
