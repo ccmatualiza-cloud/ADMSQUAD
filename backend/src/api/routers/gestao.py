@@ -553,3 +553,130 @@ async def update_caminho_app(
         return {"updated": True, "caminhoapp": body.valor, "dataapp": dataapp}
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
+
+
+# ── Colaboradores ─────────────────────────────────────────────────────────────
+
+class ColaboradorItem(BaseModel):
+    cod: int
+    colab: str | None = None
+    area: str | None = None
+    depto: str | None = None
+    dt_admissao: str | None = None
+    prx_calcferias: str | None = None
+    prx_anoref: str | None = None
+    horario: str | None = None
+    almoco: str | None = None
+    almocof: str | None = None
+    horariof: str | None = None
+    userr: str | None = None
+    email: str | None = None
+    saidaemp: str | None = None
+    motivo: str | None = None
+
+
+class ColaboradorCreate(BaseModel):
+    colab: str
+    area: str = ""
+    depto: str = ""
+    dt_admissao: str = ""
+    prx_calcferias: str = ""
+    prx_anoref: str = ""
+    horario: str = ""
+    almoco: str = ""
+    almocof: str = ""
+    horariof: str = ""
+    userr: str = ""
+    email: str = ""
+    saidaemp: str = ""
+    motivo: str = ""
+
+
+class ColaboradorUpdate(BaseModel):
+    colab: str | None = None
+    area: str | None = None
+    depto: str | None = None
+    dt_admissao: str | None = None
+    prx_calcferias: str | None = None
+    prx_anoref: str | None = None
+    horario: str | None = None
+    almoco: str | None = None
+    almocof: str | None = None
+    horariof: str | None = None
+    userr: str | None = None
+    email: str | None = None
+    saidaemp: str | None = None
+    motivo: str | None = None
+
+
+@router.get("/colaboradores", response_model=list[ColaboradorItem])
+async def list_colaboradores(
+    q: str = "",
+    _: Annotated[dict, Depends(get_current_user)] = None,
+    session: Annotated[AsyncSession, Depends(get_db)] = None,
+) -> list[ColaboradorItem]:
+    try:
+        where = "WHERE 1=1"
+        params: dict = {}
+        if q:
+            where += " AND (colab LIKE :q OR area LIKE :q OR depto LIKE :q OR email LIKE :q)"
+            params["q"] = f"%{q}%"
+        result = await session.execute(
+            text(f"SELECT cod, colab, area, depto, dt_admissao, prx_calcferias, prx_anoref, horario, almoco, almocof, horariof, userr, email, saidaemp, motivo FROM tbl_gcolab {where} ORDER BY colab ASC"),
+            params
+        )
+        rows = result.fetchall()
+        keys = list(result.keys())
+        return [ColaboradorItem(**dict(zip(keys, r))) for r in rows]
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@router.post("/colaboradores", status_code=status.HTTP_201_CREATED)
+async def create_colaborador(
+    body: ColaboradorCreate,
+    _: Annotated[dict, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> dict:
+    try:
+        result = await session.execute(
+            text("""INSERT INTO tbl_gcolab (colab, area, depto, dt_admissao, prx_calcferias, prx_anoref,
+                 horario, almoco, almocof, horariof, userr, email, saidaemp, motivo)
+                 VALUES (:colab, :area, :depto, :dt_admissao, :prx_calcferias, :prx_anoref,
+                 :horario, :almoco, :almocof, :horariof, :userr, :email, :saidaemp, :motivo)"""),
+            {"colab": body.colab, "area": body.area, "depto": body.depto,
+             "dt_admissao": body.dt_admissao, "prx_calcferias": body.prx_calcferias,
+             "prx_anoref": body.prx_anoref, "horario": body.horario,
+             "almoco": body.almoco, "almocof": body.almocof, "horariof": body.horariof,
+             "userr": body.userr, "email": body.email, "saidaemp": body.saidaemp,
+             "motivo": body.motivo}
+        )
+        await session.commit()
+        return {"created": True, "id": result.lastrowid}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@router.put("/colaboradores/{cod}")
+async def update_colaborador(
+    cod: int,
+    body: ColaboradorUpdate,
+    _: Annotated[dict, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> dict:
+    try:
+        sets, params = [], {"cod": cod}
+        fields = ["colab","area","depto","dt_admissao","prx_calcferias","prx_anoref",
+                  "horario","almoco","almocof","horariof","userr","email","saidaemp","motivo"]
+        for f in fields:
+            v = getattr(body, f)
+            if v is not None:
+                sets.append(f"{f}=:{f}")
+                params[f] = v
+        if not sets:
+            raise HTTPException(status_code=400, detail="Nada para atualizar")
+        await session.execute(text(f"UPDATE tbl_gcolab SET {', '.join(sets)} WHERE cod = :cod"), params)
+        await session.commit()
+        return {"updated": True}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
