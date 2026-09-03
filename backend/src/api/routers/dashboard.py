@@ -204,7 +204,7 @@ async def atividades_hoje(
             text(
                 "SELECT analista, cliente, ticketproj, atividade, tipoatividade, horainicio, horafim, duracao, status "
                 "FROM tbl_atividades "
-                "WHERE data = DATE_FORMAT(CURDATE(), '%d/%m/%Y') "
+                "WHERE data = CURDATE() "
                 "ORDER BY analista ASC, horainicio ASC"
             )
         )
