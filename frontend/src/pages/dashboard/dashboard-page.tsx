@@ -276,24 +276,14 @@ export default function DashboardPage() {
                   };
                   const sc = STATUS_COLORS[a.status] ?? { bg: '#eee', color: '#888' };
                   return (
-                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', background: '#F7F8FA', borderRadius: 6, border: '1px solid var(--ccm-line)' }}>
-                      <div style={{ width: 26, height: 26, borderRadius: '50%', background: '#E8F7FF', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        <i className="bi bi-person-fill" style={{ color: '#00B0FA', fontSize: 12 }} />
-                      </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontWeight: 700, fontSize: 11, color: 'var(--ccm-ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.analista}</div>
-                        <div style={{ fontSize: 10, color: 'var(--ccm-gray-dark)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.cliente}</div>
-                      </div>
-                      {a.ticketproj && (
-                        <span style={{ fontSize: 9, color: '#00B0FA', fontWeight: 700, flexShrink: 0, background: '#E8F7FF', borderRadius: 99, padding: '1px 6px' }}>#{a.ticketproj}</span>
-                      )}
-                      {a.horainicio && (
-                        <span style={{ fontSize: 9, color: 'var(--ccm-gray-dark)', flexShrink: 0 }}>
-                          <i className="bi bi-clock me-1" style={{ fontSize: 9 }} />
-                          {a.horainicio}{a.horafim ? ` - ${a.horafim}` : ''}
-                        </span>
-                      )}
-                      <span style={{ background: sc.bg, color: sc.color, borderRadius: 99, padding: '1px 7px', fontSize: 9, fontWeight: 700, flexShrink: 0 }}>{a.status}</span>
+                    <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr auto auto', alignItems: 'center', gap: 10, padding: '6px 10px', background: i % 2 === 0 ? '#fff' : '#F7F8FA', borderRadius: 6, border: '1px solid var(--ccm-line)' }}>
+                      <div style={{ fontWeight: 700, fontSize: 11, color: 'var(--ccm-ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.analista}</div>
+                      <div style={{ fontSize: 11, color: 'var(--ccm-gray-dark)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.cliente}</div>
+                      <div style={{ fontSize: 10, color: '#7F77DD', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.atividade || '—'}</div>
+                      <span style={{ fontSize: 9, color: '#00B0FA', fontWeight: 700, background: '#E8F7FF', borderRadius: 99, padding: '1px 6px', whiteSpace: 'nowrap' }}>
+                        {a.ticketproj ? `#${a.ticketproj}` : '—'}
+                      </span>
+                      <span style={{ background: sc.bg, color: sc.color, borderRadius: 99, padding: '1px 7px', fontSize: 9, fontWeight: 700, whiteSpace: 'nowrap' }}>{a.status}</span>
                     </div>
                   );
                 })}
