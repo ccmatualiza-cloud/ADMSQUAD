@@ -182,8 +182,15 @@ async def ausencias_proximas(
                        g.area, g.depto, g.almoco
                 FROM tbl_escala e
                 LEFT JOIN tbl_gcolab g ON g.colab = e.colaborador AND g.status = 'Ativo'
-                WHERE STR_TO_DATE(e.data_ini, '%d/%m/%Y') >= CURDATE()
-                  AND STR_TO_DATE(e.data_ini, '%d/%m/%Y') <= DATE_ADD(CURDATE(), INTERVAL 7 DAY)
+                WHERE (
+                    -- Começa nos próximos 7 dias
+                    (STR_TO_DATE(e.data_ini, '%d/%m/%Y') >= CURDATE()
+                     AND STR_TO_DATE(e.data_ini, '%d/%m/%Y') <= DATE_ADD(CURDATE(), INTERVAL 7 DAY))
+                    OR
+                    -- Já começou mas ainda não terminou (em andamento)
+                    (STR_TO_DATE(e.data_ini, '%d/%m/%Y') <= CURDATE()
+                     AND STR_TO_DATE(e.data_fim, '%d/%m/%Y') >= CURDATE())
+                )
                 ORDER BY STR_TO_DATE(e.data_ini, '%d/%m/%Y') ASC, e.hora_ini ASC
             """)
         )
