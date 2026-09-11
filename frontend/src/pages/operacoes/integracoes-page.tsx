@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { http } from '../../lib/http-client';
 
 interface IntegracaoOpt { cod: number; integracao: string | null; }
+interface ClienteLinxOpt { cod: number; razao: string | null; }
 
 interface Integracao {
   cod: number; cliente: string | null; integrar: string | null;
@@ -34,6 +35,7 @@ export default function IntegracoesPage({ onBack }: { onBack: () => void }) {
   const [form, setForm]           = useState(emptyForm);
   const [saving, setSaving]           = useState(false);
   const [integracaoOpts, setIntegracaoOpts] = useState<IntegracaoOpt[]>([]);
+  const [clienteOpts, setClienteOpts]         = useState<ClienteLinxOpt[]>([]);
   const [showParametros, setShowParametros] = useState(false);
 
   const fetchData = async (q = '') => {
@@ -50,6 +52,9 @@ export default function IntegracoesPage({ onBack }: { onBack: () => void }) {
     fetchData();
     http.get<IntegracaoOpt[]>('/api/operacoes/parametros-integrar')
       .then(d => setIntegracaoOpts([...d].sort((a, b) => (a.integracao || '').localeCompare(b.integracao || ''))))
+      .catch(() => {});
+    http.get<ClienteLinxOpt[]>('/api/cx/clientes')
+      .then(d => setClienteOpts([...d].sort((a, b) => (a.razao || '').localeCompare(b.razao || ''))))
       .catch(() => {});
     http.get<{ id: number; name: string }[]>('/api/user/by-role')
       .then(d => setUsuarios([...d].sort((a, b) => a.name.localeCompare(b.name))))
@@ -202,8 +207,13 @@ export default function IntegracoesPage({ onBack }: { onBack: () => void }) {
             <div className="row g-3">
               <div className="col-12">
                 <label style={labelStyle}>Cliente *</label>
-                <input type="text" className="form-control mt-1" style={inputStyle}
-                  value={form.cliente} onChange={e => setForm(f => ({ ...f, cliente: e.target.value }))} placeholder="Nome do cliente" />
+                <select className="form-select mt-1" style={inputStyle}
+                  value={form.cliente} onChange={e => setForm(f => ({ ...f, cliente: e.target.value }))}>
+                  <option value="">Selecione o cliente...</option>
+                  {clienteOpts.map(c => (
+                    <option key={c.cod} value={c.razao || ''}>{c.razao || '—'}</option>
+                  ))}
+                </select>
               </div>
               <div className="col-12">
                 <label style={labelStyle}>Integração</label>
