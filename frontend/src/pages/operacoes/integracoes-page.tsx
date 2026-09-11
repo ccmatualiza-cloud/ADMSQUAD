@@ -3,6 +3,8 @@ import ParametrosIntegrarPage from './parametros-integrar-page';
 import { toast } from 'sonner';
 import { http } from '../../lib/http-client';
 
+interface IntegracaoOpt { cod: number; integracao: string | null; }
+
 interface Integracao {
   cod: number; cliente: string | null; integrar: string | null;
   ticket: string | null; data: string | null;
@@ -30,7 +32,8 @@ export default function IntegracoesPage({ onBack }: { onBack: () => void }) {
   const [showModal, setShowModal] = useState(false);
   const [editCod, setEditCod]     = useState<number | null>(null);
   const [form, setForm]           = useState(emptyForm);
-  const [saving, setSaving]         = useState(false);
+  const [saving, setSaving]           = useState(false);
+  const [integracaoOpts, setIntegracaoOpts] = useState<IntegracaoOpt[]>([]);
   const [showParametros, setShowParametros] = useState(false);
 
   const fetchData = async (q = '') => {
@@ -45,6 +48,9 @@ export default function IntegracoesPage({ onBack }: { onBack: () => void }) {
 
   useEffect(() => {
     fetchData();
+    http.get<IntegracaoOpt[]>('/api/operacoes/parametros-integrar')
+      .then(d => setIntegracaoOpts([...d].sort((a, b) => (a.integracao || '').localeCompare(b.integracao || ''))))
+      .catch(() => {});
     http.get<{ id: number; name: string }[]>('/api/user/by-role')
       .then(d => setUsuarios([...d].sort((a, b) => a.name.localeCompare(b.name))))
       .catch(() => {});
@@ -201,8 +207,13 @@ export default function IntegracoesPage({ onBack }: { onBack: () => void }) {
               </div>
               <div className="col-12">
                 <label style={labelStyle}>Integração</label>
-                <input type="text" className="form-control mt-1" style={inputStyle}
-                  value={form.integrar} onChange={e => setForm(f => ({ ...f, integrar: e.target.value }))} placeholder="Sistema ou integração" />
+                <select className="form-select mt-1" style={inputStyle}
+                  value={form.integrar} onChange={e => setForm(f => ({ ...f, integrar: e.target.value }))}>
+                  <option value="">Selecione a integração...</option>
+                  {integracaoOpts.map(o => (
+                    <option key={o.cod} value={o.integracao || ''}>{o.integracao || '—'}</option>
+                  ))}
+                </select>
               </div>
               <div className="col-12 col-md-6">
                 <label style={labelStyle}>Ticket</label>
