@@ -879,10 +879,11 @@ async def enviar_email_atualizacao(
         if not emails:
             raise HTTPException(status_code=400, detail="Cliente sem email cadastrado")
 
-        pacote_final = pacote or "Evolutivo"
+        pacote_map = {"EVO": "Evolutivo", "ESS": "Essencial", "ESP": "Especifico"}
+        pacote_raw = pacote or "EVO"
+        pacote_final = pacote_map.get(pacote_raw, pacote_raw)
         link = link1 or ""
         data_fmt = dt_atualiza or datetime.now().strftime("%d/%m/%Y")
-        hora_fmt = datetime.now().strftime("%H:%M")
         nome_cliente = razao or cliente or ""
 
         smtp_host = os.getenv("SMTP_HOST", "webmail.ccmtecnologia.com.br")
@@ -890,7 +891,7 @@ async def enviar_email_atualizacao(
         smtp_user = os.getenv("SMTP_USER", "scripts@ccmtecnologia.com.br")
         smtp_pass = os.getenv("SMTP_PASS") or os.getenv("SMTP_PASSWORD") or "P@$$ccmr00t210"
 
-        linha1 = "Link para download dos arquivos clients, Pacote " + pacote_final + "-" + data_fmt + " " + hora_fmt
+        linha1 = "Link para download dos arquivos clients, Pacote " + pacote_final + " - Executado no dia - " + data_fmt
         subject = "Atualizacao " + nome_cliente + " Concluida"
         body_text = linha1 + chr(10) + chr(10) + link
         body_html = "<p>" + linha1 + "</p><p><a href='" + link + "'>" + link + "</a></p>"
