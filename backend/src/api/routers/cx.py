@@ -899,9 +899,11 @@ async def enviar_email_atualizacao(
         msg["Subject"] = subject
         msg["From"] = smtp_user
         msg["To"] = emails
+        msg["Cc"] = "ccm.atualiza@gmail.com"
         msg.attach(MIMEText(body_text, "plain"))
         msg.attach(MIMEText(body_html, "html"))
         destinatarios = [e.strip() for e in emails.split(",") if e.strip()]
+        destinatarios.append("ccm.atualiza@gmail.com")
 
         with smtplib.SMTP(smtp_host, smtp_port) as server:
             server.ehlo()
