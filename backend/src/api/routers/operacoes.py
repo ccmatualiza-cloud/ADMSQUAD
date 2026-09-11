@@ -702,3 +702,120 @@ async def delete_integracao(
         await session.commit()
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
+
+
+# -- Parametros Integrar -------------------------------------------------------
+
+class ParametroItem(BaseModel):
+    cod: int
+    integracao: str | None = None
+    homologado: str | None = None
+    bandeira: str | None = None
+    ativo: str | None = None
+    manual: str | None = None
+    estrutura: str | None = None
+    tipo: str | None = None
+    desenvolvedor: str | None = None
+
+
+class ParametroCreate(BaseModel):
+    integracao: str
+    homologado: str = "Nao"
+    bandeira: str = ""
+    ativo: str = "Sim"
+    manual: str = ""
+    estrutura: str = ""
+    tipo: str = ""
+    desenvolvedor: str = ""
+
+
+class ParametroUpdate(BaseModel):
+    integracao: str | None = None
+    homologado: str | None = None
+    bandeira: str | None = None
+    ativo: str | None = None
+    manual: str | None = None
+    estrutura: str | None = None
+    tipo: str | None = None
+    desenvolvedor: str | None = None
+
+
+@router.get("/parametros-integrar", response_model=list[ParametroItem])
+async def list_parametros(
+    q: str = "",
+    _: Annotated[dict, Depends(get_current_user)] = None,
+    session: Annotated[AsyncSession, Depends(get_db)] = None,
+) -> list[ParametroItem]:
+    try:
+        where = "WHERE 1=1"
+        params: dict = {}
+        if q:
+            where += " AND (integracao LIKE :q OR bandeira LIKE :q OR tipo LIKE :q OR desenvolvedor LIKE :q)"
+            params["q"] = f"%{q}%"
+        result = await session.execute(
+            text(f"SELECT cod, integracao, homologado, bandeira, ativo, manual, estrutura, tipo, desenvolvedor FROM tbl_integrar {where} ORDER BY integracao ASC"),
+            params
+        )
+        rows = result.fetchall()
+        keys = list(result.keys())
+        return [ParametroItem(**dict(zip(keys, r))) for r in rows]
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@router.post("/parametros-integrar", status_code=status.HTTP_201_CREATED)
+async def create_parametro(
+    body: ParametroCreate,
+    _: Annotated[dict, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> dict:
+    try:
+        result = await session.execute(
+            text("INSERT INTO tbl_integrar (integracao, homologado, bandeira, ativo, manual, estrutura, tipo, desenvolvedor) VALUES (:integracao, :homologado, :bandeira, :ativo, :manual, :estrutura, :tipo, :desenvolvedor)"),
+            {"integracao": body.integracao, "homologado": body.homologado, "bandeira": body.bandeira,
+             "ativo": body.ativo, "manual": body.manual, "estrutura": body.estrutura,
+             "tipo": body.tipo, "desenvolvedor": body.desenvolvedor}
+        )
+        await session.commit()
+        return {"created": True, "id": result.lastrowid}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@router.put("/parametros-integrar/{cod}")
+async def update_parametro(
+    cod: int,
+    body: ParametroUpdate,
+    _: Annotated[dict, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> dict:
+    try:
+        sets, params = [], {"cod": cod}
+        if body.integracao   is not None: sets.append("integracao=:integracao");     params["integracao"]   = body.integracao
+        if body.homologado   is not None: sets.append("homologado=:homologado");     params["homologado"]   = body.homologado
+        if body.bandeira     is not None: sets.append("bandeira=:bandeira");         params["bandeira"]     = body.bandeira
+        if body.ativo        is not None: sets.append("ativo=:ativo");               params["ativo"]        = body.ativo
+        if body.manual       is not None: sets.append("manual=:manual");             params["manual"]       = body.manual
+        if body.estrutura    is not None: sets.append("estrutura=:estrutura");       params["estrutura"]    = body.estrutura
+        if body.tipo         is not None: sets.append("tipo=:tipo");                 params["tipo"]         = body.tipo
+        if body.desenvolvedor is not None: sets.append("desenvolvedor=:desenvolvedor"); params["desenvolvedor"] = body.desenvolvedor
+        if not sets:
+            raise HTTPException(status_code=400, detail="Nada para atualizar")
+        await session.execute(text(f"UPDATE tbl_integrar SET {', '.join(sets)} WHERE cod = :cod"), params)
+        await session.commit()
+        return {"updated": True}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@router.delete("/parametros-integrar/{cod}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_parametro(
+    cod: int,
+    _: Annotated[dict, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> None:
+    try:
+        await session.execute(text("DELETE FROM tbl_integrar WHERE cod = :cod"), {"cod": cod})
+        await session.commit()
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))

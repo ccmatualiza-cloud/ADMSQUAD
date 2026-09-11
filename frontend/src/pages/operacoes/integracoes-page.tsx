@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import ParametrosIntegrarPage from './parametros-integrar-page';
 import { toast } from 'sonner';
 import { http } from '../../lib/http-client';
 
@@ -29,7 +30,8 @@ export default function IntegracoesPage({ onBack }: { onBack: () => void }) {
   const [showModal, setShowModal] = useState(false);
   const [editCod, setEditCod]     = useState<number | null>(null);
   const [form, setForm]           = useState(emptyForm);
-  const [saving, setSaving]       = useState(false);
+  const [saving, setSaving]         = useState(false);
+  const [showParametros, setShowParametros] = useState(false);
 
   const fetchData = async (q = '') => {
     setLoading(true);
@@ -83,6 +85,8 @@ export default function IntegracoesPage({ onBack }: { onBack: () => void }) {
   const th = { color: '#fff', fontWeight: 700, textTransform: 'uppercase' as const, letterSpacing: '.05em', padding: '10px 12px', textAlign: 'left' as const, fontSize: 10, whiteSpace: 'nowrap' as const };
   const td = { padding: '9px 12px', fontSize: 12, whiteSpace: 'nowrap' as const };
 
+  if (showParametros) return <ParametrosIntegrarPage onBack={() => setShowParametros(false)} />;
+
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
@@ -92,7 +96,7 @@ export default function IntegracoesPage({ onBack }: { onBack: () => void }) {
         <span style={{ color: 'var(--ccm-gray-medium)', fontSize: 12 }}>/</span>
         <span style={{ color: 'var(--ccm-gray-dark)', fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.1em' }}>Integrações</span>
       </div>
-      <div className="section-title mb-4" style={{ textAlign: 'center' }}>Integrações</div>
+      <div className="section-title mb-4" style={{ textAlign: 'center' }}>Integrações de Clientes</div>
 
       <div className="table-card">
         <div style={{ background: 'var(--ccm-ink)', padding: '12px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderRadius: '6px 6px 0 0' }}>
@@ -102,9 +106,14 @@ export default function IntegracoesPage({ onBack }: { onBack: () => void }) {
               {loading ? 'Carregando...' : `${filtered.length} integração(ões)`}
             </span>
           </div>
-          <button className="btn btn-ccm-primary btn-sm" onClick={openCreate}>
-            <i className="bi bi-plus-lg me-1" />Nova Integração
-          </button>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button className="btn btn-sm" style={{ background: '#F9A825', color: '#5a4000', fontWeight: 700, fontSize: 12 }} onClick={() => setShowParametros(true)}>
+              <i className="bi bi-sliders me-1" />Parâmetros
+            </button>
+            <button className="btn btn-ccm-primary btn-sm" onClick={openCreate}>
+              <i className="bi bi-plus-lg me-1" />Nova Integração
+            </button>
+          </div>
         </div>
 
         <div style={{ padding: '10px 20px', borderBottom: '1px solid var(--ccm-line)', display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
