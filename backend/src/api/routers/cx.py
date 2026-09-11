@@ -905,25 +905,13 @@ async def enviar_email_atualizacao(
         destinatarios = [e.strip() for e in emails.split(",") if e.strip()]
         destinatarios.append("ccm.atualiza@gmail.com")
 
-        # Tenta SMTP com STARTTLS primeiro, depois SSL direto
-        try:
-            with smtplib.SMTP(smtp_host, smtp_port, timeout=15) as server:
-                server.ehlo()
-                try:
-                    server.starttls()
-                    server.ehlo()
-                except Exception:
-                    pass
-                if smtp_pass:
-                    server.login(smtp_user, smtp_pass)
-                server.sendmail(smtp_user, destinatarios, msg.as_string())
-        except Exception:
-            import smtplib as smtplib2
-            with smtplib2.SMTP_SSL(smtp_host, smtp_port, timeout=15) as server:
-                server.ehlo()
-                if smtp_pass:
-                    server.login(smtp_user, smtp_pass)
-                server.sendmail(smtp_user, destinatarios, msg.as_string())
+        with smtplib.SMTP(smtp_host, smtp_port, timeout=15) as server:
+            server.ehlo()
+            server.starttls()
+            server.ehlo()
+            if smtp_pass:
+                server.login(smtp_user, smtp_pass)
+            server.sendmail(smtp_user, destinatarios, msg.as_string())
 
         return {"sent": True, "to": emails}
 
