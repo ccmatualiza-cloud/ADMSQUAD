@@ -593,3 +593,112 @@ async def list_consultas_analistas_public(
         return [ConsultaAnalistaItem(**dict(zip(keys, r))) for r in rows]
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
+
+
+# -- Integracoes ---------------------------------------------------------------
+
+class IntegracaoItem(BaseModel):
+    cod: int
+    cliente: str | None = None
+    integrar: str | None = None
+    ticket: str | None = None
+    data: str | None = None
+    responsavel: str | None = None
+    status: str | None = None
+    cont: int | None = None
+
+
+class IntegracaoCreate(BaseModel):
+    cliente: str
+    integrar: str = ""
+    ticket: str = ""
+    data: str = ""
+    responsavel: str = ""
+    status: str = "Aberto"
+
+
+class IntegracaoUpdate(BaseModel):
+    cliente: str | None = None
+    integrar: str | None = None
+    ticket: str | None = None
+    data: str | None = None
+    responsavel: str | None = None
+    status: str | None = None
+
+
+@router.get("/integracoes", response_model=list[IntegracaoItem])
+async def list_integracoes(
+    q: str = "",
+    _: Annotated[dict, Depends(get_current_user)] = None,
+    session: Annotated[AsyncSession, Depends(get_db)] = None,
+) -> list[IntegracaoItem]:
+    try:
+        where = "WHERE 1=1"
+        params: dict = {}
+        if q:
+            where += " AND (cliente LIKE :q OR integrar LIKE :q OR responsavel LIKE :q OR ticket LIKE :q)"
+            params["q"] = f"%{q}%"
+        result = await session.execute(
+            text(f"SELECT cod, cliente, integrar, ticket, data, responsavel, status, cont FROM tbl_integracoes {where} ORDER BY cod DESC"),
+            params
+        )
+        rows = result.fetchall()
+        keys = list(result.keys())
+        return [IntegracaoItem(**dict(zip(keys, r))) for r in rows]
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@router.post("/integracoes", status_code=status.HTTP_201_CREATED)
+async def create_integracao(
+    body: IntegracaoCreate,
+    _: Annotated[dict, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> dict:
+    try:
+        result = await session.execute(
+            text("INSERT INTO tbl_integracoes (cliente, integrar, ticket, data, responsavel, status) VALUES (:cliente, :integrar, :ticket, :data, :responsavel, :status)"),
+            {"cliente": body.cliente, "integrar": body.integrar, "ticket": body.ticket,
+             "data": body.data, "responsavel": body.responsavel, "status": body.status}
+        )
+        await session.commit()
+        return {"created": True, "id": result.lastrowid}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@router.put("/integracoes/{cod}")
+async def update_integracao(
+    cod: int,
+    body: IntegracaoUpdate,
+    _: Annotated[dict, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> dict:
+    try:
+        sets, params = [], {"cod": cod}
+        if body.cliente     is not None: sets.append("cliente=:cliente");         params["cliente"]     = body.cliente
+        if body.integrar    is not None: sets.append("integrar=:integrar");       params["integrar"]    = body.integrar
+        if body.ticket      is not None: sets.append("ticket=:ticket");           params["ticket"]      = body.ticket
+        if body.data        is not None: sets.append("data=:data");               params["data"]        = body.data
+        if body.responsavel is not None: sets.append("responsavel=:responsavel"); params["responsavel"] = body.responsavel
+        if body.status      is not None: sets.append("status=:status");           params["status"]      = body.status
+        if not sets:
+            raise HTTPException(status_code=400, detail="Nada para atualizar")
+        await session.execute(text(f"UPDATE tbl_integracoes SET {', '.join(sets)} WHERE cod = :cod"), params)
+        await session.commit()
+        return {"updated": True}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@router.delete("/integracoes/{cod}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_integracao(
+    cod: int,
+    _: Annotated[dict, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> None:
+    try:
+        await session.execute(text("DELETE FROM tbl_integracoes WHERE cod = :cod"), {"cod": cod})
+        await session.commit()
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
