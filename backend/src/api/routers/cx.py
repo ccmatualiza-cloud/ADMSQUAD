@@ -885,10 +885,10 @@ async def enviar_email_atualizacao(
         hora_fmt = datetime.now().strftime("%H:%M")
         nome_cliente = razao or cliente or ""
 
-        smtp_host = os.getenv("SMTP_HOST", "smtp.gmail.com")
-        smtp_port = int(os.getenv("SMTP_PORT", "587"))
+        smtp_host = os.getenv("SMTP_HOST", "webmail.ccmtecnologia.com.br")
+        smtp_port = int(os.getenv("SMTP_PORT", "40587"))
         smtp_user = os.getenv("SMTP_USER", "scripts@ccmtecnologia.com.br")
-        smtp_pass = os.getenv("SMTP_PASS", "")
+        smtp_pass = os.getenv("SMTP_PASS") or os.getenv("SMTP_PASSWORD") or "P@$$ccmr00t210"
 
         linha1 = "Link para download dos arquivos clients, Pacote " + pacote_final + "-" + data_fmt + " " + hora_fmt
         subject = "Atualizacao " + nome_cliente + " Concluida"
