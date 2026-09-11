@@ -851,3 +851,67 @@ async def delete_touchpoint(
         await session.commit()
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
+
+
+# -- Enviar email atualizacao --------------------------------------------------
+
+@router.post("/consultar-atualizacao/{cod}/enviar-email")
+async def enviar_email_atualizacao(
+    cod: int,
+    _: Annotated[dict, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> dict:
+    import smtplib, os
+    from email.mime.multipart import MIMEMultipart
+    from email.mime.text import MIMEText
+    from datetime import datetime
+
+    try:
+        result = await session.execute(
+            text("SELECT razao, cliente, pacote, dt_atualiza, emails, link1 FROM tbl_linx WHERE cod = :cod"),
+            {"cod": cod}
+        )
+        row = result.fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail="Cliente nao encontrado")
+
+        razao, cliente, pacote, dt_atualiza, emails, link1 = row
+        if not emails:
+            raise HTTPException(status_code=400, detail="Cliente sem email cadastrado")
+
+        pacote_final = pacote or "Evolutivo"
+        link = link1 or ""
+        data_fmt = dt_atualiza or datetime.now().strftime("%d/%m/%Y")
+        hora_fmt = datetime.now().strftime("%H:%M")
+        nome_cliente = razao or cliente or ""
+
+        smtp_host = os.getenv("SMTP_HOST", "smtp.gmail.com")
+        smtp_port = int(os.getenv("SMTP_PORT", "587"))
+        smtp_user = os.getenv("SMTP_USER", "scripts@ccmtecnologia.com.br")
+        smtp_pass = os.getenv("SMTP_PASS", "")
+
+        linha1 = "Link para download dos arquivos clients, Pacote " + pacote_final + "-" + data_fmt + " " + hora_fmt
+        subject = "Atualizacao " + nome_cliente + " Concluida"
+        body_text = linha1 + chr(10) + chr(10) + link
+        body_html = "<p>" + linha1 + "</p><p><a href='" + link + "'>" + link + "</a></p>"
+
+        msg = MIMEMultipart("alternative")
+        msg["Subject"] = subject
+        msg["From"] = smtp_user
+        msg["To"] = emails
+        msg.attach(MIMEText(body_text, "plain"))
+        msg.attach(MIMEText(body_html, "html"))
+        destinatarios = [e.strip() for e in emails.split(",") if e.strip()]
+
+        with smtplib.SMTP(smtp_host, smtp_port) as server:
+            server.ehlo()
+            server.starttls()
+            server.login(smtp_user, smtp_pass)
+            server.sendmail(smtp_user, destinatarios, msg.as_string())
+
+        return {"sent": True, "to": emails}
+
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail="Erro ao enviar email: " + str(exc))

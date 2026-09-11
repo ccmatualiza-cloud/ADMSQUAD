@@ -55,6 +55,16 @@ export default function ConsultarAtualizacaoLinx({ onBack }: { onBack: () => voi
     } catch { /* silent */ }
   };
 
+  const handleEmail = async (cod: number, razao: string) => {
+    if (!confirm('Deseja enviar o email com os dados da ultima atualizacao de "' + razao + '"?')) return;
+    try {
+      await http.post('/api/cx/consultar-atualizacao/' + cod + '/enviar-email', {});
+      alert('Email enviado com sucesso!');
+    } catch (err: unknown) {
+      alert('Erro ao enviar email: ' + (err instanceof Error ? err.message : 'Erro desconhecido'));
+    }
+  };
+
   const th = { color: '#fff', fontWeight: 700, textTransform: 'uppercase' as const, letterSpacing: '.05em', padding: '10px 12px', textAlign: 'left' as const, fontSize: 10, whiteSpace: 'nowrap' as const };
   const td = { padding: '9px 12px', fontSize: 12, whiteSpace: 'nowrap' as const };
 
@@ -135,6 +145,10 @@ export default function ConsultarAtualizacaoLinx({ onBack }: { onBack: () => voi
                       <button className="btn btn-sm" style={{ background: '#E74C3C', color: '#fff', fontSize: 10, padding: '2px 8px', lineHeight: 1 }}
                         onClick={() => handleCancelar(c.cod, c.razao || '')} title="Cancelar agendamento">
                         <i className="bi bi-x-lg" />
+                      </button>
+                      <button className="btn btn-sm" style={{ background: '#1DB954', color: '#fff', fontSize: 10, padding: '2px 8px', lineHeight: 1 }}
+                        onClick={() => handleEmail(c.cod, c.razao || '')} title="Enviar email de atualizacao">
+                        <i className="bi bi-envelope-fill" />
                       </button>
                     </td>
                   </tr>
