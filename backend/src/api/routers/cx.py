@@ -887,8 +887,8 @@ async def enviar_email_atualizacao(
         nome_cliente = razao or cliente or ""
 
         smtp_host = "smtp.email.sa-saopaulo-1.oci.oraclecloud.com"
-        smtp_port = "25"
-        smtp_user = "scripts@ccmtecnologia.com.br"
+        smtp_port = "587"
+        smtp_user = "ocid1.user.oc1..aaaaaaaapibjeei63pvrj244kxlawj2vyqp76itpizkhlz5hgtlbckako4oq@ocid1.tenancy.oc1..aaaaaaaaliaokqoju4gjop3sm5al25e3kijzd4dlvhhalywpbxe4q47oleuq.uo.com"
         smtp_pass = "vsxDgp-j7Q4KuS:p-n6&"
 
         linha1 = "Link para download dos arquivos clients, Pacote " + pacote_final + " - Executado no dia - " + data_fmt
