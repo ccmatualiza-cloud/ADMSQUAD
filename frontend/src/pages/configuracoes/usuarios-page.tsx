@@ -190,18 +190,18 @@ export default function UsuariosPage({ onBack }: Props) {
                       </td>
                       <td style={{ padding: '10px 16px', color: 'var(--ccm-gray-dark)' }}>{fmtDatetime(u.last_login)}</td>
                       <td style={{ padding: '10px 16px', color: 'var(--ccm-gray-dark)' }}>{fmtDate(u.created_at)}</td>
+                      <td style={{ padding: '10px 16px', textAlign: 'center' }}>
+                        <button onClick={() => handleToggle2FA(u.id, u.two_fa_enabled)}
+                          title={u.two_fa_enabled ? '2FA Ativo' : '2FA Inativo'}
+                          style={{ width: 44, height: 22, borderRadius: 99, border: 'none', cursor: 'pointer', background: u.two_fa_enabled ? '#1DB954' : '#ccc', position: 'relative', transition: 'background .2s' }}>
+                          <span style={{ position: 'absolute', top: 2, left: u.two_fa_enabled ? 24 : 2, width: 18, height: 18, borderRadius: '50%', background: '#fff', transition: 'left .2s' }} />
+                        </button>
+                      </td>
                       <td style={{ padding: '10px 16px' }}>
                         <div style={{ display: 'flex', gap: 6 }}>
                           <button className="btn btn-sm" style={{ background: 'var(--ccm-blue)', color: '#fff', fontSize: 11, padding: '4px 10px' }} onClick={() => openEdit(u)}>
                             <i className="bi bi-pencil-fill me-1" />Editar
                           </button>
-                        <button onClick={() => handleToggle2FA(u.id, u.two_fa_enabled)}
-                          title={u.two_fa_enabled ? '2FA Ativo' : '2FA Inativo'}
-                          style={{ width: 44, height: 22, borderRadius: 99, border: 'none', cursor: 'pointer', background: u.two_fa_enabled ? '#1DB954' : '#ccc', position: 'relative', transition: 'background .2s', display: 'block', margin: '0 auto' }}>
-                          <span style={{ position: 'absolute', top: 2, left: u.two_fa_enabled ? 24 : 2, width: 18, height: 18, borderRadius: '50%', background: '#fff', transition: 'left .2s' }} />
-                        </button>
-                      </td>
-                      <td style={{ padding: '12px 16px', textAlign: 'center' }}>
                           <button className="btn btn-sm" style={{ background: u.active ? '#E74C3C' : '#2ECC71', color: '#fff', fontSize: 11, padding: '4px 10px' }} onClick={() => toggleActive(u)}>
                             <i className={`bi ${u.active ? 'bi-slash-circle' : 'bi-check-circle'} me-1`} />
                             {u.active ? 'Inativar' : 'Ativar'}
