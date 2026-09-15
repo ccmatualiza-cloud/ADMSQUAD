@@ -189,3 +189,50 @@ async def get_users_by_role(
         return [{"id": r[0], "name": r[1]} for r in rows]
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
+
+
+@router.put("/toggle-2fa/{user_id}")
+async def toggle_2fa(
+    user_id: int,
+    current_user: Annotated[dict, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> dict:
+    if current_user.get("role") not in ("admin", "gestor"):
+        raise HTTPException(status_code=403, detail="Sem permissao")
+    try:
+        r = await session.execute(
+            text("SELECT two_fa_enabled FROM users WHERE id = :id"),
+            {"id": user_id}
+        )
+        row = r.fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail="Usuario nao encontrado")
+        new_val = 0 if row[0] else 1
+        await session.execute(
+            text("UPDATE users SET two_fa_enabled = :val WHERE id = :id"),
+            {"val": new_val, "id": user_id}
+        )
+        await session.commit()
+        return {"two_fa_enabled": bool(new_val)}
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@router.get("/list-with-2fa")
+async def list_users_with_2fa(
+    current_user: Annotated[dict, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> list[dict]:
+    if current_user.get("role") not in ("admin", "gestor"):
+        raise HTTPException(status_code=403, detail="Sem permissao")
+    try:
+        result = await session.execute(
+            text("SELECT id, name, email, role, active, two_fa_enabled FROM users ORDER BY name")
+        )
+        rows = result.fetchall()
+        keys = ["id", "name", "email", "role", "active", "two_fa_enabled"]
+        return [dict(zip(keys, r)) for r in rows]
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))

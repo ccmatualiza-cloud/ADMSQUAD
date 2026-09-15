@@ -56,7 +56,7 @@ export default function UsuariosPage({ onBack }: Props) {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const data = await http.get<User[]>('/api/user/');
+      const data = await http.get<User[]>('/api/user/list-with-2fa');
       setUsers(data);
     } catch {
       toast.error('Erro ao carregar usuários');
