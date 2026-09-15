@@ -886,10 +886,10 @@ async def enviar_email_atualizacao(
         data_fmt = dt_atualiza or datetime.now().strftime("%d/%m/%Y")
         nome_cliente = razao or cliente or ""
 
-        smtp_host = os.getenv("SMTP_HOST", "webmail.ccmtecnologia.com.br")
-        smtp_port = int(os.getenv("SMTP_PORT", "40587"))
+        smtp_host = os.getenv("SMTP_HOST", "smtp.email.sa-saopaulo-1.oci.oraclecloud.com")
+        smtp_port = int(os.getenv("SMTP_PORT", "587"))
         smtp_user = os.getenv("SMTP_USER", "scripts@ccmtecnologia.com.br")
-        smtp_pass = os.getenv("SMTP_PASS") or os.getenv("SMTP_PASSWORD") or ""
+        smtp_pass = os.getenv("SMTP_PASS") or os.getenv("SMTP_PASSWORD") or "vsxDgp-j7cUS:p-n6&"
 
         linha1 = "Link para download dos arquivos clients, Pacote " + pacote_final + " - Executado no dia - " + data_fmt
         subject = "Atualizacao " + nome_cliente + " Concluida"
