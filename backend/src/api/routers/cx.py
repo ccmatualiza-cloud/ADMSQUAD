@@ -908,6 +908,8 @@ async def enviar_email_atualizacao(
 
         with smtplib.SMTP(smtp_host, smtp_port, timeout=15) as server:
             server.ehlo()
+            server.starttls()
+            server.ehlo()
             if smtp_pass:
                 server.login(smtp_user, smtp_pass)
             server.sendmail(smtp_user, destinatarios, msg.as_string())
