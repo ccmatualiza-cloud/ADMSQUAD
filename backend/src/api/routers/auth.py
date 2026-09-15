@@ -58,7 +58,7 @@ class RegisterRequest(BaseModel):
 
 def send_2fa_email(to_email: str, code: str, name: str) -> None:
     smtp_host = "smtp.email.sa-saopaulo-1.oci.oraclecloud.com"
-    smtp_port = int(os.getenv("SMTP_PORT", "587"))
+    smtp_port = "25"
     smtp_user = "scripts@ccmtecnologia.com.br"
     smtp_pass = "vsxDgp-j7Q4KuS:p-n6&"
 
