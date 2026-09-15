@@ -20,8 +20,6 @@ export default function LoginPage() {
   const [loading, setLoading]           = useState(false);
   const [step, setStep]                 = useState<'login' | '2fa'>('login');
   const [twoFaToken, setTwoFaToken]     = useState('');
-  const [pendingToken, setPendingToken] = useState('');
-  const [pendingUser, setPendingUser]   = useState<{id:number;name:string;email:string;role:string;avatar_url:string|null}|null>(null);
   const [code, setCode]                 = useState('');
 
   const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
@@ -34,8 +32,6 @@ export default function LoginPage() {
       const res = await authService.login(data);
       if (res.requires_2fa) {
         setTwoFaToken(res.two_fa_token || '');
-        setPendingToken(res.pending_token || '');
-        setPendingUser(res.pending_user || null);
         setStep('2fa');
         toast.info('Código enviado para seu email!');
       } else {

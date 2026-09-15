@@ -8,6 +8,7 @@ interface User {
   email: string;
   role: string;
   active: boolean;
+  two_fa_enabled: boolean;
   created_at: string | null;
   last_login: string | null;
 }
