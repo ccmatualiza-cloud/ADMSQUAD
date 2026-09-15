@@ -53,7 +53,6 @@ export default function MonitorAtualizacoes({ onBack }: { onBack: () => void }) 
   const [items, setItems]       = useState<Atualizacao[]>([]);
   const [loading, setLoading]   = useState(true);
 
-
   const fetchData = async () => {
     setLoading(true);
     try {
@@ -114,11 +113,8 @@ export default function MonitorAtualizacoes({ onBack }: { onBack: () => void }) 
         </div>
       </div>
 
-
       {/* Tabela */}
       <div className="table-card">
-
-
         <div style={{ overflowX: 'auto', borderRadius: '6px 6px 0 0' }}>
           {loading ? (
             <div style={{ padding: 32, textAlign: 'center', color: 'var(--ccm-gray-dark)' }}>
@@ -144,6 +140,7 @@ export default function MonitorAtualizacoes({ onBack }: { onBack: () => void }) 
                   <th style={{ ...th, textAlign: 'center' }}>P</th>
                   <th style={th}>Hora</th>
                   <th style={{ ...th, textAlign: 'center' }}>%</th>
+                  <th style={{ ...th, textAlign: 'center' }}><i className="bi bi-envelope-fill" style={{ fontSize: 13 }} /></th>
                 </tr>
               </thead>
               <tbody>
@@ -161,6 +158,17 @@ export default function MonitorAtualizacoes({ onBack }: { onBack: () => void }) 
                     <td style={td}>{item.horaupdate || '—'}</td>
                     <td style={{ ...td, textAlign: 'center' }}>
                       <span style={concluidoStyle(item.concluido)}>{String(item.concluido ?? '0').trim()}</span>
+                    </td>
+                    <td style={{ ...td, textAlign: 'center' }}>
+                      {String(item.concluido ?? '').trim() === '100' ? (
+                        <span title="Concluído — pronto para envio" style={{ color: '#1DB954', fontSize: 16 }}>
+                          <i className="bi bi-check-circle-fill" />
+                        </span>
+                      ) : (
+                        <span title="Aguardando conclusão" style={{ color: '#ccc', fontSize: 16 }}>
+                          <i className="bi bi-circle" />
+                        </span>
+                      )}
                     </td>
                   </tr>
                 ))}
