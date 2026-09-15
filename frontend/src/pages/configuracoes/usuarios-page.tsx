@@ -95,6 +95,15 @@ export default function UsuariosPage({ onBack }: Props) {
     }
   };
 
+  const handleToggle2FA = async (id: number, current: boolean) => {
+    if (!confirm('Deseja ' + (current ? 'desativar' : 'ativar') + ' o 2FA deste usuario?')) return;
+    try {
+      const res = await http.put<{ two_fa_enabled: boolean }>('/api/user/toggle-2fa/' + id, {});
+      setUsers(prev => prev.map(u => u.id === id ? { ...u, two_fa_enabled: res.two_fa_enabled } : u));
+      toast.success('2FA ' + (res.two_fa_enabled ? 'ativado' : 'desativado') + ' com sucesso!');
+    } catch { toast.error('Erro ao alterar 2FA'); }
+  };
+
   const toggleActive = async (u: User) => {
     try {
       await http.put(`/api/user/${u.id}`, { active: !u.active });
@@ -149,7 +158,7 @@ export default function UsuariosPage({ onBack }: Props) {
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
               <thead>
                 <tr style={{ background: 'var(--ccm-blue)' }}>
-                  {['Nome', 'Nível de Acesso', 'Status', 'Último Acesso', 'Cadastro', 'Ações'].map(h => (
+                  {['Nome', 'Nível de Acesso', 'Status', 'Último Acesso', 'Cadastro', '2FA', 'Ações'].map(h => (
                     <th key={h} style={{ color: '#fff', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.06em', padding: '10px 16px', textAlign: 'left', fontSize: 11 }}>{h}</th>
                   ))}
                 </tr>
@@ -186,6 +195,13 @@ export default function UsuariosPage({ onBack }: Props) {
                           <button className="btn btn-sm" style={{ background: 'var(--ccm-blue)', color: '#fff', fontSize: 11, padding: '4px 10px' }} onClick={() => openEdit(u)}>
                             <i className="bi bi-pencil-fill me-1" />Editar
                           </button>
+                        <button onClick={() => handleToggle2FA(u.id, u.two_fa_enabled)}
+                          title={u.two_fa_enabled ? '2FA Ativo' : '2FA Inativo'}
+                          style={{ width: 44, height: 22, borderRadius: 99, border: 'none', cursor: 'pointer', background: u.two_fa_enabled ? '#1DB954' : '#ccc', position: 'relative', transition: 'background .2s', display: 'block', margin: '0 auto' }}>
+                          <span style={{ position: 'absolute', top: 2, left: u.two_fa_enabled ? 24 : 2, width: 18, height: 18, borderRadius: '50%', background: '#fff', transition: 'left .2s' }} />
+                        </button>
+                      </td>
+                      <td style={{ padding: '12px 16px', textAlign: 'center' }}>
                           <button className="btn btn-sm" style={{ background: u.active ? '#E74C3C' : '#2ECC71', color: '#fff', fontSize: 11, padding: '4px 10px' }} onClick={() => toggleActive(u)}>
                             <i className={`bi ${u.active ? 'bi-slash-circle' : 'bi-check-circle'} me-1`} />
                             {u.active ? 'Inativar' : 'Ativar'}
