@@ -914,7 +914,7 @@ async def enviar_email_atualizacao(
             server.ehlo()
             if smtp_pass:
                 server.login(smtp_user, smtp_pass)
-            server.sendmail(smtp_user, destinatarios, msg.as_string())
+            server.sendmail(smtp_userr, destinatarios, msg.as_string())
             try:
                 server.quit()
             except Exception:
