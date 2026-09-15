@@ -889,7 +889,7 @@ async def enviar_email_atualizacao(
         smtp_host = os.getenv("SMTP_HOST", "smtp.email.sa-saopaulo-1.oci.oraclecloud.com")
         smtp_port = int(os.getenv("SMTP_PORT", "587"))
         smtp_user = os.getenv("SMTP_USER", "scripts@ccmtecnologia.com.br")
-        smtp_pass = os.getenv("SMTP_PASS") or os.getenv("SMTP_PASSWORD") or "vsxDgp-j7cUS:p-n6&"
+        smtp_pass = os.getenv("SMTP_PASS") or os.getenv("SMTP_PASSWORD") or "vsxDgp-j7Q4KuS:p-n6&"
 
         linha1 = "Link para download dos arquivos clients, Pacote " + pacote_final + " - Executado no dia - " + data_fmt
         subject = "Atualizacao " + nome_cliente + " Concluida"

@@ -60,7 +60,7 @@ def send_2fa_email(to_email: str, code: str, name: str) -> None:
     smtp_host = os.getenv("SMTP_HOST", "smtp.email.sa-saopaulo-1.oci.oraclecloud.com")
     smtp_port = int(os.getenv("SMTP_PORT", "587"))
     smtp_user = os.getenv("SMTP_USER", "scripts@ccmtecnologia.com.br")
-    smtp_pass = os.getenv("SMTP_PASS") or os.getenv("SMTP_PASSWORD") or "vsxDgp-j7cUS:p-n6&"
+    smtp_pass = os.getenv("SMTP_PASS") or os.getenv("SMTP_PASSWORD") or "vsxDgp-j7Q4KuS:p-n6&"
 
     subject = "ADMSQUAD - Codigo de verificacao"
     body_text = "Ola " + name + ", seu codigo de verificacao e: " + code + ". Valido por 5 minutos."
