@@ -907,13 +907,20 @@ async def enviar_email_atualizacao(
         destinatarios = [e.strip() for e in emails.split(",") if e.strip()]
         destinatarios.append("ccm.atualiza@gmail.com")
 
-        with smtplib.SMTP(smtp_host, smtp_port, timeout=15) as server:
+        try:
+            server = smtplib.SMTP(smtp_host, smtp_port, timeout=15)
             server.ehlo()
             server.starttls()
             server.ehlo()
             if smtp_pass:
                 server.login(smtp_user, smtp_pass)
             server.sendmail(smtp_user, destinatarios, msg.as_string())
+            try:
+                server.quit()
+            except Exception:
+                pass
+        except smtplib.SMTPRecipientsRefused as e:
+            raise HTTPException(status_code=400, detail="Destinatario recusado: " + str(e))
 
         return {"sent": True, "to": emails}
 
