@@ -35,8 +35,8 @@ export default function LoginPage() {
         setStep('2fa');
         toast.info('Código enviado para seu email!');
       } else {
-        setAuth(res.token, res.user);
-        toast.success('Bem-vindo, ' + res.user.name + '!');
+        setAuth(res.token!, res.user!);
+        toast.success('Bem-vindo, ' + res.user!.name + '!');
         navigate('/dashboard');
       }
     } catch (err: unknown) {
