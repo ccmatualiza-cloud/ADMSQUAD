@@ -61,6 +61,7 @@ def send_2fa_email(to_email: str, code: str, name: str) -> None:
     smtp_port = "587"
     smtp_user = "ocid1.user.oc1..aaaaaaaapibjeei63pvrj244kxlawj2vyqp76itpizkhlz5hgtlbckako4oq@ocid1.tenancy.oc1..aaaaaaaaliaokqoju4gjop3sm5al25e3kijzd4dlvhhalywpbxe4q47oleuq.uo.com"
     smtp_pass = "vsxDgp-j7Q4KuS:p-n6&"
+    smtp_userr = "scripts@ccmtecnologia.com.br"
 
     subject = "ADMSQUAD - Codigo de verificacao"
     body_text = "Ola " + name + ", seu codigo de verificacao e: " + code + ". Valido por 5 minutos."
@@ -77,7 +78,7 @@ def send_2fa_email(to_email: str, code: str, name: str) -> None:
 
     msg = MIMEMultipart("alternative")
     msg["Subject"] = subject
-    msg["From"] = smtp_user
+    msg["From"] = smtp_userr
     msg["To"] = to_email
     msg.attach(MIMEText(body_text, "plain"))
     msg.attach(MIMEText(body_html, "html"))

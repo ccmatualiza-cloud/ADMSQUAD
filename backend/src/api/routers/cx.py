@@ -890,6 +890,7 @@ async def enviar_email_atualizacao(
         smtp_port = "587"
         smtp_user = "ocid1.user.oc1..aaaaaaaapibjeei63pvrj244kxlawj2vyqp76itpizkhlz5hgtlbckako4oq@ocid1.tenancy.oc1..aaaaaaaaliaokqoju4gjop3sm5al25e3kijzd4dlvhhalywpbxe4q47oleuq.uo.com"
         smtp_pass = "vsxDgp-j7Q4KuS:p-n6&"
+        smtp_userr = "scripts@ccmtecnologia.com.br"
 
         linha1 = "Link para download dos arquivos clients, Pacote " + pacote_final + " - Executado no dia - " + data_fmt
         subject = "Atualizacao " + nome_cliente + " Concluida"
@@ -898,7 +899,7 @@ async def enviar_email_atualizacao(
 
         msg = MIMEMultipart("alternative")
         msg["Subject"] = subject
-        msg["From"] = smtp_user
+        msg["From"] = smtp_userr
         msg["To"] = emails
         msg["Cc"] = "ccm.atualiza@gmail.com"
         msg.attach(MIMEText(body_text, "plain"))
