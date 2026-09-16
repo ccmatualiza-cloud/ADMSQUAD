@@ -25,6 +25,7 @@ interface Atualizacao {
   horaupdate: string | null;
   concluido: string | number | null;
   email_enviado: number | null;
+  dt_atualiza: string | null;
 }
 
 function concluidoStyle(val: string | number | null): React.CSSProperties {
@@ -33,6 +34,14 @@ function concluidoStyle(val: string | number | null): React.CSSProperties {
   if (v === '98')  return { background: '#E74C3C', color: '#fff', borderRadius: 4, padding: '2px 8px', fontWeight: 700, fontSize: 12, display: 'inline-block' };
   if (v === '0' || v === '')  return { background: '#fff', color: '#333', borderRadius: 4, padding: '2px 8px', fontWeight: 700, fontSize: 12, display: 'inline-block', border: '1px solid #ddd' };
   return { background: '#F9E000', color: '#5a4000', borderRadius: 4, padding: '2px 8px', fontWeight: 700, fontSize: 12, display: 'inline-block' };
+}
+
+function getTodayBR(): string {
+  const d = new Date();
+  const day   = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year  = d.getFullYear();
+  return `${day}/${month}/${year}`;
 }
 
 function StatCard({ label, value, sub, borderColor, loading }: {
@@ -62,13 +71,17 @@ export default function MonitorAtualizacoes({ onBack }: { onBack: () => void }) 
         http.get<Atualizacao[]>('/api/cx/atualizacoes'),
       ]);
       setStats(s);
-      // Auto-send emails for eligible items
+
+      const hoje = getTodayBR();
+
       const updated = await Promise.all(d.map(async (item) => {
-        const concluido = String(item.concluido ?? '').trim();
-        const pacote    = (item.pacote ?? '').toUpperCase();
-        const isWeb     = pacote === 'WEB' || pacote === 'DMSWEB';
-        const elegivel  = concluido === '100' && !isWeb && (pacote === 'EVO' || pacote === 'ESS' || pacote === 'ESP');
-        const jaEnviou  = (item.email_enviado ?? 0) !== 0;
+        const concluido  = String(item.concluido ?? '').trim();
+        const pacote     = (item.pacote ?? '').toUpperCase();
+        const dtAtualize = (item.dt_atualiza ?? '').trim();
+        const isHoje     = dtAtualize === hoje;
+        const isWeb      = pacote === 'WEB' || pacote === 'DMSWEB';
+        const elegivel   = concluido === '100' && isHoje && !isWeb && ['EVO','ESS','ESP'].includes(pacote);
+        const jaEnviou   = (item.email_enviado ?? 0) !== 0;
 
         if (elegivel && !jaEnviou && item.cod) {
           try {
@@ -82,6 +95,7 @@ export default function MonitorAtualizacoes({ onBack }: { onBack: () => void }) 
         }
         return item;
       }));
+
       setItems(updated);
     } catch { /* silent */ }
     finally { setLoading(false); }
@@ -116,7 +130,7 @@ export default function MonitorAtualizacoes({ onBack }: { onBack: () => void }) 
     if ((item.email_enviado ?? 0) === 2) {
       return <span title="Erro no envio do email" style={{ color: '#E74C3C', fontSize: 16 }}><i className="bi bi-x-circle-fill" /></span>;
     }
-    return <span title="Aguardando conclusão" style={{ color: '#ccc', fontSize: 16 }}><i className="bi bi-circle" /></span>;
+    return <span title="Aguardando envio" style={{ color: '#ccc', fontSize: 16 }}><i className="bi bi-circle" /></span>;
   };
 
   return (
@@ -128,6 +142,7 @@ export default function MonitorAtualizacoes({ onBack }: { onBack: () => void }) 
         <span style={{ color: 'var(--ccm-gray-medium)', fontSize: 12 }}>/</span>
         <span style={{ color: 'var(--ccm-gray-dark)', fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.1em' }}>Monitor de Atualizações</span>
       </div>
+
       <div className="row g-3 mb-4">
         <div className="col-6 col-lg-3">
           <StatCard label="Total Agendado" value={String(stats?.total ?? 0)} sub="Atualizações hoje" borderColor="var(--ccm-blue)" loading={loading} />

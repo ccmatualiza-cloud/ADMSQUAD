@@ -155,6 +155,7 @@ class AtualizacaoItem(BaseModel):
     horaupdate: str | None = None
     concluido: str | int | None = None
     email_enviado: int | None = None
+    dt_atualiza: str | None = None
 
 
 class AtualizacaoStats(BaseModel):
@@ -207,7 +208,8 @@ async def list_atualizacoes(
         result = await session.execute(
             text("""
                 SELECT cod, razao, sistema, bd, versao, ticketupdate, tipo, pacote,
-                       useragend, prioridade, horaupdate, concluido
+                       useragend, prioridade, horaupdate, concluido, email_enviado,
+                       dt_atualiza
                 FROM tbl_linx
                 WHERE dt_atualiza = DATE_FORMAT(CURDATE(), '%d/%m/%Y')
                 ORDER BY CAST(concluido AS UNSIGNED) DESC, prioridade ASC, razao ASC
