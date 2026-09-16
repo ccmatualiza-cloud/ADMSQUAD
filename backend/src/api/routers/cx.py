@@ -871,21 +871,20 @@ async def enviar_email_atualizacao(
 
     try:
         result = await session.execute(
-            text("SELECT razao, cliente, pacote, dt_atualiza, emails, link1 FROM tbl_linx WHERE cod = :cod"),
+            text("SELECT razao, cliente, pacote, dt_atualiza, emails, link1, link2, link3 FROM tbl_linx WHERE cod = :cod"),
             {"cod": cod}
         )
         row = result.fetchone()
         if not row:
             raise HTTPException(status_code=404, detail="Cliente nao encontrado")
 
-        razao, cliente, pacote, dt_atualiza, emails, link1 = row
+        razao, cliente, pacote, dt_atualiza, emails, link1, link2, link3 = row
         if not emails:
             raise HTTPException(status_code=400, detail="Cliente sem email cadastrado")
 
         pacote_map = {"EVO": "Evolutivo", "ESS": "Essencial", "ESP": "Especifico"}
         pacote_raw = pacote or "EVO"
         pacote_final = pacote_map.get(pacote_raw, pacote_raw)
-        link = link1 or ""
         data_fmt = dt_atualiza or datetime.now().strftime("%d/%m/%Y")
         nome_cliente = razao or cliente or ""
 
@@ -897,8 +896,17 @@ async def enviar_email_atualizacao(
 
         linha1 = "Link para download dos arquivos clients, Pacote " + pacote_final + " - Executado no dia - " + data_fmt
         subject = "Atualizacao " + nome_cliente + " Concluida"
-        body_text = linha1 + chr(10) + chr(10) + link
-        body_html = "<p>" + linha1 + "</p><p><a href='" + link + "'>" + link + "</a></p>"
+
+        # Monta links
+        links_text = ""
+        links_html = ""
+        for lnk in [link1, link2, link3]:
+            if lnk:
+                links_text += chr(10) + lnk
+                links_html += "<p><a href='" + lnk + "'>" + lnk + "</a></p>"
+
+        body_text = linha1 + chr(10) + links_text
+        body_html = "<p>" + linha1 + "</p>" + links_html
 
         msg = MIMEMultipart("alternative")
         msg["Subject"] = subject
