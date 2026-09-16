@@ -24,6 +24,7 @@ interface Atualizacao {
   prioridade: number | null;
   horaupdate: string | null;
   concluido: string | number | null;
+  email_enviado: number | null;
 }
 
 function concluidoStyle(val: string | number | null): React.CSSProperties {
@@ -49,9 +50,9 @@ function StatCard({ label, value, sub, borderColor, loading }: {
 }
 
 export default function MonitorAtualizacoes({ onBack }: { onBack: () => void }) {
-  const [stats, setStats]       = useState<Stats | null>(null);
-  const [items, setItems]       = useState<Atualizacao[]>([]);
-  const [loading, setLoading]   = useState(true);
+  const [stats, setStats]     = useState<Stats | null>(null);
+  const [items, setItems]     = useState<Atualizacao[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const fetchData = async () => {
     setLoading(true);
@@ -61,7 +62,27 @@ export default function MonitorAtualizacoes({ onBack }: { onBack: () => void }) 
         http.get<Atualizacao[]>('/api/cx/atualizacoes'),
       ]);
       setStats(s);
-      setItems(d);
+      // Auto-send emails for eligible items
+      const updated = await Promise.all(d.map(async (item) => {
+        const concluido = String(item.concluido ?? '').trim();
+        const pacote    = (item.pacote ?? '').toUpperCase();
+        const isWeb     = pacote === 'WEB' || pacote === 'DMSWEB';
+        const elegivel  = concluido === '100' && !isWeb && (pacote === 'EVO' || pacote === 'ESS' || pacote === 'ESP');
+        const jaEnviou  = (item.email_enviado ?? 0) !== 0;
+
+        if (elegivel && !jaEnviou && item.cod) {
+          try {
+            await http.post(`/api/cx/consultar-atualizacao/${item.cod}/enviar-email`, {});
+            await http.put(`/api/cx/atualizacoes/${item.cod}/email-status?status_val=1`, {});
+            return { ...item, email_enviado: 1 };
+          } catch {
+            await http.put(`/api/cx/atualizacoes/${item.cod}/email-status?status_val=2`, {});
+            return { ...item, email_enviado: 2 };
+          }
+        }
+        return item;
+      }));
+      setItems(updated);
     } catch { /* silent */ }
     finally { setLoading(false); }
   };
@@ -77,9 +98,29 @@ export default function MonitorAtualizacoes({ onBack }: { onBack: () => void }) 
   const th = { color: '#fff', fontWeight: 700, textTransform: 'uppercase' as const, letterSpacing: '.05em', padding: '10px 12px', textAlign: 'left' as const, fontSize: 10, whiteSpace: 'nowrap' as const };
   const td = { padding: '9px 12px', fontSize: 12, whiteSpace: 'nowrap' as const };
 
+  const emailIcon = (item: Atualizacao) => {
+    const concluido = String(item.concluido ?? '').trim();
+    const pacote    = (item.pacote ?? '').toUpperCase();
+    const isWeb     = pacote === 'WEB' || pacote === 'DMSWEB';
+    const is100     = concluido === '100';
+
+    if (!is100) {
+      return <span title="Aguardando conclusão" style={{ color: '#ccc', fontSize: 16 }}><i className="bi bi-circle" /></span>;
+    }
+    if (isWeb) {
+      return <span title="WEB — sem envio de email" style={{ color: '#aaa', fontSize: 16 }}><i className="bi bi-dash-circle-fill" /></span>;
+    }
+    if ((item.email_enviado ?? 0) === 1) {
+      return <span title="Email enviado com sucesso" style={{ color: '#1DB954', fontSize: 16 }}><i className="bi bi-check-circle-fill" /></span>;
+    }
+    if ((item.email_enviado ?? 0) === 2) {
+      return <span title="Erro no envio do email" style={{ color: '#E74C3C', fontSize: 16 }}><i className="bi bi-x-circle-fill" /></span>;
+    }
+    return <span title="Aguardando conclusão" style={{ color: '#ccc', fontSize: 16 }}><i className="bi bi-circle" /></span>;
+  };
+
   return (
     <div>
-      {/* Breadcrumb */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
         <button onClick={onBack} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: 'var(--ccm-blue)', fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.1em' }}>
           <i className="bi bi-arrow-left me-1" />CX
@@ -87,33 +128,22 @@ export default function MonitorAtualizacoes({ onBack }: { onBack: () => void }) 
         <span style={{ color: 'var(--ccm-gray-medium)', fontSize: 12 }}>/</span>
         <span style={{ color: 'var(--ccm-gray-dark)', fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.1em' }}>Monitor de Atualizações</span>
       </div>
-      {/* KPI Cards */}
       <div className="row g-3 mb-4">
         <div className="col-6 col-lg-3">
-          <StatCard label="Total Agendado" value={String(stats?.total ?? 0)}
-            sub="Atualizações hoje" borderColor="var(--ccm-blue)" loading={loading} />
+          <StatCard label="Total Agendado" value={String(stats?.total ?? 0)} sub="Atualizações hoje" borderColor="var(--ccm-blue)" loading={loading} />
         </div>
         <div className="col-6 col-lg-3">
-          <StatCard label="Não Iniciado"
-            value={`${stats?.pct_nao_iniciado ?? 0}%`}
-            sub={`${stats?.nao_iniciado ?? 0} registros`}
-            borderColor="#C3C3C3" loading={loading} />
+          <StatCard label="Não Iniciado" value={`${stats?.pct_nao_iniciado ?? 0}%`} sub={`${stats?.nao_iniciado ?? 0} registros`} borderColor="#C3C3C3" loading={loading} />
         </div>
         <div className="col-6 col-lg-3">
-          <StatCard label="Em Andamento"
-            value={`${stats?.pct_em_andamento ?? 0}%`}
-            sub={`${stats?.em_andamento ?? 0} registros`}
-            borderColor="#F9E000" loading={loading} />
+          <StatCard label="Em Andamento" value={`${stats?.pct_em_andamento ?? 0}%`} sub={`${stats?.em_andamento ?? 0} registros`} borderColor="#F9E000" loading={loading} />
         </div>
         <div className="col-6 col-lg-3">
-          <StatCard label="Concluído"
-            value={`${stats?.pct_concluido ?? 0}%`}
-            sub={`${stats?.concluido_count ?? 0} registros`}
+          <StatCard label="Concluído" value={`${stats?.pct_concluido ?? 0}%`} sub={`${stats?.concluido_count ?? 0} registros`}
             borderColor={stats?.pct_concluido !== undefined && stats.pct_concluido >= 98 && stats.pct_concluido < 100 ? '#E74C3C' : '#1DB954'} loading={loading} />
         </div>
       </div>
 
-      {/* Tabela */}
       <div className="table-card">
         <div style={{ overflowX: 'auto', borderRadius: '6px 6px 0 0' }}>
           {loading ? (
@@ -160,15 +190,7 @@ export default function MonitorAtualizacoes({ onBack }: { onBack: () => void }) 
                       <span style={concluidoStyle(item.concluido)}>{String(item.concluido ?? '0').trim()}</span>
                     </td>
                     <td style={{ ...td, textAlign: 'center' }}>
-                      {String(item.concluido ?? '').trim() === '100' ? (
-                        <span title="Concluído — pronto para envio" style={{ color: '#1DB954', fontSize: 16 }}>
-                          <i className="bi bi-check-circle-fill" />
-                        </span>
-                      ) : (
-                        <span title="Aguardando conclusão" style={{ color: '#ccc', fontSize: 16 }}>
-                          <i className="bi bi-circle" />
-                        </span>
-                      )}
+                      {emailIcon(item)}
                     </td>
                   </tr>
                 ))}

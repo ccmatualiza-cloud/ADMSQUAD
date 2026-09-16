@@ -154,6 +154,7 @@ class AtualizacaoItem(BaseModel):
     prioridade: int | None = None
     horaupdate: str | None = None
     concluido: str | int | None = None
+    email_enviado: int | None = None
 
 
 class AtualizacaoStats(BaseModel):
@@ -928,3 +929,23 @@ async def enviar_email_atualizacao(
         raise
     except Exception as exc:
         raise HTTPException(status_code=500, detail="Erro ao enviar email: " + str(exc))
+
+
+# -- Monitor: marcar email enviado ----------------------------------------
+
+@router.put("/atualizacoes/{cod}/email-status")
+async def update_email_status(
+    cod: int,
+    status_val: int,
+    _: Annotated[dict, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> dict:
+    try:
+        await session.execute(
+            text("UPDATE tbl_linx SET email_enviado = :val WHERE cod = :cod"),
+            {"val": status_val, "cod": cod}
+        )
+        await session.commit()
+        return {"updated": True}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
