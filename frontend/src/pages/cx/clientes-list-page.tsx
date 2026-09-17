@@ -25,7 +25,7 @@ interface ClienteDetalhe {
 
 type EditForm = {
   razao: string; sistema: string; versao: string; bd: string; serverbd: string;
-  qtdusers: string; qtdsistemas: string; qtdsrv: string;
+  qtdusers: string; qtdusersts: string; qtdsrv: string;
   status: string; franq: string; ufmatriz: string; reg: string; bandeira: string;
   implat: string; contatos: string; telefones: string; emails: string;
   local: string; prxcontat: string; codigoc: string; cnpj: string; grupo: string;
@@ -69,7 +69,7 @@ const STATUS_OPTS = [
 
 const emptyEditForm: EditForm = {
   razao: '', sistema: '', versao: '', bd: '', serverbd: '',
-  qtdusers: '', qtdsistemas: '', qtdsrv: '',
+  qtdusers: '', qtdusersts: '', qtdsrv: '',
   status: '', franq: '', ufmatriz: '', reg: '', bandeira: '',
   implat: '', contatos: '', telefones: '', emails: '',
   local: '', prxcontat: '', codigoc: '', cnpj: '', grupo: '',
@@ -133,7 +133,7 @@ export default function ClientesListPage({ onBack }: { onBack: () => void }) {
       setEditForm({
         razao: d.razao ?? '', sistema: d.sistema ?? '', versao: d.versao ?? '',
         bd: d.bd ?? '', serverbd: d.serverbd ?? '',
-        qtdusers: String(d.qtdusers ?? ''), qtdsistemas: String(d.qtdsistemas ?? ''),
+        qtdusers: String(d.qtdusers ?? ''), qtdusersts: String(d.qtdusersts ?? ''),
         qtdsrv: d.qtdsrv ?? '', status: d.status ?? '',
         franq: d.franq ?? '', ufmatriz: d.ufmatriz ?? '', reg: d.reg ?? '',
         bandeira: d.bandeira ?? '', implat: d.implat ?? '',
@@ -299,7 +299,7 @@ export default function ClientesListPage({ onBack }: { onBack: () => void }) {
                 <div style={{ padding: '20px 24px' }}>
                   {[
                     { title: 'Identificação', fields: [['Razão Social', detalhe.razao], ['Cliente', detalhe.cliente], ['Bandeira', detalhe.bandeira], ['CNPJ', detalhe.cnpj], ['Grupo', detalhe.grupo], ['UF Matriz', detalhe.ufmatriz], ['Franquia', detalhe.franq], ['Região', detalhe.reg], ['Local', detalhe.local], ['Data Start', detalhe.datastart], ['Documentação', detalhe.doc]] },
-                    { title: 'Sistema', fields: [['Sistema', detalhe.sistema], ['Versão', detalhe.versao], ['Versão Atual', detalhe.versaoat], ['Pacote', detalhe.pacote], ['Tipo', detalhe.tipo], ['Qtd. Users', detalhe.qtdusers], ['Qtd. Users-TS', detalhe.qtdusersts], ['Qtd. Sistemas', detalhe.qtdsistemas], ['Linx Web Ver.', detalhe.linxwebver], ['Últ. Atualização', detalhe.dt_atualiza]] },
+                    { title: 'Sistema', fields: [['Sistema', detalhe.sistema], ['Versão', detalhe.versao], ['Versão Atual', detalhe.versaoat], ['Pacote', detalhe.pacote], ['Tipo', detalhe.tipo], ['Qtd. Users', detalhe.qtdusers], ['Qtd. Users-TS', detalhe.qtdusersts], ['Qtd. TS', detalhe.qtdusersts], ['Linx Web Ver.', detalhe.linxwebver], ['Últ. Atualização', detalhe.dt_atualiza]] },
                     { title: 'Infraestrutura', fields: [['BD', detalhe.bd], ['Server BD', detalhe.serverbd], ['Qtd. Servidores', detalhe.qtdsrv], ['Shape', detalhe.shape], ['oCPU', detalhe.ocpu], ['Memória', detalhe.mem], ['TSPlus', detalhe.tsplus], ['Azure Agent', detalhe.agtazure], ['Infra Prod', detalhe.infraprod], ['Infra TS', detalhe.infrats], ['Integrações', detalhe.integracoes]] },
                     { title: 'Contato', fields: [['Contatos', detalhe.contatos], ['Telefones', detalhe.telefones], ['Emails', detalhe.emails], ['Próx. Contato', detalhe.prxcontat]] },
                   ].map(section => (
@@ -379,7 +379,7 @@ export default function ClientesListPage({ onBack }: { onBack: () => void }) {
               {([
                 ['Sistema', 'sistema'], ['Versão', 'versao'], ['Versão Atual', 'versaoat'],
                 ['Tipo', 'tipo'], ['Pacote', 'pacote'], ['Qtd. Usuários', 'qtdusers'],
-                ['Qtd. Sistemas', 'qtdsistemas'], ['Linx Web Ver.', 'linxwebver'],
+                ['Qtd. TS', 'qtdusersts'], ['Linx Web Ver.', 'linxwebver'],
                 ['Últ. Atualização', 'dt_atualiza'],
               ] as [string, keyof EditForm][]).map(([label, key]) => (
                 <div key={key} className="col-12 col-md-6">
