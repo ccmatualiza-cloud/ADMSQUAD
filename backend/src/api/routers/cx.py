@@ -614,7 +614,7 @@ async def update_cliente(
     session: Annotated[AsyncSession, Depends(get_db)],
 ) -> dict:
     try:
-        allowed = ["razao", "sistema", "versao", "qtdusers", "serverbd", "status",
+        allowed = ["razao", "sistema", "versao", "qtdusers", "qtdusersts", "serverbd", "status",
                    "contatos", "telefones", "emails", "reg", "local", "grupo",
                    "tipo", "pacote", "dt_atualiza", "versaoat", "franq", "ufmatriz",
                    "integracoes", "infraprod", "infrats", "shape", "ocpu", "mem",
