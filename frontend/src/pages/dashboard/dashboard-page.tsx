@@ -4,6 +4,7 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
   PieChart, Pie, Cell,
 } from 'recharts';
+import NovaAtividadeModal from '../operacoes/nova-atividade-modal';
 
 interface AtividadeHoje {
   analista: string; cliente: string; ticketproj: string | null;
@@ -55,6 +56,7 @@ export default function DashboardPage() {
   const [pendenciasStatus, setPendenciasStatus]     = useState<{ status: string; total: number }[]>([]);
   const [ausencias, setAusencias]       = useState<AusenciaItem[]>([]);
   const [atividadesHoje, setAtividadesHoje] = useState<AtividadeHoje[]>([]);
+  const [showAtividadeModal, setShowAtividadeModal] = useState(false);
   const [historico, setHistorico] = useState<{ data: string; agente_ia: number; humano: number }[]>([]);
 
   useEffect(() => {
@@ -204,10 +206,17 @@ export default function DashboardPage() {
       <div className="row g-3" style={{ marginTop: 4 }}>
         <div className="col-12 col-lg-6" style={{ display: 'flex', flexDirection: 'column' }}>
           <div className="chart-card" style={{ flex: 1 }}>
-            <div className="chart-card-title" style={{ marginBottom: 12, fontSize: 12 }}>
-              <i className="bi bi-calendar-x me-1" style={{ color: '#F9A825' }} />
-              Ausências — Próximos 7 dias
-              <span style={{ fontSize: 10, fontWeight: 400, color: 'var(--ccm-gray-medium)', marginLeft: 6 }}>({ausencias.length})</span>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+              <div className="chart-card-title" style={{ fontSize: 12, marginBottom: 0 }}>
+                <i className="bi bi-calendar-x me-1" style={{ color: '#F9A825' }} />
+                Ausências — Próximos 7 dias
+                <span style={{ fontSize: 10, fontWeight: 400, color: 'var(--ccm-gray-medium)', marginLeft: 6 }}>({ausencias.length})</span>
+              </div>
+              <a href="https://cliq.ccmtecnologia.com.br/company/690505464/bots/smarttimebot" target="_blank" rel="noopener noreferrer"
+                className="btn btn-sm"
+                style={{ background: '#F9A825', color: '#5a4000', fontSize: 10, fontWeight: 700, padding: '3px 10px', whiteSpace: 'nowrap' }}>
+                <i className="bi bi-calendar-plus me-1" />Requisitar Ausência
+              </a>
             </div>
             {ausencias.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '16px 0', color: 'var(--ccm-gray-medium)', fontSize: 11 }}>
@@ -256,10 +265,17 @@ export default function DashboardPage() {
         </div>
         <div className="col-12 col-lg-6" style={{ display: 'flex', flexDirection: 'column' }}>
           <div className="chart-card" style={{ flex: 1 }}>
-            <div className="chart-card-title" style={{ marginBottom: 12, fontSize: 12 }}>
-              <i className="bi bi-activity me-1" style={{ color: '#1DB954' }} />
-              Atividades Fora de Horário — de Hoje
-              <span style={{ fontSize: 10, fontWeight: 400, color: 'var(--ccm-gray-medium)', marginLeft: 6 }}>({atividadesHoje.length})</span>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+              <div className="chart-card-title" style={{ fontSize: 12, marginBottom: 0 }}>
+                <i className="bi bi-activity me-1" style={{ color: '#1DB954' }} />
+                Atividades Fora de Horário — de Hoje
+                <span style={{ fontSize: 10, fontWeight: 400, color: 'var(--ccm-gray-medium)', marginLeft: 6 }}>({atividadesHoje.length})</span>
+              </div>
+              <button className="btn btn-sm"
+                style={{ background: '#7F77DD', color: '#fff', fontSize: 10, fontWeight: 700, padding: '3px 10px', whiteSpace: 'nowrap' }}
+                onClick={() => setShowAtividadeModal(true)}>
+                <i className="bi bi-plus-lg me-1" />Registrar Atividade
+              </button>
             </div>
             {atividadesHoje.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '16px 0', color: 'var(--ccm-gray-medium)', fontSize: 11 }}>
@@ -292,6 +308,9 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+      {showAtividadeModal && (
+        <NovaAtividadeModal onClose={() => { setShowAtividadeModal(false); }} />
+      )}
     </>
   );
 }
