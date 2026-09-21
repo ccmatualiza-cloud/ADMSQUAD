@@ -198,7 +198,7 @@
             '<td style="text-align:center;font-weight:700">' + (item.prioridade ?? '—') + '</td>' +
             '<td>' + (item.horaupdate || '—') + '</td>' +
             '<td style="text-align:center"><span class="' + badgeClass(item.concluido) + '">' + conc + '</span></td>' +
-            '<td style="text-align:center">' + (parseFloat(item.versaoat ?? '0') === 3.0 ? '<i class="bi bi-robot" style="color:#00B0FA;font-size:16px;" title="Versão 3.00"></i>' : '') + '</td>' +
+            '<td style="text-align:center">' + (String(item.versaoat ?? '').trim().startsWith('3.') ? '<i class="bi bi-robot" style="color:#00B0FA;font-size:16px;" title="Versão 3.00"></i>' : '') + '</td>' +
             '</tr>';
         });
         html += '</tbody></table>';
