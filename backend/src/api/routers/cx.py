@@ -1002,7 +1002,7 @@ async def list_atualizacoes_public(
         result = await session.execute(
             text("""
                 SELECT cod, razao, sistema, bd, versao, ticketupdate, tipo, pacote,
-                       useragend, prioridade, horaupdate, concluido
+                       useragend, prioridade, horaupdate, concluido, versaoat
                 FROM tbl_linx
                 WHERE dt_atualiza = DATE_FORMAT(CURDATE(), '%d/%m/%Y')
                 ORDER BY CAST(concluido AS UNSIGNED) DESC, prioridade ASC, razao ASC
