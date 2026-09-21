@@ -959,3 +959,57 @@ async def update_email_status(
         return {"updated": True}
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
+
+
+# -- Monitor publico (sem auth) -----------------------------------------------
+
+@router.get("/atualizacoes/public/stats")
+async def atualizacoes_stats_public(
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> dict:
+    try:
+        result = await session.execute(
+            text("""
+                SELECT
+                    COUNT(*) as total,
+                    SUM(CASE WHEN (TRIM(CAST(concluido AS CHAR)) = '0' OR concluido IS NULL) THEN 1 ELSE 0 END) as nao_iniciado,
+                    SUM(CASE WHEN (TRIM(CAST(concluido AS CHAR)) NOT IN ('0','100') AND concluido NOT IN (0,100)) THEN 1 ELSE 0 END) as em_andamento,
+                    SUM(CASE WHEN (TRIM(CAST(concluido AS CHAR)) = '100' OR concluido = 100) THEN 1 ELSE 0 END) as concluido_count
+                FROM tbl_linx
+                WHERE dt_atualiza = DATE_FORMAT(CURDATE(), '%d/%m/%Y')
+            """)
+        )
+        row = result.fetchone()
+        if not row:
+            return {"total": 0, "nao_iniciado": 0, "em_andamento": 0, "concluido_count": 0,
+                    "pct_nao_iniciado": 0, "pct_em_andamento": 0, "pct_concluido": 0}
+        total = row[0] or 0
+        nao_i = row[1] or 0
+        em_a  = row[2] or 0
+        conc  = row[3] or 0
+        def pct(v): return round(v * 100 / total, 1) if total else 0
+        return {"total": total, "nao_iniciado": nao_i, "em_andamento": em_a, "concluido_count": conc,
+                "pct_nao_iniciado": pct(nao_i), "pct_em_andamento": pct(em_a), "pct_concluido": pct(conc)}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@router.get("/atualizacoes/public/list")
+async def list_atualizacoes_public(
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> list[dict]:
+    try:
+        result = await session.execute(
+            text("""
+                SELECT cod, razao, sistema, bd, versao, ticketupdate, tipo, pacote,
+                       useragend, prioridade, horaupdate, concluido
+                FROM tbl_linx
+                WHERE dt_atualiza = DATE_FORMAT(CURDATE(), '%d/%m/%Y')
+                ORDER BY CAST(concluido AS UNSIGNED) DESC, prioridade ASC, razao ASC
+            """)
+        )
+        rows = result.fetchall()
+        keys = list(result.keys())
+        return [dict(zip(keys, r)) for r in rows]
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))

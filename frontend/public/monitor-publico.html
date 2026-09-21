@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Monitor de Atualizações — CCM Tecnologia</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: #0d1c28; color: #fff; min-height: 100vh; display: flex; flex-direction: column; }
+
+    header {
+      background: #0a1520;
+      padding: 12px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 2px solid #1a3a6e;
+    }
+    .logo-text { font-size: 18px; font-weight: 900; letter-spacing: .08em; color: #fff; }
+    .logo-sub  { font-size: 10px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: #00B0FA; }
+    .header-date { font-size: 12px; color: #6b8ba4; }
+    .header-clock { font-size: 20px; font-weight: 900; color: #00B0FA; margin-top: 2px; }
+
+    .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; padding: 16px 28px; }
+    .kpi-card {
+      background: #132230;
+      border-radius: 8px;
+      padding: 14px 18px;
+      border-top: 3px solid #204294;
+      text-align: center;
+    }
+    .kpi-card.green  { border-top-color: #1DB954; }
+    .kpi-card.yellow { border-top-color: #F9E000; }
+    .kpi-card.gray   { border-top-color: #6b8ba4; }
+    .kpi-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .15em; color: #6b8ba4; margin-bottom: 6px; }
+    .kpi-value { font-size: 32px; font-weight: 900; line-height: 1; }
+    .kpi-sub   { font-size: 10px; color: #4a6b80; margin-top: 4px; }
+
+    .table-wrap { flex: 1; padding: 0 28px 20px; overflow: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    thead tr { background: #204294; }
+    th { color: #fff; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; padding: 10px 12px; text-align: left; white-space: nowrap; }
+    tbody tr:nth-child(even) { background: #0f1e2c; }
+    tbody tr:nth-child(odd)  { background: #132230; }
+    tbody tr { border-bottom: 1px solid #1a3a6e; transition: background .15s; }
+    td { padding: 10px 12px; font-size: 12px; white-space: nowrap; color: #c8d8e4; }
+    td.razao { font-weight: 700; color: #fff; max-width: 220px; overflow: hidden; text-overflow: ellipsis; }
+    td.sistema { color: #00B0FA; font-weight: 700; }
+    td.ticket  { color: #7F77DD; }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 9px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .badge-100  { background: #1DB954; color: #fff; }
+    .badge-98   { background: #E74C3C; color: #fff; }
+    .badge-0    { background: #1a3a6e; color: #6b8ba4; border: 1px solid #1a3a6e; }
+    .badge-prog { background: #F9E000; color: #5a4000; }
+
+    footer {
+      text-align: center;
+      padding: 8px;
+      font-size: 10px;
+      color: #2a4a60;
+      border-top: 1px solid #1a3a6e;
+    }
+
+    .updating { animation: pulse 1s ease-in-out infinite; }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .4; } }
+
+    .empty-msg { text-align: center; padding: 60px; color: #4a6b80; font-size: 14px; }
+    .spinner-dot { display: inline-block; width: 8px; height: 8px; background: #00B0FA; border-radius: 50%; animation: pulse .8s ease-in-out infinite; margin-right: 6px; }
+
+    #last-update { font-size: 10px; color: #4a6b80; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="logo-sub">CCM Tecnologia</div>
+    <div class="logo-text">Monitor de Atualizações</div>
+  </div>
+  <div style="text-align:right">
+    <div class="header-date" id="date-label"></div>
+    <div class="header-clock" id="clock-label"></div>
+  </div>
+</header>
+
+<div class="kpi-row">
+  <div class="kpi-card">
+    <div class="kpi-label">Total Agendado</div>
+    <div class="kpi-value" id="kpi-total">—</div>
+    <div class="kpi-sub">Atualizações hoje</div>
+  </div>
+  <div class="kpi-card gray">
+    <div class="kpi-label">Não Iniciado</div>
+    <div class="kpi-value" id="kpi-ni">—</div>
+    <div class="kpi-sub" id="kpi-ni-n">—</div>
+  </div>
+  <div class="kpi-card yellow">
+    <div class="kpi-label">Em Andamento</div>
+    <div class="kpi-value" id="kpi-ea">—</div>
+    <div class="kpi-sub" id="kpi-ea-n">—</div>
+  </div>
+  <div class="kpi-card green" id="kpi-conc-card">
+    <div class="kpi-label">Concluído</div>
+    <div class="kpi-value" id="kpi-conc">—</div>
+    <div class="kpi-sub" id="kpi-conc-n">—</div>
+  </div>
+</div>
+
+<div class="table-wrap">
+  <div id="content">
+    <div class="empty-msg"><span class="spinner-dot"></span> Carregando...</div>
+  </div>
+</div>
+
+<footer>
+  <span id="last-update">Aguardando dados...</span>
+  &nbsp;·&nbsp; Atualização automática a cada 20 segundos &nbsp;·&nbsp; CCM Tecnologia &copy; 2026
+</footer>
+
+<script>
+  // Clock
+  function updateClock() {
+    const now = new Date();
+    document.getElementById('clock-label').textContent = now.toLocaleTimeString('pt-BR');
+    const days = ['domingo','segunda-feira','terça-feira','quarta-feira','quinta-feira','sexta-feira','sábado'];
+    const months = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+    document.getElementById('date-label').textContent =
+      days[now.getDay()] + ', ' + now.getDate() + ' de ' + months[now.getMonth()] + ' de ' + now.getFullYear();
+  }
+  setInterval(updateClock, 1000);
+  updateClock();
+
+  function badgeClass(val) {
+    const v = String(val ?? '0').trim();
+    if (v === '100') return 'badge badge-100';
+    if (v === '98')  return 'badge badge-98';
+    if (v === '0' || v === '') return 'badge badge-0';
+    return 'badge badge-prog';
+  }
+
+  async function load() {
+    try {
+      const [stats, items] = await Promise.all([
+        fetch('/api/cx/atualizacoes/public/stats').then(r => r.json()),
+        fetch('/api/cx/atualizacoes/public/list').then(r => r.json()),
+      ]);
+
+      // KPIs
+      document.getElementById('kpi-total').textContent = stats.total;
+      document.getElementById('kpi-ni').textContent    = stats.pct_nao_iniciado + '%';
+      document.getElementById('kpi-ni-n').textContent  = stats.nao_iniciado + ' registros';
+      document.getElementById('kpi-ea').textContent    = stats.pct_em_andamento + '%';
+      document.getElementById('kpi-ea-n').textContent  = stats.em_andamento + ' registros';
+      document.getElementById('kpi-conc').textContent  = stats.pct_concluido + '%';
+      document.getElementById('kpi-conc-n').textContent = stats.concluido_count + ' registros';
+
+      const card = document.getElementById('kpi-conc-card');
+      if (stats.pct_concluido >= 98 && stats.pct_concluido < 100) {
+        card.style.borderTopColor = '#E74C3C';
+      } else {
+        card.style.borderTopColor = '#1DB954';
+      }
+
+      // Table
+      if (!items || items.length === 0) {
+        document.getElementById('content').innerHTML =
+          '<div class="empty-msg">Nenhuma atualização agendada para hoje</div>';
+      } else {
+        let html = '<table><thead><tr>' +
+          '<th>Razão Social</th><th>Sistema</th><th>BD</th><th>Versão</th>' +
+          '<th>Ticket</th><th style="text-align:center">Tipo</th><th>Pacote</th>' +
+          '<th>Agendado Por</th><th style="text-align:center">P</th><th>Hora</th>' +
+          '<th style="text-align:center">%</th>' +
+          '</tr></thead><tbody>';
+
+        items.forEach(item => {
+          const conc = String(item.concluido ?? '0').trim();
+          html += '<tr>' +
+            '<td class="razao">' + (item.razao || '—') + '</td>' +
+            '<td class="sistema">' + (item.sistema || '—') + '</td>' +
+            '<td>' + (item.bd || '—') + '</td>' +
+            '<td>' + (item.versao || '—') + '</td>' +
+            '<td class="ticket">' + (item.ticketupdate || '—') + '</td>' +
+            '<td style="text-align:center;font-weight:700">' + (item.tipo || '—') + '</td>' +
+            '<td>' + (item.pacote || '—') + '</td>' +
+            '<td>' + (item.useragend ? item.useragend.toUpperCase() : '—') + '</td>' +
+            '<td style="text-align:center;font-weight:700">' + (item.prioridade ?? '—') + '</td>' +
+            '<td>' + (item.horaupdate || '—') + '</td>' +
+            '<td style="text-align:center"><span class="' + badgeClass(item.concluido) + '">' + conc + '</span></td>' +
+            '</tr>';
+        });
+        html += '</tbody></table>';
+        document.getElementById('content').innerHTML = html;
+      }
+
+      document.getElementById('last-update').textContent =
+        'Última atualização: ' + new Date().toLocaleTimeString('pt-BR');
+
+    } catch(e) {
+      document.getElementById('last-update').textContent = 'Erro ao carregar dados — tentando novamente...';
+    }
+  }
+
+  load();
+  setInterval(load, 20000);
+</script>
+</body>
+</html>
