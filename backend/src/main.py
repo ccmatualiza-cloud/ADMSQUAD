@@ -40,11 +40,12 @@ async def health() -> dict:
 
 async def email_monitor_job():
     from sqlalchemy import text
-    from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
+    from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
     from src.config import settings as cfg
+    from urllib.parse import quote_plus
 
     DB_URL = (
-        "mysql+asyncmy://" + cfg.db_user + ":" + cfg.db_password +
+        "mysql+asyncmy://" + quote_plus(cfg.db_user) + ":" + quote_plus(cfg.db_password) +
         "@" + cfg.db_host + "/" + cfg.db_name
     )
     engine  = create_async_engine(DB_URL, pool_pre_ping=True)
