@@ -180,6 +180,7 @@
           '<th>Ticket</th><th style="text-align:center">Tipo</th><th>Pacote</th>' +
           '<th>Agendado Por</th><th style="text-align:center">P</th><th>Hora</th>' +
           '<th style="text-align:center">%</th>' +
+          '<th style="text-align:center">M</th>' +
           '</tr></thead><tbody>';
 
         items.forEach(item => {
@@ -196,6 +197,7 @@
             '<td style="text-align:center;font-weight:700">' + (item.prioridade ?? '—') + '</td>' +
             '<td>' + (item.horaupdate || '—') + '</td>' +
             '<td style="text-align:center"><span class="' + badgeClass(item.concluido) + '">' + conc + '</span></td>' +
+            '<td style="text-align:center">' + (String(item.versaoat ?? '').trim() === '3.00' ? '🤖' : '') + '</td>' +
             '</tr>';
         });
         html += '</tbody></table>';
