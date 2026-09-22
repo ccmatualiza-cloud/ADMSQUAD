@@ -36,14 +36,6 @@ function concluidoStyle(val: string | number | null): React.CSSProperties {
   return { background: '#F9E000', color: '#5a4000', borderRadius: 4, padding: '2px 8px', fontWeight: 700, fontSize: 12, display: 'inline-block' };
 }
 
-function getTodayBR(): string {
-  const d = new Date();
-  const day   = String(d.getDate()).padStart(2, '0');
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const year  = d.getFullYear();
-  return `${day}/${month}/${year}`;
-}
-
 function StatCard({ label, value, sub, borderColor, loading }: {
   label: string; value: string; sub: string; borderColor: string; loading?: boolean;
 }) {
@@ -72,31 +64,7 @@ export default function MonitorAtualizacoes({ onBack }: { onBack: () => void }) 
       ]);
       setStats(s);
 
-      const hoje = getTodayBR();
-
-      const updated = await Promise.all(d.map(async (item) => {
-        const concluido  = String(item.concluido ?? '').trim();
-        const pacote     = (item.pacote ?? '').toUpperCase();
-        const dtAtualize = (item.dt_atualiza ?? '').trim();
-        const isHoje     = dtAtualize === hoje;
-        const isWeb      = pacote === 'WEB' || pacote === 'DMSWEB';
-        const elegivel   = concluido === '100' && isHoje && !isWeb && ['EVO','ESS','ESP'].includes(pacote);
-        const jaEnviou   = (item.email_enviado ?? 0) !== 0;
-
-        if (elegivel && !jaEnviou && item.cod) {
-          try {
-            await http.post(`/api/cx/consultar-atualizacao/${item.cod}/enviar-email`, {});
-            await http.put(`/api/cx/atualizacoes/${item.cod}/email-status?status_val=1`, {});
-            return { ...item, email_enviado: 1 };
-          } catch {
-            await http.put(`/api/cx/atualizacoes/${item.cod}/email-status?status_val=2`, {});
-            return { ...item, email_enviado: 2 };
-          }
-        }
-        return item;
-      }));
-
-      setItems(updated);
+      setItems(d);
     } catch { /* silent */ }
     finally { setLoading(false); }
   };
