@@ -61,6 +61,7 @@ async def email_monitor_job():
     while True:
         try:
             async with Session() as session:
+                # Busca todos elegíveis (inclusive sem email) para marcar status correto
                 result = await session.execute(
                     text(
                         "SELECT cod, razao, cliente, pacote, dt_atualiza, emails, link1, link2, link3 "
@@ -68,8 +69,7 @@ async def email_monitor_job():
                         "WHERE dt_atualiza = DATE_FORMAT(CURDATE(), '%d/%m/%Y') "
                         "AND (TRIM(CAST(concluido AS CHAR)) = '100' OR concluido = 100) "
                         "AND (email_enviado = 0 OR email_enviado IS NULL) "
-                        "AND pacote IN ('EVO','ESS','ESP') "
-                        "AND emails IS NOT NULL AND emails != ''"
+                        "AND pacote IN ('EVO','ESS','ESP')"
                     )
                 )
                 rows  = result.fetchall()
