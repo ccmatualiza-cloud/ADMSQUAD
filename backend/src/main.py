@@ -81,56 +81,63 @@ async def email_monitor_job():
                     razao      = d["razao"] or d["cliente"] or ""
                     pacote_raw = d["pacote"] or "EVO"
                     dt_atual   = d["dt_atualiza"] or datetime.now().strftime("%d/%m/%Y")
-                    emails     = d["emails"]
+                    emails     = d["emails"] or ""
                     link1      = d["link1"] or ""
                     link2      = d["link2"] or ""
                     link3      = d["link3"] or ""
+                    status_cli = d["status"] or ""
 
                     pacote_map   = {"EVO": "Evolutivo", "ESS": "Essencial", "ESP": "Especifico"}
                     pacote_final = pacote_map.get(pacote_raw, pacote_raw)
 
-                    linha1     = "Link para download dos arquivos clients, Pacote " + pacote_final + " - Executado no dia - " + dt_atual
-                    subject    = "Atualizacao " + razao + " Concluida"
+                    status_val = 2  # erro por padrao
 
-                    links_text = ""
-                    links_html = ""
-                    for lnk in [link1, link2, link3]:
-                        if lnk:
-                            links_text += chr(10) + lnk
-                            links_html += "<p><a href='" + lnk + "'>" + lnk + "</a></p>"
+                    if status_cli.strip() != "6 - ATIVO":
+                        pass  # nao envia, status incorreto
+                    elif not emails.strip():
+                        pass  # nao envia, sem email
+                    else:
+                        linha1     = "Link para download dos arquivos clients, Pacote " + pacote_final + " - Executado no dia - " + dt_atual
+                        subject    = "Atualizacao " + razao + " Concluida"
 
-                    body_text = linha1 + chr(10) + links_text
-                    body_html = "<p>" + linha1 + "</p>" + links_html
+                        links_text = ""
+                        links_html = ""
+                        for lnk in [link1, link2, link3]:
+                            if lnk:
+                                links_text += chr(10) + lnk
+                                links_html += "<p><a href='" + lnk + "'>" + lnk + "</a></p>"
 
-                    msg = MIMEMultipart("alternative")
-                    msg["Subject"] = subject
-                    msg["From"]    = smtp_from
-                    msg["To"]      = emails
-                    msg["Cc"]      = cc_email
-                    msg.attach(MIMEText(body_text, "plain"))
-                    msg.attach(MIMEText(body_html, "html"))
+                        body_text = linha1 + chr(10) + links_text
+                        body_html = "<p>" + linha1 + "</p>" + links_html
 
-                    destinatarios = [e.strip() for e in emails.split(",") if e.strip()]
-                    destinatarios.append(cc_email)
+                        msg = MIMEMultipart("alternative")
+                        msg["Subject"] = subject
+                        msg["From"]    = smtp_from
+                        msg["To"]      = emails
+                        msg["Cc"]      = cc_email
+                        msg.attach(MIMEText(body_text, "plain"))
+                        msg.attach(MIMEText(body_html, "html"))
 
-                    status_val = 2
-                    try:
-                        server = smtplib.SMTP(smtp_host, smtp_port, timeout=15)
-                        server.ehlo()
-                        server.starttls()
-                        server.ehlo()
-                        server.login(smtp_user_auth, smtp_pass)
+                        destinatarios = [e.strip() for e in emails.split(",") if e.strip()]
+                        destinatarios.append(cc_email)
+
                         try:
-                            server.sendmail(smtp_from, destinatarios, msg.as_string())
-                        except smtplib.SMTPRecipientsRefused:
-                            pass
-                        try:
-                            server.quit()
+                            server = smtplib.SMTP(smtp_host, smtp_port, timeout=15)
+                            server.ehlo()
+                            server.starttls()
+                            server.ehlo()
+                            server.login(smtp_user_auth, smtp_pass)
+                            try:
+                                server.sendmail(smtp_from, destinatarios, msg.as_string())
+                            except smtplib.SMTPRecipientsRefused:
+                                pass
+                            try:
+                                server.quit()
+                            except Exception:
+                                pass
+                            status_val = 1
                         except Exception:
                             pass
-                        status_val = 1
-                    except Exception:
-                        pass
 
                     await session.execute(
                         text("UPDATE tbl_linx SET email_enviado = :val WHERE cod = :cod"),
