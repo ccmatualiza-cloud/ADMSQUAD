@@ -1,4 +1,5 @@
 export default function ZohoDeskDashboard({ onBack }: { onBack: () => void }) {
+  const cacheBust = Math.floor(Date.now() / 20000); // muda a cada 20 segundos
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 120px)' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
@@ -9,7 +10,7 @@ export default function ZohoDeskDashboard({ onBack }: { onBack: () => void }) {
         <span style={{ color: 'var(--ccm-gray-dark)', fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.1em' }}>Dashboard Zoho Desk</span>
       </div>
       <iframe
-        src="https://war.ccmcloud.com.br/ccm/warriors_tickets.html"
+        src={`https://war.ccmcloud.com.br/ccm/warriors_tickets.html?v=${cacheBust}`}
         style={{ flex: 1, width: '100%', border: 'none', borderRadius: 8, boxShadow: '0 2px 12px rgba(12,25,33,.1)' }}
         title="Dashboard Zoho Desk"
         allow="clipboard-write"
