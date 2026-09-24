@@ -229,10 +229,16 @@ async def list_users_with_2fa(
         raise HTTPException(status_code=403, detail="Sem permissao")
     try:
         result = await session.execute(
-            text("SELECT id, name, email, role, active, two_fa_enabled FROM users ORDER BY name")
+            text("SELECT id, name, email, role, active, two_fa_enabled, created_at, last_login FROM users ORDER BY name")
         )
         rows = result.fetchall()
-        keys = ["id", "name", "email", "role", "active", "two_fa_enabled"]
-        return [dict(zip(keys, r)) for r in rows]
+        keys = ["id", "name", "email", "role", "active", "two_fa_enabled", "created_at", "last_login"]
+        items = []
+        for r in rows:
+            d = dict(zip(keys, r))
+            d["created_at"] = str(d["created_at"]) if d["created_at"] else None
+            d["last_login"]  = str(d["last_login"])  if d["last_login"]  else None
+            items.append(d)
+        return items
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
