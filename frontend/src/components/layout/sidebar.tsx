@@ -14,6 +14,7 @@ const NAV_ITEMS: NavItem[] = [
   { to: '/pmo',           icon: 'bi-building',              label: 'PMO - Implantação',       roles: ['admin', 'gestor', 'operador_pmo', 'prcx'] },
   { to: '/operacoes',     icon: 'bi-gear-wide-connected',   label: 'Operações',              roles: ['admin', 'gestor', 'operador_cx', 'operador_pmo', 'trcx', 'prcx'] },
   { to: '/gestao',        icon: 'bi-graph-up-arrow',        label: 'Gestão',                 roles: ['admin', 'gestor'] },
+  { to: '/consulta',      icon: 'bi-search',                label: 'Consulta',               roles: ALL_ROLES },
   { to: '/configuracoes', icon: 'bi-gear-fill',             label: 'Configurações',          roles: ['admin'] },
 ];
 

@@ -7,6 +7,7 @@ const PAGE_TITLES: Record<string, { eyebrow: string; title: string }> = {
   '/pmo':            { eyebrow: 'Projetos',       title: 'PMO - Implantação'       },
   '/operacoes':      { eyebrow: 'Operações',      title: 'Operações'               },
   '/gestao':         { eyebrow: 'Administração',  title: 'Gestão'                  },
+  '/consulta':       { eyebrow: 'Consulta',       title: 'Consulta'                },
   '/configuracoes':  { eyebrow: 'Sistema',        title: 'Configurações'           },
 };
 

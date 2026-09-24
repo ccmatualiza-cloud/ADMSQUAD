@@ -6,6 +6,7 @@ import PmoPage           from './pages/pmo/pmo-page';
 import GestaoPage        from './pages/gestao/gestao-page';
 import ConfiguracoesPage from './pages/configuracoes/configuracoes-page';
 import OperacoesPage     from './pages/operacoes/operacoes-page';
+import ConsultaPage     from './pages/consulta/consulta-page';
 import AppLayout         from './components/layout/app-layout';
 import ProtectedRoute    from './components/ui/protected-route';
 
@@ -27,6 +28,7 @@ export default function App() {
         <Route path="pmo"           element={<ProtectedRoute requiredRoles={PMO}>  <PmoPage />           </ProtectedRoute>} />
         <Route path="operacoes"     element={<ProtectedRoute requiredRoles={OPS}>  <OperacoesPage />     </ProtectedRoute>} />
         <Route path="gestao"        element={<ProtectedRoute requiredRoles={GEST}> <GestaoPage />        </ProtectedRoute>} />
+        <Route path="consulta"       element={<ProtectedRoute requiredRoles={ALL}>  <ConsultaPage />      </ProtectedRoute>} />
         <Route path="configuracoes" element={<ProtectedRoute requiredRoles={ADM}>  <ConfiguracoesPage /> </ProtectedRoute>} />
       </Route>
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
