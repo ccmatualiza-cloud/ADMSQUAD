@@ -256,12 +256,11 @@ export default function ClientesListPage({ onBack, readOnly = false }: { onBack:
                           onClick={() => openDetalhe(c.cod)}>
                           <i className="bi bi-eye me-1" />Ver
                         </button>
-                        <button className="btn btn-sm" style={{ background: 'var(--ccm-blue)', color: '#fff', fontSize: 10, padding: '3px 8px' }}
-{!readOnly && (
-                          <button className="btn btn-sm" style={{ background: 'var(--ccm-blue)', color: '#fff', fontSize: 11, padding: '4px 10px' }}
-                          onClick={() => openEdit(c.cod)}>
-                          <i className="bi bi-pencil-fill me-1" />Editar
-                        </button>
+                        {!readOnly && (
+                          <button className="btn btn-sm" style={{ background: 'var(--ccm-blue)', color: '#fff', fontSize: 10, padding: '3px 8px' }}
+                            onClick={() => openEdit(c.cod)}>
+                            <i className="bi bi-pencil-fill me-1" />Editar
+                          </button>
                         )}
                         {c.doc && (
                           <button className="btn btn-sm" style={{ background: '#1DB954', color: '#fff', fontSize: 10, padding: '3px 8px' }}
