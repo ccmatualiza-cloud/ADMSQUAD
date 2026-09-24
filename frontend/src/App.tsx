@@ -10,12 +10,13 @@ import ConsultaPage     from './pages/consulta/consulta-page';
 import AppLayout         from './components/layout/app-layout';
 import ProtectedRoute    from './components/ui/protected-route';
 
-const ALL    = ['admin', 'gestor', 'operador_cx', 'operador_pmo', 'trcx', 'prcx', 'user'];
-const CX     = ['admin', 'gestor', 'operador_cx', 'trcx'];
-const PMO    = ['admin', 'gestor', 'operador_pmo', 'prcx'];
-const OPS    = ['admin', 'gestor', 'operador_cx', 'operador_pmo', 'trcx', 'prcx'];
+const ALL    = ['admin', 'gestor', 'operador_cx', 'operador_pmo', 'trcx', 'prcx', 'user', 'operador_cxpmo', 'consult'];
+const CX     = ['admin', 'gestor', 'operador_cx', 'trcx', 'operador_cxpmo'];
+const PMO    = ['admin', 'gestor', 'operador_pmo', 'prcx', 'operador_cxpmo'];
+const OPS    = ['admin', 'gestor', 'operador_cx', 'operador_pmo', 'trcx', 'prcx', 'operador_cxpmo'];
 const GEST   = ['admin', 'gestor'];
 const ADM    = ['admin'];
+const CONSULT = ['admin', 'gestor', 'operador_cx', 'operador_pmo', 'trcx', 'prcx', 'user', 'operador_cxpmo', 'consult'];
 
 export default function App() {
   return (
@@ -28,7 +29,7 @@ export default function App() {
         <Route path="pmo"           element={<ProtectedRoute requiredRoles={PMO}>  <PmoPage />           </ProtectedRoute>} />
         <Route path="operacoes"     element={<ProtectedRoute requiredRoles={OPS}>  <OperacoesPage />     </ProtectedRoute>} />
         <Route path="gestao"        element={<ProtectedRoute requiredRoles={GEST}> <GestaoPage />        </ProtectedRoute>} />
-        <Route path="consulta"       element={<ProtectedRoute requiredRoles={ALL}>  <ConsultaPage />      </ProtectedRoute>} />
+        <Route path="consulta"       element={<ProtectedRoute requiredRoles={CONSULT}> <ConsultaPage />   </ProtectedRoute>} />
         <Route path="configuracoes" element={<ProtectedRoute requiredRoles={ADM}>  <ConfiguracoesPage /> </ProtectedRoute>} />
       </Route>
       <Route path="*" element={<Navigate to="/dashboard" replace />} />

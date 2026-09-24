@@ -12,9 +12,15 @@ export default function ProtectedRoute({ children, requiredRoles }: Props) {
 
   if (!isAuthenticated) return <Navigate to="/login" replace />;
 
+  // consult users go directly to /consulta
+  if (role === 'consult' && !requiredRoles) {
+    return <Navigate to="/consulta" replace />;
+  }
+
   if (requiredRoles && requiredRoles.length > 0) {
     if (!requiredRoles.includes(role)) {
-      return <Navigate to="/dashboard" replace />;
+      // consult users redirect to /consulta instead of /dashboard
+      return <Navigate to={role === 'consult' ? '/consulta' : '/dashboard'} replace />;
     }
   }
 

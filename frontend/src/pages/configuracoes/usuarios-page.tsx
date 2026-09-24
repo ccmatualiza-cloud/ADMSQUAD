@@ -14,21 +14,25 @@ interface User {
 }
 
 const ROLES: Record<string, { label: string; color: string; bg: string }> = {
-  admin:        { label: 'Admin',          color: '#fff', bg: '#204294' },
-  gestor:       { label: 'Gestor',         color: '#fff', bg: '#0F6E56' },
-  operador_cx:  { label: 'Operador CX',    color: '#fff', bg: '#8A6800' },
-  operador_pmo: { label: 'Operador PMO',   color: '#fff', bg: '#7F77DD' },
-  trcx:         { label: 'TRCX',           color: '#fff', bg: '#E74C3C' },
-  prcx:         { label: 'PRCX',           color: '#fff', bg: '#1DB954' },
+  admin:          { label: 'Admin',            color: '#fff', bg: '#204294' },
+  gestor:         { label: 'Gestor',           color: '#fff', bg: '#0F6E56' },
+  operador_cx:    { label: 'Operador CX',      color: '#fff', bg: '#8A6800' },
+  operador_pmo:   { label: 'Operador PMO',     color: '#fff', bg: '#7F77DD' },
+  trcx:           { label: 'TRCX',             color: '#fff', bg: '#E74C3C' },
+  prcx:           { label: 'PRCX',             color: '#fff', bg: '#1DB954' },
+  operador_cxpmo: { label: 'Operador CXPMO',   color: '#fff', bg: '#00B0FA' },
+  consult:        { label: 'Consult',           color: '#fff', bg: '#F9A825' },
 };
 
 const ROLE_OPTIONS = [
-  { value: 'admin',        label: 'Admin — acesso total' },
-  { value: 'gestor',       label: 'Gestor — visualiza tudo, edita pouco' },
-  { value: 'operador_cx',  label: 'Operador CX — acesso Customer Experience' },
-  { value: 'operador_pmo', label: 'Operador PMO — acesso PMO e Implantação' },
-  { value: 'trcx',         label: 'TRCX — acesso CX e Operações' },
-  { value: 'prcx',         label: 'PRCX — acesso CX e Operações' },
+  { value: 'admin',          label: 'Admin — acesso total' },
+  { value: 'gestor',         label: 'Gestor — visualiza tudo, edita pouco' },
+  { value: 'operador_cx',    label: 'Operador CX — acesso Customer Experience' },
+  { value: 'operador_pmo',   label: 'Operador PMO — acesso PMO e Implantação' },
+  { value: 'trcx',           label: 'TRCX — acesso CX e Operações' },
+  { value: 'prcx',           label: 'PRCX — acesso CX e Operações' },
+  { value: 'operador_cxpmo', label: 'Operador CXPMO — acesso Dashboard, CX, PMO e Operações' },
+  { value: 'consult',        label: 'Consult — acesso somente ao menu Consulta' },
 ];
 
 function fmtDate(d: string | null) {
