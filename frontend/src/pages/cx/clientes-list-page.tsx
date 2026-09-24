@@ -252,17 +252,19 @@ export default function ClientesListPage({ onBack, readOnly = false }: { onBack:
                     <td style={td}>{statusBadge(c.status)}</td>
                     <td style={{ ...td, textAlign: 'center' }}>
                       <div style={{ display: 'flex', gap: 4, justifyContent: 'center' }}>
-                        <button className="btn btn-sm" style={{ background: '#00B0FA', color: '#fff', fontSize: 10, padding: '3px 8px' }}
-                          onClick={() => openDetalhe(c.cod)}>
-                          <i className="bi bi-eye me-1" />Ver
-                        </button>
+                        {!readOnly && (
+                          <button className="btn btn-sm" style={{ background: '#00B0FA', color: '#fff', fontSize: 10, padding: '3px 8px' }}
+                            onClick={() => openDetalhe(c.cod)}>
+                            <i className="bi bi-eye me-1" />Ver
+                          </button>
+                        )}
                         {!readOnly && (
                           <button className="btn btn-sm" style={{ background: 'var(--ccm-blue)', color: '#fff', fontSize: 10, padding: '3px 8px' }}
                             onClick={() => openEdit(c.cod)}>
                             <i className="bi bi-pencil-fill me-1" />Editar
                           </button>
                         )}
-                        {c.doc && (
+                        {!readOnly && c.doc && (
                           <button className="btn btn-sm" style={{ background: '#1DB954', color: '#fff', fontSize: 10, padding: '3px 8px' }}
                             onClick={() => { const url = c.doc!.startsWith('http') ? c.doc! : `https://${c.doc}`; window.open(url, '_blank'); }} title="Abrir documentação">
                             <i className="bi bi-file-earmark-text me-1" />Doc
