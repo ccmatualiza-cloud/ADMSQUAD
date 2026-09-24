@@ -11,7 +11,7 @@ import AppLayout         from './components/layout/app-layout';
 import ProtectedRoute    from './components/ui/protected-route';
 import { useAuthStore }  from './store/auth-store';
 
-const ALL     = ['admin', 'gestor', 'operador_cx', 'operador_pmo', 'trcx', 'prcx', 'user', 'operador_cxpmo', 'consult'];
+const ALL     = ['admin', 'gestor', 'operador_cx', 'operador_pmo', 'trcx', 'prcx', 'user', 'operador_cxpmo'];
 const CX      = ['admin', 'gestor', 'operador_cx', 'trcx', 'operador_cxpmo'];
 const PMO     = ['admin', 'gestor', 'operador_pmo', 'prcx', 'operador_cxpmo'];
 const OPS     = ['admin', 'gestor', 'operador_cx', 'operador_pmo', 'trcx', 'prcx', 'operador_cxpmo'];
@@ -21,7 +21,8 @@ const CONSULT = ['admin', 'gestor', 'operador_cx', 'operador_pmo', 'trcx', 'prcx
 
 function IndexRedirect() {
   const role = useAuthStore(s => s.user?.role ?? '');
-  return <Navigate to={role === 'consult' ? '/consulta' : '/dashboard'} replace />;
+  if (role === 'consult') return <Navigate to="/consulta" replace />;
+  return <Navigate to="/dashboard" replace />;
 }
 
 export default function App() {
