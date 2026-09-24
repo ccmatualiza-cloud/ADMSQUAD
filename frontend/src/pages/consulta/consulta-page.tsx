@@ -25,7 +25,7 @@ function Card({ title, desc, color, bg, icon, onClick }: CardProps) {
 export default function ConsultaPage() {
   const [subPage, setSubPage] = useState<SubPage>(null);
 
-  if (subPage === 'clientes') return <ClientesListPage onBack={() => setSubPage(null)} />;
+  if (subPage === 'clientes') return <ClientesListPage onBack={() => setSubPage(null)} readOnly />;
   if (subPage === 'bi')       return <BiPage           onBack={() => setSubPage(null)} />;
 
   return (

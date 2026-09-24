@@ -80,7 +80,7 @@ const emptyEditForm: EditForm = {
   link1: '', link2: '', link3: '',
 };
 
-export default function ClientesListPage({ onBack }: { onBack: () => void }) {
+export default function ClientesListPage({ onBack, readOnly = false }: { onBack: () => void; readOnly?: boolean }) {
   const [clientes, setClientes]       = useState<Cliente[]>([]);
   const [statusOpts, setStatusOpts]   = useState<string[]>([]);
   const [loading, setLoading]         = useState(true);
@@ -257,9 +257,12 @@ export default function ClientesListPage({ onBack }: { onBack: () => void }) {
                           <i className="bi bi-eye me-1" />Ver
                         </button>
                         <button className="btn btn-sm" style={{ background: 'var(--ccm-blue)', color: '#fff', fontSize: 10, padding: '3px 8px' }}
+{!readOnly && (
+                          <button className="btn btn-sm" style={{ background: 'var(--ccm-blue)', color: '#fff', fontSize: 11, padding: '4px 10px' }}
                           onClick={() => openEdit(c.cod)}>
                           <i className="bi bi-pencil-fill me-1" />Editar
                         </button>
+                        )}
                         {c.doc && (
                           <button className="btn btn-sm" style={{ background: '#1DB954', color: '#fff', fontSize: 10, padding: '3px 8px' }}
                             onClick={() => { const url = c.doc!.startsWith('http') ? c.doc! : `https://${c.doc}`; window.open(url, '_blank'); }} title="Abrir documentação">
