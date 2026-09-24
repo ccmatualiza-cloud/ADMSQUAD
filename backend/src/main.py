@@ -82,6 +82,9 @@ async def email_monitor_job():
                     pacote_raw = d["pacote"] or "EVO"
                     dt_atual   = d["dt_atualiza"] or datetime.now().strftime("%d/%m/%Y")
                     emails     = d["emails"] or ""
+                    # Normaliza: se for 'null', 'NULL' ou vazio, trata como sem email
+                    if emails.strip().lower() in ("null", "none", ""):
+                        emails = ""
                     link1      = d["link1"] or ""
                     link2      = d["link2"] or ""
                     link3      = d["link3"] or ""
