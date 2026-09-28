@@ -141,16 +141,21 @@ async def email_monitor_job():
                             server.starttls()
                             server.ehlo()
                             server.login(smtp_user_auth, smtp_pass)
+                            refused = {}
                             try:
-                                server.sendmail(smtp_from, destinatarios, msg.as_string())
-                            except smtplib.SMTPRecipientsRefused:
-                                pass
+                                refused = server.sendmail(smtp_from, destinatarios, msg.as_string())
+                            except smtplib.SMTPRecipientsRefused as e:
+                                refused = e.recipients
                             try:
                                 server.quit()
                             except Exception:
                                 pass
+                            if refused:
+                                print(f"[EMAIL JOB] AVISO destinatarios recusados cod={cod} razao={razao}: {refused}", flush=True)
+                            print(f"[EMAIL JOB] Enviado cod={cod} razao={razao} para={emails}", flush=True)
                             status_val = 1
-                        except Exception:
+                        except Exception as e:
+                            print(f"[EMAIL JOB] ERRO ao enviar cod={cod} razao={razao}: {e}", flush=True)
                             pass
 
                     await session.execute(
