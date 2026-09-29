@@ -148,15 +148,17 @@ async def email_monitor_job():
                                 refused = e.recipients
                             try:
                                 server.quit()
-                            except Exception:
-                                pass
+                            except Exception as eq:
+                                print(f"[EMAIL JOB] quit() retornou: {eq}", flush=True)
                             if refused:
-                                print(f"[EMAIL JOB] AVISO destinatarios recusados cod={cod} razao={razao}: {refused}", flush=True)
-                            print(f"[EMAIL JOB] Enviado cod={cod} razao={razao} para={emails}", flush=True)
-                            status_val = 1
+                                print(f"[EMAIL JOB] RECUSADOS cod={cod} razao={razao}: {refused}", flush=True)
+                                status_val = 2
+                            else:
+                                print(f"[EMAIL JOB] OK cod={cod} razao={razao} destinatarios={destinatarios}", flush=True)
+                                status_val = 1
                         except Exception as e:
-                            print(f"[EMAIL JOB] ERRO ao enviar cod={cod} razao={razao}: {e}", flush=True)
-                            pass
+                            print(f"[EMAIL JOB] ERRO cod={cod} razao={razao} erro={e}", flush=True)
+                            status_val = 2
 
                     await session.execute(
                         text("UPDATE tbl_linx SET email_enviado = :val WHERE cod = :cod"),
