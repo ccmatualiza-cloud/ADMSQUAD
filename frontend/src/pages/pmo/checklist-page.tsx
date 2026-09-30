@@ -5,7 +5,7 @@ import ChecklistDetalhe from './checklist-detalhe';
 import ChecklistModelos from './checklist-modelos';
 
 interface Checklist {
-  cod: number; cliente: string; implantador: string | null;
+  cod: number; cliente: string; projeto: string | null; implantador: string | null;
   modelo_cod: number | null; status: string;
   total_itens: number; concluidos: number; created_at: string | null;
 }
@@ -20,7 +20,7 @@ const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
 
 const inputStyle = { background: 'var(--ccm-ink)', border: '1px solid #1a3a6e', color: '#fff', fontSize: 13 };
 const labelStyle = { color: '#9BA4AB', fontSize: 10, fontWeight: 700 as const, textTransform: 'uppercase' as const, letterSpacing: '.14em' };
-const emptyForm  = { cliente: '', implantador: '', modelo_cod: '' };
+const emptyForm  = { cliente: '', projeto: '', implantador: '', modelo_cod: '' };
 
 export default function ChecklistPage({ onBack }: { onBack: () => void }) {
   const [items, setItems]       = useState<Checklist[]>([]);
@@ -57,7 +57,7 @@ export default function ChecklistPage({ onBack }: { onBack: () => void }) {
     setSaving(true);
     try {
       await http.post('/api/pmo/checklists', {
-        cliente: form.cliente, implantador: form.implantador,
+        cliente: form.cliente, projeto: form.projeto, implantador: form.implantador,
         modelo_cod: form.modelo_cod ? parseInt(form.modelo_cod) : null,
       });
       toast.success('Checklist criado!');
@@ -123,6 +123,7 @@ export default function ChecklistPage({ onBack }: { onBack: () => void }) {
               <thead>
                 <tr style={{ background: 'var(--ccm-blue)' }}>
                   <th style={th}>Cliente</th>
+                  <th style={th}>Projeto</th>
                   <th style={th}>Implantador</th>
                   <th style={{ ...th, textAlign: 'center' }}>Conclusão</th>
                   <th style={{ ...th, textAlign: 'center' }}>Status</th>
@@ -136,6 +137,7 @@ export default function ChecklistPage({ onBack }: { onBack: () => void }) {
                   return (
                     <tr key={item.cod} style={{ background: i % 2 === 0 ? '#fff' : '#F7F8FA', borderBottom: '1px solid var(--ccm-line)' }}>
                       <td style={{ ...td, fontWeight: 700, color: 'var(--ccm-ink)' }}>{item.cliente}</td>
+                      <td style={td}>{item.projeto || '—'}</td>
                       <td style={td}>{item.implantador || '—'}</td>
                       <td style={{ ...td, textAlign: 'center' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center' }}>
@@ -187,6 +189,11 @@ export default function ChecklistPage({ onBack }: { onBack: () => void }) {
                 <label style={labelStyle}>Cliente *</label>
                 <input type="text" className="form-control mt-1" style={inputStyle}
                   value={form.cliente} onChange={e => setForm(f => ({ ...f, cliente: e.target.value }))} placeholder="Nome do cliente" />
+              </div>
+              <div className="col-12">
+                <label style={labelStyle}>Projeto</label>
+                <input type="text" className="form-control mt-1" style={inputStyle}
+                  value={form.projeto} onChange={e => setForm(f => ({ ...f, projeto: e.target.value }))} placeholder="Nome do projeto" />
               </div>
               <div className="col-12">
                 <label style={labelStyle}>Implantador</label>

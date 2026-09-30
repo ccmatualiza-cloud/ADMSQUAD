@@ -407,6 +407,7 @@ class ModeloCreate(BaseModel):
 class ChecklistItem(BaseModel):
     cod: int
     cliente: str
+    projeto: str | None = None
     implantador: str | None = None
     modelo_cod: int | None = None
     status: str
@@ -416,6 +417,7 @@ class ChecklistItem(BaseModel):
 
 class ChecklistCreate(BaseModel):
     cliente: str
+    projeto: str = ""
     implantador: str = ""
     modelo_cod: int | None = None
     itens: list[str] = []
@@ -499,7 +501,7 @@ async def list_checklists(
 ) -> list[ChecklistItem]:
     try:
         result = await session.execute(text("""
-            SELECT c.cod, c.cliente, c.implantador, c.modelo_cod, c.status,
+            SELECT c.cod, c.cliente, c.projeto, c.implantador, c.modelo_cod, c.status,
                    COUNT(i.cod) as total, SUM(i.concluido) as conc,
                    c.created_at
             FROM tbl_checklists c
@@ -509,9 +511,9 @@ async def list_checklists(
         """))
         rows = result.fetchall()
         return [ChecklistItem(
-            cod=r[0], cliente=r[1], implantador=r[2], modelo_cod=r[3], status=r[4],
-            total_itens=int(r[5] or 0), concluidos=int(r[6] or 0),
-            created_at=str(r[7]) if r[7] else None
+            cod=r[0], cliente=r[1], projeto=r[2], implantador=r[3], modelo_cod=r[4], status=r[5],
+            total_itens=int(r[6] or 0), concluidos=int(r[7] or 0),
+            created_at=str(r[8]) if r[8] else None
         ) for r in rows]
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
@@ -525,8 +527,8 @@ async def create_checklist(
 ) -> dict:
     try:
         result = await session.execute(
-            text("INSERT INTO tbl_checklists (cliente, implantador, modelo_cod) VALUES (:c, :i, :m)"),
-            {"c": body.cliente, "i": body.implantador, "m": body.modelo_cod}
+            text("INSERT INTO tbl_checklists (cliente, projeto, implantador, modelo_cod) VALUES (:c, :p, :i, :m)"),
+            {"c": body.cliente, "p": body.projeto, "i": body.implantador, "m": body.modelo_cod}
         )
         chk_id = result.lastrowid
         itens = body.itens
