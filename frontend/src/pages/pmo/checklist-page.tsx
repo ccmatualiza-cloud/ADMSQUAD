@@ -196,8 +196,11 @@ export default function ChecklistPage({ onBack }: { onBack: () => void }) {
               </div>
               <div className="col-12">
                 <label style={labelStyle}>Projeto</label>
-                <input type="text" className="form-control mt-1" style={inputStyle}
-                  value={form.projeto} onChange={e => setForm(f => ({ ...f, projeto: e.target.value }))} placeholder="Nome do projeto" />
+                <select className="form-select mt-1" style={inputStyle}
+                  value={form.projeto} onChange={e => setForm(f => ({ ...f, projeto: e.target.value }))}>
+                  <option value="">Selecione o projeto...</option>
+                  {projetos.map(p => <option key={p} value={p}>{p}</option>)}
+                </select>
               </div>
               <div className="col-12">
                 <label style={labelStyle}>Implantador</label>
