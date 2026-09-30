@@ -314,6 +314,12 @@ export default function ClientesPmoPage({ onBack }: { onBack: () => void }) {
                   value={prxcontatInput} onChange={e => setPrxcontatInput(e.target.value)} />
               </div>
 
+              <div className="col-12">
+                <label style={labelStyle}>Projeto</label>
+                <input type="text" className="form-control mt-1" style={inputStyle}
+                  value={form.projeto} onChange={e => setForm(f => ({ ...f, projeto: e.target.value }))} placeholder="Nome do projeto" />
+              </div>
+
               <div className="col-12 col-md-6">
                 <label style={labelStyle}>Franqueado</label>
                 <select className="form-select mt-1" style={inputStyle}
