@@ -13,6 +13,7 @@ class ClientePmoItem(BaseModel):
     cod: int
     razao: str | None = None
     implat: str | None = None
+    projeto: str | None = None
     franq: str | None = None
     qtdusers: int | None = None
     prxcontat: str | None = None
