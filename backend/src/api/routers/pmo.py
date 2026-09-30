@@ -385,3 +385,257 @@ async def cancelar_implantacao(
         return {"updated": True}
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
+
+
+# ── Checklist ────────────────────────────────────────────────────────────────
+
+class ModeloItem(BaseModel):
+    cod: int
+    nome: str
+    descricao: str | None = None
+
+class ModeloItemDetalhe(BaseModel):
+    cod: int
+    ordem: int
+    descricao: str
+
+class ModeloCreate(BaseModel):
+    nome: str
+    descricao: str = ""
+    itens: list[str] = []
+
+class ChecklistItem(BaseModel):
+    cod: int
+    cliente: str
+    implantador: str | None = None
+    modelo_cod: int | None = None
+    status: str
+    total_itens: int = 0
+    concluidos: int = 0
+    created_at: str | None = None
+
+class ChecklistCreate(BaseModel):
+    cliente: str
+    implantador: str = ""
+    modelo_cod: int | None = None
+    itens: list[str] = []
+
+class ChecklistItemUpdate(BaseModel):
+    concluido: bool
+    obs: str = ""
+
+
+@router.get("/checklist/modelos", response_model=list[ModeloItem])
+async def list_modelos(
+    _: Annotated[dict, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> list[ModeloItem]:
+    try:
+        result = await session.execute(text("SELECT cod, nome, descricao FROM tbl_checklist_modelos ORDER BY nome ASC"))
+        rows = result.fetchall()
+        return [ModeloItem(cod=r[0], nome=r[1], descricao=r[2]) for r in rows]
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@router.get("/checklist/modelos/{cod}/itens", response_model=list[ModeloItemDetalhe])
+async def get_modelo_itens(
+    cod: int,
+    _: Annotated[dict, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> list[ModeloItemDetalhe]:
+    try:
+        result = await session.execute(
+            text("SELECT cod, ordem, descricao FROM tbl_checklist_modelo_itens WHERE modelo_cod = :cod ORDER BY ordem ASC"),
+            {"cod": cod}
+        )
+        rows = result.fetchall()
+        return [ModeloItemDetalhe(cod=r[0], ordem=r[1], descricao=r[2]) for r in rows]
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@router.post("/checklist/modelos", status_code=201)
+async def create_modelo(
+    body: ModeloCreate,
+    _: Annotated[dict, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> dict:
+    try:
+        result = await session.execute(
+            text("INSERT INTO tbl_checklist_modelos (nome, descricao) VALUES (:nome, :desc)"),
+            {"nome": body.nome, "desc": body.descricao}
+        )
+        modelo_id = result.lastrowid
+        for i, item in enumerate(body.itens):
+            if item.strip():
+                await session.execute(
+                    text("INSERT INTO tbl_checklist_modelo_itens (modelo_cod, ordem, descricao) VALUES (:m, :o, :d)"),
+                    {"m": modelo_id, "o": i, "d": item.strip()}
+                )
+        await session.commit()
+        return {"created": True, "id": modelo_id}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@router.delete("/checklist/modelos/{cod}", status_code=204)
+async def delete_modelo(
+    cod: int,
+    _: Annotated[dict, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> None:
+    try:
+        await session.execute(text("DELETE FROM tbl_checklist_modelos WHERE cod = :cod"), {"cod": cod})
+        await session.commit()
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@router.get("/checklists", response_model=list[ChecklistItem])
+async def list_checklists(
+    _: Annotated[dict, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> list[ChecklistItem]:
+    try:
+        result = await session.execute(text("""
+            SELECT c.cod, c.cliente, c.implantador, c.modelo_cod, c.status,
+                   COUNT(i.cod) as total, SUM(i.concluido) as conc,
+                   c.created_at
+            FROM tbl_checklists c
+            LEFT JOIN tbl_checklist_itens i ON i.checklist_cod = c.cod
+            GROUP BY c.cod
+            ORDER BY c.created_at DESC
+        """))
+        rows = result.fetchall()
+        return [ChecklistItem(
+            cod=r[0], cliente=r[1], implantador=r[2], modelo_cod=r[3], status=r[4],
+            total_itens=int(r[5] or 0), concluidos=int(r[6] or 0),
+            created_at=str(r[7]) if r[7] else None
+        ) for r in rows]
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@router.post("/checklists", status_code=201)
+async def create_checklist(
+    body: ChecklistCreate,
+    _: Annotated[dict, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> dict:
+    try:
+        result = await session.execute(
+            text("INSERT INTO tbl_checklists (cliente, implantador, modelo_cod) VALUES (:c, :i, :m)"),
+            {"c": body.cliente, "i": body.implantador, "m": body.modelo_cod}
+        )
+        chk_id = result.lastrowid
+        itens = body.itens
+        if not itens and body.modelo_cod:
+            r2 = await session.execute(
+                text("SELECT descricao FROM tbl_checklist_modelo_itens WHERE modelo_cod = :m ORDER BY ordem ASC"),
+                {"m": body.modelo_cod}
+            )
+            itens = [row[0] for row in r2.fetchall()]
+        for i, item in enumerate(itens):
+            if item.strip():
+                await session.execute(
+                    text("INSERT INTO tbl_checklist_itens (checklist_cod, ordem, descricao) VALUES (:c, :o, :d)"),
+                    {"c": chk_id, "o": i, "d": item.strip()}
+                )
+        await session.commit()
+        return {"created": True, "id": chk_id}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@router.put("/checklists/{cod}/status")
+async def update_checklist_status(
+    cod: int,
+    status: str,
+    _: Annotated[dict, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> dict:
+    try:
+        await session.execute(
+            text("UPDATE tbl_checklists SET status = :s WHERE cod = :cod"),
+            {"s": status, "cod": cod}
+        )
+        await session.commit()
+        return {"updated": True}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@router.delete("/checklists/{cod}", status_code=204)
+async def delete_checklist(
+    cod: int,
+    _: Annotated[dict, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> None:
+    try:
+        await session.execute(text("DELETE FROM tbl_checklists WHERE cod = :cod"), {"cod": cod})
+        await session.commit()
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@router.get("/checklists/{cod}/itens")
+async def get_checklist_itens(
+    cod: int,
+    _: Annotated[dict, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> list[dict]:
+    try:
+        result = await session.execute(
+            text("SELECT cod, ordem, descricao, concluido, obs, updated_at FROM tbl_checklist_itens WHERE checklist_cod = :cod ORDER BY ordem ASC"),
+            {"cod": cod}
+        )
+        rows = result.fetchall()
+        return [{"cod": r[0], "ordem": r[1], "descricao": r[2], "concluido": bool(r[3]), "obs": r[4], "updated_at": str(r[5]) if r[5] else None} for r in rows]
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@router.put("/checklists/itens/{cod}")
+async def update_checklist_item(
+    cod: int,
+    body: ChecklistItemUpdate,
+    _: Annotated[dict, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> dict:
+    try:
+        from datetime import datetime as dt
+        await session.execute(
+            text("UPDATE tbl_checklist_itens SET concluido = :c, obs = :o, updated_at = :u WHERE cod = :cod"),
+            {"c": 1 if body.concluido else 0, "o": body.obs, "u": dt.now(), "cod": cod}
+        )
+        await session.commit()
+        return {"updated": True}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+class ChecklistNovoItem(BaseModel):
+    descricao: str
+
+@router.post("/checklists/{cod}/itens", status_code=201)
+async def add_checklist_item(
+    cod: int,
+    body: ChecklistNovoItem,
+    _: Annotated[dict, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> dict:
+    try:
+        r = await session.execute(
+            text("SELECT MAX(ordem) FROM tbl_checklist_itens WHERE checklist_cod = :cod"),
+            {"cod": cod}
+        )
+        max_ordem = r.scalar() or 0
+        await session.execute(
+            text("INSERT INTO tbl_checklist_itens (checklist_cod, ordem, descricao) VALUES (:c, :o, :d)"),
+            {"c": cod, "o": max_ordem + 1, "d": body.descricao}
+        )
+        await session.commit()
+        return {"created": True}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
