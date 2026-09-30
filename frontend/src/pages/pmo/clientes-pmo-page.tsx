@@ -6,6 +6,7 @@ interface ClientePmo {
   cod: number;
   razao: string | null;
   implat: string | null;
+  projeto: string | null;
   franq: string | null;
   qtdusers: number | null;
   prxcontat: string | null;
@@ -21,7 +22,7 @@ interface Franquia { cod: number; contato: string | null; nome: string | null; }
 const emptyForm = {
   razao: '', cliente: '', qtdusers: '' as string | number,
   datprev: '', sistema: '', prxcontat: '',
-  franq: '', implat: '', stimplant: '',
+  franq: '', implat: '', projeto: '', stimplant: '',
   tsplus: 'Nao', qtdusersts: '' as string | number,
 };
 
@@ -91,7 +92,7 @@ export default function ClientesPmoPage({ onBack }: { onBack: () => void }) {
       qtdusers: c.qtdusers ?? '',
       datprev: c.datprev ?? '', sistema: '',
       prxcontat: c.prxcontat ?? '',
-      franq: c.franq ?? '', implat: c.implat ?? '',
+      franq: c.franq ?? '', implat: c.implat ?? '', projeto: c.projeto ?? '',
       stimplant: c.stimplant ?? '',
       tsplus: c.tsplus ?? 'Nao',
       qtdusersts: c.qtdusersts ?? '',
@@ -189,6 +190,7 @@ export default function ClientesPmoPage({ onBack }: { onBack: () => void }) {
                 <tr style={{ background: 'var(--ccm-blue)' }}>
                   <th style={th}>Razão Social</th>
                   <th style={th}>Implantador</th>
+                  <th style={th}>Projeto</th>
                   <th style={th}>Franqueado</th>
                   <th style={{ ...th, textAlign: 'center' }}>Users</th>
                   <th style={th}>TS</th>
@@ -206,6 +208,7 @@ export default function ClientesPmoPage({ onBack }: { onBack: () => void }) {
                   <tr key={c.cod} style={{ background: i % 2 === 0 ? '#fff' : '#F7F8FA', borderBottom: '1px solid var(--ccm-line)' }}>
                     <td style={{ ...td, fontWeight: 600, color: 'var(--ccm-ink)', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.razao || '—'}</td>
                     <td style={td}>{c.implat || '—'}</td>
+                    <td style={td}>{c.projeto || '—'}</td>
                     <td style={td}>{c.franq || '—'}</td>
                     <td style={{ ...td, textAlign: 'center', fontWeight: 600 }}>{c.qtdusers ?? '—'}</td>
                     <td style={td}>{c.tsplus || '—'}</td>

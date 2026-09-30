@@ -63,7 +63,7 @@ async def list_clientes_pmo(
             where += " AND (razao LIKE :q OR implat LIKE :q OR franq LIKE :q)"
             params["q"] = f"%{q}%"
         result = await session.execute(
-            text(f"SELECT cod, razao, implat, franq, qtdusers, prxcontat, datprev, stimplant, status, tsplus, qtdusersts FROM tbl_linx {where} ORDER BY razao"),
+            text(f"SELECT cod, razao, implat, projeto, franq, qtdusers, prxcontat, datprev, stimplant, status, tsplus, qtdusersts FROM tbl_linx {where} ORDER BY razao"),
             params
         )
         rows = result.fetchall()
@@ -82,8 +82,8 @@ async def create_cliente_pmo(
     try:
         result = await session.execute(
             text("""
-                INSERT INTO tbl_linx (razao, cliente, qtdusers, datprev, sistema, prxcontat, franq, implat, stimplant, tsplus, qtdusersts, status)
-                VALUES (:razao, :cliente, :qtdusers, :datprev, :sistema, :prxcontat, :franq, :implat, :stimplant, :tsplus, :qtdusersts, '0 - IMPLANTAÇÃO')
+                INSERT INTO tbl_linx (razao, cliente, qtdusers, datprev, sistema, prxcontat, franq, implat, projeto, stimplant, tsplus, qtdusersts, status)
+                VALUES (:razao, :cliente, :qtdusers, :datprev, :sistema, :prxcontat, :franq, :implat, :projeto, :stimplant, :tsplus, :qtdusersts, '0 - IMPLANTAÇÃO')
             """),
             {
                 "razao":     body.razao,
@@ -94,6 +94,7 @@ async def create_cliente_pmo(
                 "prxcontat": body.prxcontat or "",
                 "franq":     body.franq or "",
                 "implat":    body.implat or "",
+                "projeto":   body.projeto or "",
                 "stimplant": body.stimplant or "",
                 "tsplus":    body.tsplus or "Nao",
                 "qtdusersts": body.qtdusersts or 0,
@@ -121,6 +122,7 @@ async def update_cliente_pmo(
         if body.prxcontat is not None: sets.append("prxcontat=:prxcontat"); params["prxcontat"] = body.prxcontat
         if body.franq     is not None: sets.append("franq=:franq");         params["franq"]     = body.franq
         if body.implat    is not None: sets.append("implat=:implat");       params["implat"]    = body.implat
+        if body.projeto   is not None: sets.append("projeto=:projeto");     params["projeto"]   = body.projeto
         if body.stimplant    is not None: sets.append("stimplant=:stimplant");       params["stimplant"]    = body.stimplant
         if body.tsplus       is not None: sets.append("tsplus=:tsplus");             params["tsplus"]       = body.tsplus
         if body.qtdusersts   is not None: sets.append("qtdusersts=:qtdusersts");   params["qtdusersts"]   = body.qtdusersts
