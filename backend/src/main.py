@@ -61,20 +61,19 @@ async def email_monitor_job():
     while True:
         try:
             async with Session() as session:
-                # Reserva atomicamente os registros elegíveis (UPDATE + SELECT)
-                # Isso evita duplo envio em caso de execuções simultâneas
+                # Reserva atomicamente os registros elegíveis
                 await session.execute(
                     text(
                         "UPDATE tbl_linx SET email_enviado = 9 "
                         "WHERE dt_atualiza = DATE_FORMAT(CURDATE(), '%d/%m/%Y') "
                         "AND (TRIM(CAST(concluido AS CHAR)) = '100' OR concluido = 100) "
-                        "AND (email_enviado = 0 OR email_enviado IS NULL) "
+                        "AND email_enviado = 0 "
                         "AND pacote IN ('EVO','ESS','ESP')"
                     )
                 )
                 await session.commit()
 
-                # Busca somente os que foram reservados agora (email_enviado = 9)
+                # Busca somente os reservados agora
                 result = await session.execute(
                     text(
                         "SELECT cod, razao, cliente, pacote, dt_atualiza, emails, link1, link2, link3, status "
@@ -169,7 +168,7 @@ async def email_monitor_job():
         except Exception:
             pass
 
-        await asyncio.sleep(20)
+        await asyncio.sleep(120)  # verifica a cada 2 minutos
 
 
 @app.on_event("startup")
