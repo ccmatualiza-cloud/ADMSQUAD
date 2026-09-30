@@ -31,7 +31,8 @@ export default function ChecklistPage({ onBack }: { onBack: () => void }) {
   const [showModelos, setShowModelos] = useState(false);
   const [detalhe, setDetalhe]   = useState<Checklist | null>(null);
   const [form, setForm]         = useState(emptyForm);
-  const [saving, setSaving]     = useState(false);
+  const [saving, setSaving]       = useState(false);
+  const [projetos, setProjetos]   = useState<string[]>([]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -47,6 +48,9 @@ export default function ChecklistPage({ onBack }: { onBack: () => void }) {
 
   useEffect(() => {
     fetchData();
+    http.get<{ projeto: string }[]>('/api/pmo/projetos-abertos')
+      .then(d => setProjetos(d.map(p => p.projeto)))
+      .catch(() => {});
     http.get<{ id: number; name: string }[]>('/api/user/by-role')
       .then(d => setUsuarios([...d].sort((a, b) => a.name.localeCompare(b.name))))
       .catch(() => {});

@@ -643,3 +643,22 @@ async def add_checklist_item(
         return {"created": True}
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
+
+
+@router.get("/projetos-abertos")
+async def list_projetos_abertos(
+    _: Annotated[dict, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> list[dict]:
+    try:
+        result = await session.execute(
+            text(
+                "SELECT DISTINCT projeto FROM tbl_linx "
+                "WHERE status = '0 - IMPLANTAÇÃO' AND projeto IS NOT NULL AND projeto != '' "
+                "ORDER BY projeto ASC"
+            )
+        )
+        rows = result.fetchall()
+        return [{"projeto": r[0]} for r in rows]
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
