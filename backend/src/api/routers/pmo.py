@@ -45,6 +45,7 @@ class ClientePmoUpdate(BaseModel):
     prxcontat: str | None = None
     franq: str | None = None
     implat: str | None = None
+    projeto: str | None = None
     stimplant: str | None = None
     tsplus: str | None = None
     qtdusersts: int | None = None
