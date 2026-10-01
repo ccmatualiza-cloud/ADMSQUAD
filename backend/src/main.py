@@ -38,6 +38,41 @@ async def health() -> dict:
     return {"status": "ok"}
 
 
+
+async def daily_reset_job():
+    """Job diario: reseta email_enviado=0 em todos os registros da tbl_linx toda madrugada."""
+    from sqlalchemy import text
+    from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+    from src.config import settings as cfg
+    from urllib.parse import quote_plus
+    import datetime
+
+    DB_URL = (
+        "mysql+asyncmy://" + quote_plus(cfg.db_user) + ":" + quote_plus(cfg.db_password) +
+        "@" + cfg.db_host + "/" + cfg.db_name
+    )
+    engine  = create_async_engine(DB_URL, pool_pre_ping=True)
+    Session = async_sessionmaker(engine, expire_on_commit=False)
+
+    while True:
+        now = datetime.datetime.now()
+        # Calcula quantos segundos faltam para 00:01 do proximo dia
+        next_run = (now + datetime.timedelta(days=1)).replace(hour=0, minute=1, second=0, microsecond=0)
+        wait_seconds = (next_run - now).total_seconds()
+        print(f"[RESET JOB] Proximo reset em {next_run.strftime('%d/%m/%Y %H:%M')} ({int(wait_seconds)}s)", flush=True)
+        await asyncio.sleep(wait_seconds)
+
+        try:
+            async with Session() as session:
+                await session.execute(
+                    text("UPDATE tbl_linx SET email_enviado = 0")
+                )
+                await session.commit()
+                print(f"[RESET JOB] email_enviado resetado para 0 em todos os registros em {datetime.datetime.now().strftime('%d/%m/%Y %H:%M')}", flush=True)
+        except Exception as e:
+            print(f"[RESET JOB] ERRO ao resetar: {e}", flush=True)
+
+
 async def email_monitor_job():
     from sqlalchemy import text
     from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
@@ -174,3 +209,4 @@ async def email_monitor_job():
 @app.on_event("startup")
 async def startup_event():
     asyncio.create_task(email_monitor_job())
+    asyncio.create_task(daily_reset_job())
