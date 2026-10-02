@@ -28,7 +28,8 @@ export default function ChecklistDetalhe({ checklist, onBack }: { checklist: Che
       const data = await http.get<ChecklistItemData[]>(`/api/pmo/checklists/${checklist.cod}/itens`);
       setItems(data);
       const obs: Record<number, string> = {};
-      data.forEach(i => { obs[i.cod] = i.obs ?? ''; });
+      const resp: Record<number, string> = {};
+      data.forEach(i => { obs[i.cod] = i.obs ?? ''; resp[i.cod] = i.responsavel ?? ''; });
       setObsEdit(obs);
       setRespEdit(resp);
     } catch { toast.error('Erro ao carregar itens'); }
