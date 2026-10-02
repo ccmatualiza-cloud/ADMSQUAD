@@ -103,7 +103,10 @@ async def email_monitor_job():
                         "WHERE dt_atualiza = DATE_FORMAT(CURDATE(), '%d/%m/%Y') "
                         "AND (TRIM(CAST(concluido AS CHAR)) = '100' OR concluido = 100) "
                         "AND email_enviado = 0 "
-                        "AND pacote IN ('EVO','ESS','ESP')"
+                        "AND pacote IN ('EVO','ESS','ESP') "
+                        "AND status = '6 - ATIVO' "
+                        "AND emails IS NOT NULL AND TRIM(emails) != '' "
+                        "AND LOWER(TRIM(emails)) NOT IN ('null','none')"
                     )
                 )
                 await session.commit()
