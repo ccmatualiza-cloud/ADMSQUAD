@@ -664,3 +664,110 @@ async def list_projetos_abertos(
         return [{"projeto": r[0]} for r in rows]
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
+
+
+# -- Sessoes de Checklist -------------------------------------------------------
+
+class SessaoItem(BaseModel):
+    cod: int
+    nome: str
+    descricao: str | None = None
+
+
+class SessaoCreate(BaseModel):
+    nome: str
+    descricao: str = ""
+
+
+class SessaoUpdate(BaseModel):
+    nome: str | None = None
+    descricao: str | None = None
+
+
+@router.get("/checklist/sessoes", response_model=list[SessaoItem])
+async def list_sessoes(
+    _: Annotated[dict, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> list[SessaoItem]:
+    try:
+        result = await session.execute(text("SELECT cod, nome, descricao FROM tbl_checklist_sessoes ORDER BY nome ASC"))
+        rows = result.fetchall()
+        return [SessaoItem(cod=r[0], nome=r[1], descricao=r[2]) for r in rows]
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@router.post("/checklist/sessoes", status_code=201)
+async def create_sessao(
+    body: SessaoCreate,
+    _: Annotated[dict, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> dict:
+    try:
+        result = await session.execute(
+            text("INSERT INTO tbl_checklist_sessoes (nome, descricao) VALUES (:nome, :desc)"),
+            {"nome": body.nome, "desc": body.descricao}
+        )
+        await session.commit()
+        return {"created": True, "id": result.lastrowid}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@router.put("/checklist/sessoes/{cod}")
+async def update_sessao(
+    cod: int,
+    body: SessaoUpdate,
+    _: Annotated[dict, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> dict:
+    try:
+        sets, params = [], {"cod": cod}
+        if body.nome      is not None: sets.append("nome=:nome");           params["nome"]      = body.nome
+        if body.descricao is not None: sets.append("descricao=:descricao"); params["descricao"] = body.descricao
+        if not sets:
+            raise HTTPException(status_code=400, detail="Nada para atualizar")
+        await session.execute(text(f"UPDATE tbl_checklist_sessoes SET {', '.join(sets)} WHERE cod = :cod"), params)
+        await session.commit()
+        return {"updated": True}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@router.delete("/checklist/sessoes/{cod}", status_code=204)
+async def delete_sessao(
+    cod: int,
+    _: Annotated[dict, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> None:
+    try:
+        await session.execute(text("DELETE FROM tbl_checklist_sessoes WHERE cod = :cod"), {"cod": cod})
+        await session.commit()
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@router.put("/checklist/modelos/{cod}")
+async def update_modelo(
+    cod: int,
+    body: ModeloCreate,
+    _: Annotated[dict, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> dict:
+    try:
+        await session.execute(
+            text("UPDATE tbl_checklist_modelos SET nome = :nome, descricao = :desc WHERE cod = :cod"),
+            {"nome": body.nome, "desc": body.descricao, "cod": cod}
+        )
+        # Remove itens antigos e reinsere
+        await session.execute(text("DELETE FROM tbl_checklist_modelo_itens WHERE modelo_cod = :cod"), {"cod": cod})
+        for i, item in enumerate(body.itens):
+            if item.strip():
+                await session.execute(
+                    text("INSERT INTO tbl_checklist_modelo_itens (modelo_cod, ordem, descricao) VALUES (:m, :o, :d)"),
+                    {"m": cod, "o": i, "d": item.strip()}
+                )
+        await session.commit()
+        return {"updated": True}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))

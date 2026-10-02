@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import ChecklistSessoes from './checklist-sessoes';
 import { toast } from 'sonner';
 import { http } from '../../lib/http-client';
 
@@ -12,7 +13,10 @@ export default function ChecklistModelos({ onBack }: { onBack: () => void }) {
   const [loading, setLoading]   = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [form, setForm]         = useState({ nome: '', descricao: '', itens: [''] });
-  const [saving, setSaving]     = useState(false);
+  const [saving, setSaving]       = useState(false);
+  const [showSessoes, setShowSessoes] = useState(false);
+  const [editCod, setEditCod]     = useState<number | null>(null);
+  const [editItens, setEditItens] = useState<string[]>([]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -22,6 +26,20 @@ export default function ChecklistModelos({ onBack }: { onBack: () => void }) {
   };
 
   useEffect(() => { fetchData(); }, []);
+
+  if (showSessoes) return <ChecklistSessoes onBack={() => setShowSessoes(false)} />;
+
+  const openCreate = () => { setEditCod(null); setForm({ nome: '', descricao: '', itens: [''] }); setShowModal(true); };
+
+  const openEdit = async (m: Modelo) => {
+    setEditCod(m.cod);
+    setForm({ nome: m.nome, descricao: m.descricao ?? '', itens: [''] });
+    try {
+      const itens = await http.get<{ cod: number; descricao: string }[]>(`/api/pmo/checklist/modelos/${m.cod}/itens`);
+      setForm(f => ({ ...f, itens: itens.map(i => i.descricao) }));
+    } catch { /* silent */ }
+    setShowModal(true);
+  };
 
   const addLinha = () => setForm(f => ({ ...f, itens: [...f.itens, ''] }));
   const updateLinha = (i: number, v: string) => setForm(f => { const itens = [...f.itens]; itens[i] = v; return { ...f, itens }; });
@@ -33,7 +51,11 @@ export default function ChecklistModelos({ onBack }: { onBack: () => void }) {
     if (itens.length === 0) { toast.error('Adicione pelo menos um item'); return; }
     setSaving(true);
     try {
-      await http.post('/api/pmo/checklist/modelos', { nome: form.nome, descricao: form.descricao, itens });
+      if (editCod !== null) {
+        await http.put(`/api/pmo/checklist/modelos/${editCod}`, { nome: form.nome, descricao: form.descricao, itens });
+        toast.success('Modelo atualizado!');
+      } else {
+        await http.post('/api/pmo/checklist/modelos', { nome: form.nome, descricao: form.descricao, itens });
       toast.success('Modelo criado!');
       setShowModal(false); setForm({ nome: '', descricao: '', itens: [''] }); fetchData();
     } catch (err: unknown) { toast.error(err instanceof Error ? err.message : 'Erro'); }
@@ -65,9 +87,14 @@ export default function ChecklistModelos({ onBack }: { onBack: () => void }) {
               {loading ? 'Carregando...' : `${modelos.length} modelo(s)`}
             </span>
           </div>
-          <button className="btn btn-ccm-primary btn-sm" onClick={() => setShowModal(true)}>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button className="btn btn-sm" style={{ background: '#00B0FA', color: '#fff', fontWeight: 700, fontSize: 12 }} onClick={() => setShowSessoes(true)}>
+              <i className="bi bi-collection-fill me-1" />Sessões
+            </button>
+            <button className="btn btn-ccm-primary btn-sm" onClick={openCreate}>
             <i className="bi bi-plus-lg me-1" />Novo Modelo
-          </button>
+            </button>
+          </div>
         </div>
 
         <div style={{ padding: '12px 20px' }}>
@@ -83,6 +110,9 @@ export default function ChecklistModelos({ onBack }: { onBack: () => void }) {
                     <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--ccm-ink)' }}>{m.nome}</div>
                     {m.descricao && <div style={{ fontSize: 11, color: 'var(--ccm-gray-dark)', marginTop: 2 }}>{m.descricao}</div>}
                   </div>
+                  <button className="btn btn-sm" style={{ background: 'var(--ccm-blue)', color: '#fff', fontSize: 10, padding: '3px 9px' }} onClick={() => openEdit(m)}>
+                      <i className="bi bi-pencil-fill me-1" />Editar
+                    </button>
                   <button className="btn btn-sm" style={{ background: '#E74C3C', color: '#fff', fontSize: 10, padding: '3px 8px' }} onClick={() => handleDelete(m.cod)}>
                     <i className="bi bi-trash" />
                   </button>
@@ -99,7 +129,7 @@ export default function ChecklistModelos({ onBack }: { onBack: () => void }) {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
               <div>
                 <div style={{ color: '#7F77DD', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.18em' }}>PMO — Modelos</div>
-                <div style={{ color: '#fff', fontWeight: 900, fontSize: 15, textTransform: 'uppercase' }}>Novo Modelo</div>
+                <div style={{ color: '#fff', fontWeight: 900, fontSize: 15, textTransform: 'uppercase' }}>{editCod !== null ? 'Editar Modelo' : 'Novo Modelo'}</div>
               </div>
               <button onClick={() => setShowModal(false)} style={{ background: 'transparent', border: 'none', color: '#9BA4AB', fontSize: 22, cursor: 'pointer' }}>×</button>
             </div>
