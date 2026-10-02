@@ -429,6 +429,7 @@ class ChecklistCreate(BaseModel):
 class ChecklistItemUpdate(BaseModel):
     concluido: bool
     obs: str = ""
+    responsavel: str = ""
 
 
 @router.get("/checklist/modelos", response_model=list[ModeloItem])
@@ -593,11 +594,11 @@ async def get_checklist_itens(
 ) -> list[dict]:
     try:
         result = await session.execute(
-            text("SELECT cod, ordem, descricao, concluido, obs, updated_at FROM tbl_checklist_itens WHERE checklist_cod = :cod ORDER BY ordem ASC"),
+            text("SELECT cod, ordem, descricao, concluido, obs, responsavel, updated_at FROM tbl_checklist_itens WHERE checklist_cod = :cod ORDER BY ordem ASC"),
             {"cod": cod}
         )
         rows = result.fetchall()
-        return [{"cod": r[0], "ordem": r[1], "descricao": r[2], "concluido": bool(r[3]), "obs": r[4], "updated_at": str(r[5]) if r[5] else None} for r in rows]
+        return [{"cod": r[0], "ordem": r[1], "descricao": r[2], "concluido": bool(r[3]), "obs": r[4], "responsavel": r[5] or "", "updated_at": str(r[6]) if r[6] else None} for r in rows]
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
 
@@ -612,8 +613,8 @@ async def update_checklist_item(
     try:
         from datetime import datetime as dt
         await session.execute(
-            text("UPDATE tbl_checklist_itens SET concluido = :c, obs = :o, updated_at = :u WHERE cod = :cod"),
-            {"c": 1 if body.concluido else 0, "o": body.obs, "u": dt.now(), "cod": cod}
+            text("UPDATE tbl_checklist_itens SET concluido = :c, obs = :o, responsavel = :r, updated_at = :u WHERE cod = :cod"),
+            {"c": 1 if body.concluido else 0, "o": body.obs, "r": body.responsavel, "u": dt.now(), "cod": cod}
         )
         await session.commit()
         return {"updated": True}

@@ -9,14 +9,16 @@ interface ChecklistInfo {
 
 interface ChecklistItemData {
   cod: number; ordem: number; descricao: string;
-  concluido: boolean; obs: string | null; updated_at: string | null;
+  concluido: boolean; obs: string | null; responsavel: string | null; updated_at: string | null;
 }
 
 export default function ChecklistDetalhe({ checklist, onBack }: { checklist: ChecklistInfo; onBack: () => void }) {
   const [items, setItems]       = useState<ChecklistItemData[]>([]);
   const [loading, setLoading]   = useState(true);
-  const [obsEdit, setObsEdit]   = useState<Record<number, string>>({});
+  const [obsEdit, setObsEdit]       = useState<Record<number, string>>({});
+  const [respEdit, setRespEdit]     = useState<Record<number, string>>({});
   const [saving, setSaving]     = useState<number | null>(null);
+  const [usuarios, setUsuarios] = useState<{ id: number; name: string }[]>([]);
   const [newItem, setNewItem]   = useState('');
   const [addingItem, setAddingItem] = useState(false);
 
@@ -28,17 +30,23 @@ export default function ChecklistDetalhe({ checklist, onBack }: { checklist: Che
       const obs: Record<number, string> = {};
       data.forEach(i => { obs[i.cod] = i.obs ?? ''; });
       setObsEdit(obs);
+      setRespEdit(resp);
     } catch { toast.error('Erro ao carregar itens'); }
     finally { setLoading(false); }
   };
 
-  useEffect(() => { fetchItems(); }, []);
+  useEffect(() => {
+    fetchItems();
+    http.get<{ id: number; name: string }[]>('/api/user/by-role')
+      .then(d => setUsuarios([...d].sort((a, b) => a.name.localeCompare(b.name))))
+      .catch(() => {});
+  }, []);
 
   const toggleItem = async (item: ChecklistItemData) => {
     setSaving(item.cod);
     try {
       await http.put(`/api/pmo/checklists/itens/${item.cod}`, {
-        concluido: !item.concluido, obs: obsEdit[item.cod] ?? ''
+        concluido: !item.concluido, obs: obsEdit[item.cod] ?? '', responsavel: respEdit[item.cod] ?? ''
       });
       fetchItems();
     } catch { toast.error('Erro ao atualizar'); }
@@ -49,7 +57,7 @@ export default function ChecklistDetalhe({ checklist, onBack }: { checklist: Che
     setSaving(item.cod);
     try {
       await http.put(`/api/pmo/checklists/itens/${item.cod}`, {
-        concluido: item.concluido, obs: obsEdit[item.cod] ?? ''
+        concluido: item.concluido, obs: obsEdit[item.cod] ?? '', responsavel: respEdit[item.cod] ?? ''
       });
       toast.success('Observação salva!');
       fetchItems();
@@ -125,12 +133,19 @@ export default function ChecklistDetalhe({ checklist, onBack }: { checklist: Che
                       <span style={{ color: 'var(--ccm-gray-medium)', fontSize: 11, marginRight: 8 }}>{idx + 1}.</span>
                       {item.descricao}
                     </div>
-                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
                       <input type="text" placeholder="Observação..."
                         value={obsEdit[item.cod] ?? ''}
                         onChange={e => setObsEdit(o => ({ ...o, [item.cod]: e.target.value }))}
                         onKeyDown={e => e.key === 'Enter' && saveObs(item)}
-                        style={{ flex: 1, fontSize: 11, padding: '4px 8px', border: '1px solid #dde2e8', borderRadius: 4, color: 'var(--ccm-ink)', background: '#F7F8FA' }} />
+                        style={{ flex: 2, minWidth: 120, fontSize: 11, padding: '4px 8px', border: '1px solid #dde2e8', borderRadius: 4, color: 'var(--ccm-ink)', background: '#F7F8FA' }} />
+                      <select
+                        value={respEdit[item.cod] ?? ''}
+                        onChange={e => setRespEdit(r => ({ ...r, [item.cod]: e.target.value }))}
+                        style={{ flex: 1, minWidth: 120, fontSize: 11, padding: '4px 8px', border: '1px solid #dde2e8', borderRadius: 4, color: 'var(--ccm-ink)', background: '#F7F8FA' }}>
+                        <option value="">Responsável...</option>
+                        {usuarios.map(u => <option key={u.id} value={u.name}>{u.name}</option>)}
+                      </select>
                       <button onClick={() => saveObs(item)} disabled={saving === item.cod}
                         style={{ background: '#204294', color: '#fff', border: 'none', borderRadius: 4, padding: '4px 10px', fontSize: 10, cursor: 'pointer' }}>
                         {saving === item.cod ? '...' : 'Salvar'}
