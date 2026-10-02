@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import ChecklistSessoes from './checklist-sessoes';
 import { toast } from 'sonner';
 import { http } from '../../lib/http-client';
+import ChecklistSessoes from './checklist-sessoes';
 
 interface Modelo { cod: number; nome: string; descricao: string | null; }
 
@@ -9,14 +9,13 @@ const inputStyle = { background: 'var(--ccm-ink)', border: '1px solid #1a3a6e', 
 const labelStyle = { color: '#9BA4AB', fontSize: 10, fontWeight: 700 as const, textTransform: 'uppercase' as const, letterSpacing: '.14em' };
 
 export default function ChecklistModelos({ onBack }: { onBack: () => void }) {
-  const [modelos, setModelos]   = useState<Modelo[]>([]);
-  const [loading, setLoading]   = useState(true);
-  const [showModal, setShowModal] = useState(false);
-  const [form, setForm]         = useState({ nome: '', descricao: '', itens: [''] });
-  const [saving, setSaving]       = useState(false);
+  const [modelos, setModelos]       = useState<Modelo[]>([]);
+  const [loading, setLoading]       = useState(true);
+  const [showModal, setShowModal]   = useState(false);
   const [showSessoes, setShowSessoes] = useState(false);
-  const [editCod, setEditCod]     = useState<number | null>(null);
-  const [editItens, setEditItens] = useState<string[]>([]);
+  const [editCod, setEditCod]       = useState<number | null>(null);
+  const [form, setForm]             = useState({ nome: '', descricao: '', itens: [''] });
+  const [saving, setSaving]         = useState(false);
 
   const fetchData = async () => {
     setLoading(true);
@@ -29,19 +28,23 @@ export default function ChecklistModelos({ onBack }: { onBack: () => void }) {
 
   if (showSessoes) return <ChecklistSessoes onBack={() => setShowSessoes(false)} />;
 
-  const openCreate = () => { setEditCod(null); setForm({ nome: '', descricao: '', itens: [''] }); setShowModal(true); };
+  const openCreate = () => {
+    setEditCod(null);
+    setForm({ nome: '', descricao: '', itens: [''] });
+    setShowModal(true);
+  };
 
   const openEdit = async (m: Modelo) => {
     setEditCod(m.cod);
     setForm({ nome: m.nome, descricao: m.descricao ?? '', itens: [''] });
     try {
       const itens = await http.get<{ cod: number; descricao: string }[]>(`/api/pmo/checklist/modelos/${m.cod}/itens`);
-      setForm(f => ({ ...f, itens: itens.map(i => i.descricao) }));
+      setForm(f => ({ ...f, itens: itens.length > 0 ? itens.map(i => i.descricao) : [''] }));
     } catch { /* silent */ }
     setShowModal(true);
   };
 
-  const addLinha = () => setForm(f => ({ ...f, itens: [...f.itens, ''] }));
+  const addLinha    = () => setForm(f => ({ ...f, itens: [...f.itens, ''] }));
   const updateLinha = (i: number, v: string) => setForm(f => { const itens = [...f.itens]; itens[i] = v; return { ...f, itens }; });
   const removeLinha = (i: number) => setForm(f => ({ ...f, itens: f.itens.filter((_, idx) => idx !== i) }));
 
@@ -56,10 +59,16 @@ export default function ChecklistModelos({ onBack }: { onBack: () => void }) {
         toast.success('Modelo atualizado!');
       } else {
         await http.post('/api/pmo/checklist/modelos', { nome: form.nome, descricao: form.descricao, itens });
-      toast.success('Modelo criado!');
-      setShowModal(false); setForm({ nome: '', descricao: '', itens: [''] }); fetchData();
-    } catch (err: unknown) { toast.error(err instanceof Error ? err.message : 'Erro'); }
-    finally { setSaving(false); }
+        toast.success('Modelo criado!');
+      }
+      setShowModal(false);
+      setForm({ nome: '', descricao: '', itens: [''] });
+      fetchData();
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Erro');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleDelete = async (cod: number) => {
@@ -88,11 +97,12 @@ export default function ChecklistModelos({ onBack }: { onBack: () => void }) {
             </span>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
-            <button className="btn btn-sm" style={{ background: '#00B0FA', color: '#fff', fontWeight: 700, fontSize: 12 }} onClick={() => setShowSessoes(true)}>
+            <button className="btn btn-sm" style={{ background: '#00B0FA', color: '#fff', fontWeight: 700, fontSize: 12 }}
+              onClick={() => setShowSessoes(true)}>
               <i className="bi bi-collection-fill me-1" />Sessões
             </button>
             <button className="btn btn-ccm-primary btn-sm" onClick={openCreate}>
-            <i className="bi bi-plus-lg me-1" />Novo Modelo
+              <i className="bi bi-plus-lg me-1" />Novo Modelo
             </button>
           </div>
         </div>
@@ -110,12 +120,16 @@ export default function ChecklistModelos({ onBack }: { onBack: () => void }) {
                     <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--ccm-ink)' }}>{m.nome}</div>
                     {m.descricao && <div style={{ fontSize: 11, color: 'var(--ccm-gray-dark)', marginTop: 2 }}>{m.descricao}</div>}
                   </div>
-                  <button className="btn btn-sm" style={{ background: 'var(--ccm-blue)', color: '#fff', fontSize: 10, padding: '3px 9px' }} onClick={() => openEdit(m)}>
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    <button className="btn btn-sm" style={{ background: 'var(--ccm-blue)', color: '#fff', fontSize: 10, padding: '3px 9px' }}
+                      onClick={() => openEdit(m)}>
                       <i className="bi bi-pencil-fill me-1" />Editar
                     </button>
-                  <button className="btn btn-sm" style={{ background: '#E74C3C', color: '#fff', fontSize: 10, padding: '3px 8px' }} onClick={() => handleDelete(m.cod)}>
-                    <i className="bi bi-trash" />
-                  </button>
+                    <button className="btn btn-sm" style={{ background: '#E74C3C', color: '#fff', fontSize: 10, padding: '3px 8px' }}
+                      onClick={() => handleDelete(m.cod)}>
+                      <i className="bi bi-trash" />
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -166,7 +180,7 @@ export default function ChecklistModelos({ onBack }: { onBack: () => void }) {
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 20 }}>
               <button className="btn btn-sm" style={{ background: 'rgba(255,255,255,.07)', color: '#9BA4AB', fontSize: 12, padding: '8px 20px' }} onClick={() => setShowModal(false)}>Cancelar</button>
               <button className="btn btn-sm" style={{ background: '#7F77DD', color: '#fff', fontSize: 12, padding: '8px 24px', fontWeight: 700 }} onClick={handleSave} disabled={saving}>
-                {saving ? <><span className="spinner-border spinner-border-sm me-1" />Salvando…</> : <><i className="bi bi-check-lg me-1" />Salvar</>}
+                {saving ? <><span className="spinner-border spinner-border-sm me-1" />Salvando…</> : <><i className="bi bi-check-lg me-1" />{editCod !== null ? 'Salvar' : 'Criar'}</>}
               </button>
             </div>
           </div>
