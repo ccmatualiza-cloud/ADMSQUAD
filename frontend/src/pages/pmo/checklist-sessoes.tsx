@@ -2,14 +2,14 @@ import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { http } from '../../lib/http-client';
 
-interface Sessao { cod: number; nome: string; descricao: string | null; }
+interface Departamento { cod: number; nome: string; descricao: string | null; }
 
 const inputStyle = { background: 'var(--ccm-ink)', border: '1px solid #1a3a6e', color: '#fff', fontSize: 13 };
 const labelStyle = { color: '#9BA4AB', fontSize: 10, fontWeight: 700 as const, textTransform: 'uppercase' as const, letterSpacing: '.14em' };
 const emptyForm  = { nome: '', descricao: '' };
 
 export default function ChecklistSessoes({ onBack }: { onBack: () => void }) {
-  const [items, setItems]         = useState<Sessao[]>([]);
+  const [items, setItems]         = useState<Departamento[]>([]);
   const [loading, setLoading]     = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editCod, setEditCod]     = useState<number | null>(null);
@@ -18,15 +18,15 @@ export default function ChecklistSessoes({ onBack }: { onBack: () => void }) {
 
   const fetchData = async () => {
     setLoading(true);
-    try { setItems(await http.get<Sessao[]>('/api/pmo/checklist/sessoes')); }
-    catch { toast.error('Erro ao carregar sessões'); }
+    try { setItems(await http.get<Departamento[]>('/api/pmo/checklist/sessoes')); }
+    catch { toast.error('Erro ao carregar departamentos'); }
     finally { setLoading(false); }
   };
 
   useEffect(() => { fetchData(); }, []);
 
   const openCreate = () => { setEditCod(null); setForm(emptyForm); setShowModal(true); };
-  const openEdit   = (s: Sessao) => { setEditCod(s.cod); setForm({ nome: s.nome, descricao: s.descricao ?? '' }); setShowModal(true); };
+  const openEdit   = (s: Departamento) => { setEditCod(s.cod); setForm({ nome: s.nome, descricao: s.descricao ?? '' }); setShowModal(true); };
 
   const handleSave = async () => {
     if (!form.nome.trim()) { toast.error('Nome é obrigatório'); return; }
@@ -34,10 +34,10 @@ export default function ChecklistSessoes({ onBack }: { onBack: () => void }) {
     try {
       if (editCod !== null) {
         await http.put(`/api/pmo/checklist/sessoes/${editCod}`, form);
-        toast.success('Sessão atualizada!');
+        toast.success('Departamento atualizada!');
       } else {
         await http.post('/api/pmo/checklist/sessoes', form);
-        toast.success('Sessão criada!');
+        toast.success('Departamento criada!');
       }
       setShowModal(false); fetchData();
     } catch (err: unknown) { toast.error(err instanceof Error ? err.message : 'Erro'); }
@@ -45,7 +45,7 @@ export default function ChecklistSessoes({ onBack }: { onBack: () => void }) {
   };
 
   const handleDelete = async (cod: number) => {
-    if (!confirm('Excluir esta sessão?')) return;
+    if (!confirm('Excluir esta departamento?')) return;
     try { await http.del(`/api/pmo/checklist/sessoes/${cod}`); toast.success('Excluída'); fetchData(); }
     catch { toast.error('Erro ao excluir'); }
   };
@@ -57,20 +57,20 @@ export default function ChecklistSessoes({ onBack }: { onBack: () => void }) {
           <i className="bi bi-arrow-left me-1" />Modelos
         </button>
         <span style={{ color: 'var(--ccm-gray-medium)', fontSize: 12 }}>/</span>
-        <span style={{ color: 'var(--ccm-gray-dark)', fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.1em' }}>Sessões</span>
+        <span style={{ color: 'var(--ccm-gray-dark)', fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.1em' }}>Departamentos</span>
       </div>
-      <div className="section-title mb-4" style={{ textAlign: 'center' }}>Sessões de Checklist</div>
+      <div className="section-title mb-4" style={{ textAlign: 'center' }}>Departamentos de Checklist</div>
 
       <div className="table-card">
         <div style={{ background: 'var(--ccm-ink)', padding: '12px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderRadius: '6px 6px 0 0' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <i className="bi bi-collection-fill" style={{ color: '#00B0FA', fontSize: 16 }} />
             <span style={{ color: '#fff', fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.12em' }}>
-              {loading ? 'Carregando...' : `${items.length} sessão(ões)`}
+              {loading ? 'Carregando...' : `${items.length} departamento(ões)`}
             </span>
           </div>
           <button className="btn btn-ccm-primary btn-sm" onClick={openCreate}>
-            <i className="bi bi-plus-lg me-1" />Nova Sessão
+            <i className="bi bi-plus-lg me-1" />Nova Departamento
           </button>
         </div>
 
@@ -78,7 +78,7 @@ export default function ChecklistSessoes({ onBack }: { onBack: () => void }) {
           {loading ? (
             <div style={{ padding: 32, textAlign: 'center' }}><span className="spinner-border spinner-border-sm me-2" />Carregando...</div>
           ) : items.length === 0 ? (
-            <div style={{ padding: 32, textAlign: 'center', color: 'var(--ccm-gray-dark)' }}>Nenhuma sessão cadastrada</div>
+            <div style={{ padding: 32, textAlign: 'center', color: 'var(--ccm-gray-dark)' }}>Nenhuma departamento cadastrada</div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {items.map(s => (
@@ -107,8 +107,8 @@ export default function ChecklistSessoes({ onBack }: { onBack: () => void }) {
           <div style={{ background: '#132230', border: '1px solid #1a3a6e', borderTop: '3px solid #00B0FA', borderRadius: 8, padding: '28px 32px', width: '100%', maxWidth: 440, boxShadow: '0 8px 32px rgba(0,0,0,.4)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
               <div>
-                <div style={{ color: '#00B0FA', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.18em' }}>Sessões</div>
-                <div style={{ color: '#fff', fontWeight: 900, fontSize: 15, textTransform: 'uppercase' }}>{editCod !== null ? 'Editar Sessão' : 'Nova Sessão'}</div>
+                <div style={{ color: '#00B0FA', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.18em' }}>Departamentos</div>
+                <div style={{ color: '#fff', fontWeight: 900, fontSize: 15, textTransform: 'uppercase' }}>{editCod !== null ? 'Editar Departamento' : 'Nova Departamento'}</div>
               </div>
               <button onClick={() => setShowModal(false)} style={{ background: 'transparent', border: 'none', color: '#9BA4AB', fontSize: 22, cursor: 'pointer' }}>×</button>
             </div>

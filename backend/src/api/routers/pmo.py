@@ -669,38 +669,38 @@ async def list_projetos_abertos(
 
 # -- Sessoes de Checklist -------------------------------------------------------
 
-class SessaoItem(BaseModel):
+class DepartamentoItem(BaseModel):
     cod: int
     nome: str
     descricao: str | None = None
 
 
-class SessaoCreate(BaseModel):
+class DepartamentoCreate(BaseModel):
     nome: str
     descricao: str = ""
 
 
-class SessaoUpdate(BaseModel):
+class DepartamentoUpdate(BaseModel):
     nome: str | None = None
     descricao: str | None = None
 
 
-@router.get("/checklist/sessoes", response_model=list[SessaoItem])
+@router.get("/checklist/sessoes", response_model=list[DepartamentoItem])
 async def list_sessoes(
     _: Annotated[dict, Depends(get_current_user)],
     session: Annotated[AsyncSession, Depends(get_db)],
-) -> list[SessaoItem]:
+) -> list[DepartamentoItem]:
     try:
         result = await session.execute(text("SELECT cod, nome, descricao FROM tbl_checklist_sessoes ORDER BY nome ASC"))
         rows = result.fetchall()
-        return [SessaoItem(cod=r[0], nome=r[1], descricao=r[2]) for r in rows]
+        return [DepartamentoItem(cod=r[0], nome=r[1], descricao=r[2]) for r in rows]
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
 
 
 @router.post("/checklist/sessoes", status_code=201)
-async def create_sessao(
-    body: SessaoCreate,
+async def create_departamento(
+    body: DepartamentoCreate,
     _: Annotated[dict, Depends(get_current_user)],
     session: Annotated[AsyncSession, Depends(get_db)],
 ) -> dict:
@@ -716,9 +716,9 @@ async def create_sessao(
 
 
 @router.put("/checklist/sessoes/{cod}")
-async def update_sessao(
+async def update_departamento(
     cod: int,
-    body: SessaoUpdate,
+    body: DepartamentoUpdate,
     _: Annotated[dict, Depends(get_current_user)],
     session: Annotated[AsyncSession, Depends(get_db)],
 ) -> dict:
@@ -736,7 +736,7 @@ async def update_sessao(
 
 
 @router.delete("/checklist/sessoes/{cod}", status_code=204)
-async def delete_sessao(
+async def delete_departamento(
     cod: int,
     _: Annotated[dict, Depends(get_current_user)],
     session: Annotated[AsyncSession, Depends(get_db)],

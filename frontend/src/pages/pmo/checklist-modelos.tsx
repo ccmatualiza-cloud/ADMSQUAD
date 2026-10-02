@@ -99,7 +99,7 @@ export default function ChecklistModelos({ onBack }: { onBack: () => void }) {
           <div style={{ display: 'flex', gap: 8 }}>
             <button className="btn btn-sm" style={{ background: '#00B0FA', color: '#fff', fontWeight: 700, fontSize: 12 }}
               onClick={() => setShowSessoes(true)}>
-              <i className="bi bi-collection-fill me-1" />Sessões
+              <i className="bi bi-collection-fill me-1" />Departamentos
             </button>
             <button className="btn btn-ccm-primary btn-sm" onClick={openCreate}>
               <i className="bi bi-plus-lg me-1" />Novo Modelo
