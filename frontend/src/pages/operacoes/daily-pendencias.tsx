@@ -4,7 +4,7 @@ import { http } from '../../lib/http-client';
 
 interface Pendencia {
   id: number; cliente: string; ticket: string; descritivo: string; tratativa: string | null;
-  analista: string; status: string; data: string; dias: number | null;
+  analista: string; status: string; data: string; data_limite: string | null; dias: number | null;
 }
 const STATUS_INFO: Record<string, { label: string; color: string; bg: string }> = {
   aberto:       { label: 'Aberto',       color: '#fff', bg: '#204294' },
@@ -16,7 +16,7 @@ const STATUS_OPTIONS = [
   { value: 'aberto', label: 'Aberto' }, { value: 'em_andamento', label: 'Em Andamento' },
   { value: 'impedimento', label: 'Impedimento' }, { value: 'resolvido', label: 'Resolvido' },
 ];
-const emptyForm = { cliente: '', ticket: '', descritivo: '', tratativa: '', analista: '', status: 'aberto', data: new Date().toISOString().split('T')[0] };
+const emptyForm = { cliente: '', ticket: '', descritivo: '', tratativa: '', analista: '', status: 'aberto', data: new Date().toISOString().split('T')[0], data_limite: '' };
 const diasColor = (d: number | null) => d === null ? 'var(--ccm-gray-dark)' : d <= 1 ? '#0F6E56' : d <= 3 ? '#D4A000' : '#E74C3C';
 const inputStyle = { background: 'var(--ccm-ink)', border: '1px solid #1a3a6e', color: '#fff', fontSize: 13 };
 const labelStyle = { color: '#9BA4AB', fontSize: 10, fontWeight: 700 as const, textTransform: 'uppercase' as const, letterSpacing: '.14em' };
@@ -67,14 +67,15 @@ export default function DailyPendencias({ onBack }: { onBack: () => void }) {
   };
 
   const openCreate = () => { setEditItem(null); setForm(emptyForm); setShowModal(true); };
-  const openEdit = (p: Pendencia) => { setEditItem(p); setForm({ cliente: p.cliente, ticket: p.ticket, descritivo: p.descritivo, tratativa: p.tratativa ?? '', analista: p.analista, status: p.status, data: p.data }); setShowModal(true); };
+  const openEdit = (p: Pendencia) => { setEditItem(p); setForm({ cliente: p.cliente, ticket: p.ticket, descritivo: p.descritivo, tratativa: p.tratativa ?? '', analista: p.analista, status: p.status, data: p.data, data_limite: p.data_limite ?? '' }); setShowModal(true); };
 
   const handleSave = async () => {
     if (!form.cliente || !form.ticket || !form.descritivo || !form.analista || !form.data) { toast.error('Preencha todos os campos obrigatórios'); return; }
     setSaving(true);
     try {
-      if (editItem) { await http.put(`/api/pendencias/${editItem.id}`, form); toast.success('Atualizada!'); }
-      else { await http.post('/api/pendencias/', form); toast.success('Registrada!'); }
+      const body = { ...form, data_limite: form.data_limite || null };
+      if (editItem) { await http.put(`/api/pendencias/${editItem.id}`, body); toast.success('Atualizada!'); }
+      else { await http.post('/api/pendencias/', body); toast.success('Registrada!'); }
       setShowModal(false); fetchData();
     } catch (err: unknown) { toast.error(err instanceof Error ? err.message : 'Erro ao salvar'); }
     finally { setSaving(false); }
@@ -203,10 +204,6 @@ export default function DailyPendencias({ onBack }: { onBack: () => void }) {
                 <label style={labelStyle}>Descritivo *</label>
                 <textarea className="form-control mt-1" rows={3} style={{...inputStyle, resize:'vertical'}} value={form.descritivo} onChange={e => setForm(f=>({...f,descritivo:e.target.value}))} placeholder="Descreva a pendência..." />
               </div>
-              <div className="col-12">
-                <label style={labelStyle}>Tratativa</label>
-                <textarea className="form-control mt-1" rows={3} style={{...inputStyle, resize:'vertical'}} value={form.tratativa ?? ''} onChange={e => setForm(f=>({...f,tratativa:e.target.value}))} placeholder="Descreva a tratativa..." />
-              </div>
               <div className="col-12 col-md-6">
                 <label style={labelStyle}>Status *</label>
                 <select className="form-select mt-1" style={inputStyle} value={form.status} onChange={e => setForm(f=>({...f,status:e.target.value}))}>
@@ -216,6 +213,14 @@ export default function DailyPendencias({ onBack }: { onBack: () => void }) {
               <div className="col-12 col-md-6">
                 <label style={labelStyle}>Data *</label>
                 <input type="date" className="form-control mt-1" style={inputStyle} value={form.data} onChange={e => setForm(f=>({...f,data:e.target.value}))} />
+              </div>
+              <div className="col-12">
+                <label style={labelStyle}>Tratativa</label>
+                <textarea className="form-control mt-1" rows={3} style={{...inputStyle, resize:'vertical'}} value={form.tratativa ?? ''} onChange={e => setForm(f=>({...f,tratativa:e.target.value}))} placeholder="Descreva a tratativa..." />
+              </div>
+              <div className="col-12 col-md-6">
+                <label style={labelStyle}>Data Limite</label>
+                <input type="date" className="form-control mt-1" style={inputStyle} value={form.data_limite} min={form.data || undefined} onChange={e => setForm(f=>({...f,data_limite:e.target.value}))} />
               </div>
             </div>
             <div style={{ display:'flex', gap:10, justifyContent:'flex-end', marginTop:20 }}>
