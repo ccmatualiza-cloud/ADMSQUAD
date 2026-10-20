@@ -147,6 +147,7 @@ class AtualizacaoItem(BaseModel):
     sistema: str | None = None
     bd: str | None = None
     versao: str | None = None
+    linxwebver: str | None = None
     ticketupdate: str | None = None
     tipo: str | None = None
     pacote: str | None = None
@@ -207,7 +208,7 @@ async def list_atualizacoes(
     try:
         result = await session.execute(
             text("""
-                SELECT cod, razao, sistema, bd, versao, ticketupdate, tipo, pacote,
+                SELECT cod, razao, sistema, bd, versao, linxwebver, ticketupdate, tipo, pacote,
                        useragend, prioridade, horaupdate, concluido, email_enviado,
                        dt_atualiza
                 FROM tbl_linx

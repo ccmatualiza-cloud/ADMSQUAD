@@ -17,6 +17,7 @@ interface Atualizacao {
   sistema: string | null;
   bd: string | null;
   versao: string | null;
+  linxwebver: string | null;
   ticketupdate: string | null;
   tipo: string | null;
   pacote: string | null;
@@ -77,8 +78,9 @@ export default function MonitorAtualizacoes({ onBack }: { onBack: () => void }) 
 
   const filtered = items;
 
-  const th = { color: '#fff', fontWeight: 700, textTransform: 'uppercase' as const, letterSpacing: '.05em', padding: '10px 12px', textAlign: 'left' as const, fontSize: 10, whiteSpace: 'nowrap' as const };
-  const td = { padding: '9px 12px', fontSize: 12, whiteSpace: 'nowrap' as const };
+  const th = { color: '#fff', fontWeight: 700, textTransform: 'uppercase' as const, letterSpacing: '.04em', padding: '10px 8px', textAlign: 'left' as const, fontSize: 10, whiteSpace: 'nowrap' as const };
+  const td = { padding: '9px 8px', fontSize: 11, whiteSpace: 'nowrap' as const };
+  const tdTrunc = (maxWidth: number) => ({ ...td, maxWidth, overflow: 'hidden' as const, textOverflow: 'ellipsis' as const });
 
   const emailIcon = (item: Atualizacao) => {
     const concluido = String(item.concluido ?? '').trim();
@@ -146,6 +148,7 @@ export default function MonitorAtualizacoes({ onBack }: { onBack: () => void }) 
                   <th style={th}>Sistema</th>
                   <th style={th}>BD</th>
                   <th style={th}>Versão</th>
+                  <th style={th}>Ver. Web</th>
                   <th style={th}>Ticket</th>
                   <th style={{ ...th, textAlign: 'center' }}>Tipo</th>
                   <th style={th}>Pacote</th>
@@ -159,14 +162,15 @@ export default function MonitorAtualizacoes({ onBack }: { onBack: () => void }) 
               <tbody>
                 {filtered.map((item, i) => (
                   <tr key={item.cod ?? i} style={{ background: i % 2 === 0 ? '#fff' : '#F7F8FA', borderBottom: '1px solid var(--ccm-line)' }}>
-                    <td style={{ ...td, fontWeight: 600, maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.razao || '—'}</td>
-                    <td style={{ ...td, color: 'var(--ccm-blue)', fontWeight: 600 }}>{item.sistema || '—'}</td>
-                    <td style={td}>{item.bd || '—'}</td>
-                    <td style={td}>{item.versao || '—'}</td>
-                    <td style={{ ...td, color: 'var(--ccm-blue)' }}>{item.ticketupdate || '—'}</td>
+                    <td style={{ ...tdTrunc(180), fontWeight: 600 }} title={item.razao ?? ''}>{item.razao || '—'}</td>
+                    <td style={{ ...tdTrunc(110), color: 'var(--ccm-blue)', fontWeight: 600 }} title={item.sistema ?? ''}>{item.sistema || '—'}</td>
+                    <td style={tdTrunc(90)} title={item.bd ?? ''}>{item.bd || '—'}</td>
+                    <td style={tdTrunc(80)} title={item.versao ?? ''}>{item.versao || '—'}</td>
+                    <td style={tdTrunc(80)} title={item.linxwebver ?? ''}>{item.linxwebver || '—'}</td>
+                    <td style={{ ...tdTrunc(90), color: 'var(--ccm-blue)' }} title={item.ticketupdate ?? ''}>{item.ticketupdate || '—'}</td>
                     <td style={{ ...td, textAlign: 'center', fontWeight: 600 }}>{item.tipo || '—'}</td>
-                    <td style={td}>{item.pacote || '—'}</td>
-                    <td style={td}>{item.useragend ? item.useragend.toUpperCase() : '—'}</td>
+                    <td style={tdTrunc(80)} title={item.pacote ?? ''}>{item.pacote || '—'}</td>
+                    <td style={tdTrunc(100)} title={item.useragend ?? ''}>{item.useragend ? item.useragend.toUpperCase() : '—'}</td>
                     <td style={{ ...td, textAlign: 'center', fontWeight: 700 }}>{item.prioridade ?? '—'}</td>
                     <td style={td}>{item.horaupdate || '—'}</td>
                     <td style={{ ...td, textAlign: 'center' }}>
