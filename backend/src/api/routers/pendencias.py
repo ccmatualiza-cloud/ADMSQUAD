@@ -1,3 +1,4 @@
+import re
 from datetime import date
 from typing import Annotated, Literal
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -6,6 +7,7 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.deps.auth import get_current_user, get_db
+from src.logger import logger
 
 router = APIRouter(prefix="/api/pendencias", tags=["pendencias"])
 
@@ -53,6 +55,59 @@ class PendenciaUpdate(BaseModel):
     data_limite: date | None = None
 
 
+class IndicadorOut(BaseModel):
+    descricao: str
+    meta: str
+    realizado: str
+    achieved: bool | None = None  # None when meta/realizado cannot be parsed as numbers
+
+
+INDICADORES_LIMIT = 8  # 2 rows x 4 cards on the Daily screen
+
+_TIME_RE = re.compile(r"^(-?\d+):(\d{1,2})(?::(\d{1,2}))?$")
+_NUMBER_CHARS_RE = re.compile(r"[^\d,.\-]")
+
+
+def parse_indicator_value(raw: str | None) -> float | None:
+    """Convert a VARCHAR indicator ('95%', '1.234,5', 'R$ 10,00', '08:30', '4h') to float."""
+    if raw is None:
+        return None
+    value = str(raw).strip()
+    if not value:
+        return None
+    time_match = _TIME_RE.match(value.replace(" ", ""))
+    if time_match:
+        hours, minutes, seconds = time_match.groups()
+        sign = -1 if hours.startswith("-") else 1
+        return sign * (abs(int(hours)) + int(minutes) / 60 + int(seconds or 0) / 3600)
+    cleaned = _NUMBER_CHARS_RE.sub("", value)
+    if not cleaned or not re.search(r"\d", cleaned):
+        return None
+    if "," in cleaned and "." in cleaned:
+        if cleaned.rfind(",") > cleaned.rfind("."):  # pt-BR: 1.234,56
+            cleaned = cleaned.replace(".", "").replace(",", ".")
+        else:  # en-US: 1,234.56
+            cleaned = cleaned.replace(",", "")
+    elif "," in cleaned:
+        cleaned = cleaned.replace(",", ".") if cleaned.count(",") == 1 else cleaned.replace(",", "")
+    elif cleaned.count(".") > 1:  # 1.234.567
+        cleaned = cleaned.replace(".", "")
+    try:
+        return float(cleaned)
+    except ValueError:
+        return None
+
+
+def build_indicador(descricao: str | None, meta: str | None, realizado: str | None) -> IndicadorOut:
+    meta_num = parse_indicator_value(meta)
+    realizado_num = parse_indicator_value(realizado)
+    achieved = None if meta_num is None or realizado_num is None else realizado_num >= meta_num
+    return IndicadorOut(
+        descricao=str(descricao or ""), meta=str(meta or ""),
+        realizado=str(realizado or ""), achieved=achieved,
+    )
+
+
 def row_to_out(row, keys) -> PendenciaOut:
     d = dict(zip(keys, row))
     return PendenciaOut(
@@ -80,6 +135,23 @@ async def list_pendencias(
         return [row_to_out(r, keys) for r in rows]
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Erro: {str(exc)}")
+
+
+@router.get("/indicadores", response_model=list[IndicadorOut])
+async def list_indicadores(
+    _: Annotated[dict, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> list[IndicadorOut]:
+    """Performance indicators (tbl_metas) shown as cards at the top of the Daily screen."""
+    try:
+        result = await session.execute(
+            text("SELECT descricao, meta, realizado FROM tbl_metas LIMIT :limit"),
+            {"limit": INDICADORES_LIMIT},
+        )
+        return [build_indicador(r[0], r[1], r[2]) for r in result.fetchall()]
+    except Exception as exc:
+        logger.error("list_indicadores_failed", error=str(exc))
+        raise HTTPException(status_code=500, detail="Failed to load indicators")
 
 
 @router.get("/clientes-autocomplete")

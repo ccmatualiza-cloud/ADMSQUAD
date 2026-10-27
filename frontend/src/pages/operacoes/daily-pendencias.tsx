@@ -21,6 +21,14 @@ const diasColor = (d: number | null) => d === null ? 'var(--ccm-gray-dark)' : d 
 const inputStyle = { background: 'var(--ccm-ink)', border: '1px solid #1a3a6e', color: '#fff', fontSize: 13 };
 const labelStyle = { color: '#9BA4AB', fontSize: 10, fontWeight: 700 as const, textTransform: 'uppercase' as const, letterSpacing: '.14em' };
 
+interface Indicador { descricao: string; meta: string; realizado: string; achieved: boolean | null }
+const IND_GREEN = '#0F6E56';
+const IND_RED   = '#E74C3C';
+// achieved: realizado >= meta -> green; below -> red; null (non-numeric) -> black
+const realizadoColor = (achieved: boolean | null) => achieved === null ? '#000' : achieved ? IND_GREEN : IND_RED;
+const indLabelStyle = { color: 'var(--ccm-gray-dark)', fontSize: 9, fontWeight: 700 as const, textTransform: 'uppercase' as const, letterSpacing: '.14em', marginBottom: 4 };
+const indValueStyle = { fontSize: 22, fontWeight: 900 as const, lineHeight: 1.1, wordBreak: 'break-word' as const };
+
 export default function DailyPendencias({ onBack }: { onBack: () => void }) {
   const [pendencias, setPendencias] = useState<Pendencia[]>([]);
   const [analistas, setAnalistas]   = useState<{ id: number; name: string }[]>([]);
@@ -35,6 +43,15 @@ export default function DailyPendencias({ onBack }: { onBack: () => void }) {
   const [clienteSugs, setClienteSugs] = useState<string[]>([]);
   const [showSugs, setShowSugs]     = useState(false);
   const clienteRef                  = useRef<HTMLDivElement>(null);
+  const [indicadores, setIndicadores] = useState<Indicador[]>([]);
+  const [loadingInd, setLoadingInd]   = useState(true);
+
+  const fetchIndicadores = async () => {
+    setLoadingInd(true);
+    try { setIndicadores(await http.get<Indicador[]>('/api/pendencias/indicadores')); }
+    catch { toast.error('Erro ao carregar indicadores'); }
+    finally { setLoadingInd(false); }
+  };
 
   const fetchData = async (status = filterStatus) => {
     setLoading(true);
@@ -49,7 +66,7 @@ export default function DailyPendencias({ onBack }: { onBack: () => void }) {
     finally { setLoading(false); }
   };
 
-  useEffect(() => { fetchData(''); }, []);
+  useEffect(() => { fetchData(''); fetchIndicadores(); }, []);
   useEffect(() => {
     const h = (e: MouseEvent) => { if (clienteRef.current && !clienteRef.current.contains(e.target as Node)) setShowSugs(false); };
     document.addEventListener('mousedown', h);
@@ -107,7 +124,33 @@ export default function DailyPendencias({ onBack }: { onBack: () => void }) {
         <span style={{ color:'var(--ccm-gray-medium)', fontSize:12 }}>/</span>
         <span style={{ color:'var(--ccm-gray-dark)', fontSize:12, fontWeight:700, textTransform:'uppercase', letterSpacing:'.1em' }}>Daily — Pendências</span>
       </div>
-      <div className="section-title mb-4" style={{ textAlign:'center' }}>Daily — Pendências</div>
+      <div className="section-title mb-3" style={{ textAlign:'center' }}>Indicadores de desempenho</div>
+
+      <div className="row g-3 mb-4">
+        {indicadores.length === 0 ? (
+          <div className="col-12" style={{ textAlign:'center', color:'var(--ccm-gray-dark)', fontSize:12 }}>
+            {loadingInd ? <><span className="spinner-border spinner-border-sm me-2" />Carregando indicadores...</> : 'Nenhum indicador cadastrado'}
+          </div>
+        ) : indicadores.map((ind, i) => (
+          <div key={`${ind.descricao}-${i}`} className="col-12 col-sm-6 col-xl-3">
+            <div style={{ background:'var(--ccm-white)', border:'1px solid var(--ccm-line)', borderTop:'3px solid var(--ccm-blue)', borderRadius:6, height:'100%', display:'flex', flexDirection:'column' }}>
+              <div title={ind.descricao} style={{ padding:'10px 14px', borderBottom:'1px solid var(--ccm-line)', color:'var(--ccm-ink)', fontSize:11, fontWeight:700, textTransform:'uppercase', letterSpacing:'.1em', textAlign:'center', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                {ind.descricao || '—'}
+              </div>
+              <div style={{ display:'flex', flex:1 }}>
+                <div style={{ flex:1, padding:'10px 8px', textAlign:'center', background:'var(--ccm-white)', borderRight:'1px solid var(--ccm-line)' }}>
+                  <div style={indLabelStyle}>Meta</div>
+                  <div style={{ ...indValueStyle, color:'#000' }}>{ind.meta || '—'}</div>
+                </div>
+                <div style={{ flex:1, padding:'10px 8px', textAlign:'center', background:'var(--ccm-white)' }}>
+                  <div style={indLabelStyle}>Realizado</div>
+                  <div style={{ ...indValueStyle, color: realizadoColor(ind.achieved) }}>{ind.realizado || '—'}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
 
       <div className="table-card">
         <div style={{ background:'var(--ccm-ink)', padding:'12px 20px', display:'flex', alignItems:'center', justifyContent:'space-between', borderRadius:'6px 6px 0 0' }}>
