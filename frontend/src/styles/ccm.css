@@ -335,3 +335,40 @@ body {
   color: var(--ccm-ink);
   margin-bottom: 16px;
 }
+
+/* ── Card QG Warriors (Dashboard) ───────────────────────────── */
+@keyframes qg-warriors-pulse {
+  0%, 100% { border-color: #204294; box-shadow: 0 0 0 0 rgba(0, 176, 234, 0); }
+  50%      { border-color: #00B0EA; box-shadow: 0 0 0 4px rgba(0, 176, 234, .35); }
+}
+.qg-warriors-card {
+  width: 100%;
+  height: 100%;
+  min-height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: #fff;
+  border: 2px solid #204294;
+  border-radius: 6px;
+  padding: 7px 14px;
+  cursor: pointer;
+  animation: qg-warriors-pulse 1.4s ease-in-out infinite;
+  transition: transform .15s ease;
+}
+.qg-warriors-card:hover { transform: translateY(-2px); }
+.qg-warriors-card:focus-visible { outline: 2px solid #00B0EA; outline-offset: 2px; }
+.qg-warriors-card .qg-text {
+  font-weight: 900;
+  font-size: 16px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--ccm-ink);
+  white-space: nowrap;
+}
+.qg-warriors-card .qg-text span { color: #2F6FE4; }
+.qg-warriors-card .bi { color: #2F6FE4; font-size: 24px; line-height: 1; }
+@media (prefers-reduced-motion: reduce) {
+  .qg-warriors-card { animation: none; border-color: #00B0EA; }
+}

@@ -74,6 +74,9 @@ export default function Sidebar() {
             </div>
             <img src="/logo-squad-warriors.png" alt="Squad Warriors"
               style={{ height: 'auto', maxHeight: '110px', maxWidth: '110px', width: 'auto', objectFit: 'contain', borderRadius: '6px', display: 'block', margin: '0 auto' }} />
+            <div style={{ color: '#9BA4AB', fontSize: 9, marginTop: '8px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              Desenvolvido por Luciano Martins
+            </div>
           </div>
 
           <div className="sidebar-user mb-2">

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   LineChart, Line, BarChart, Bar,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
@@ -40,8 +41,18 @@ function KpiCard({ label, value, sub, borderColor, loading }: {
   );
 }
 
+function QgWarriorsCard({ onClick }: { onClick: () => void }) {
+  return (
+    <button type="button" className="qg-warriors-card" onClick={onClick} aria-label="Abrir QG Warriors">
+      <span className="qg-text">QG <span>Warriors</span></span>
+      <i className="bi bi-dribbble" aria-hidden="true" />
+    </button>
+  );
+}
+
 export default function DashboardPage() {
   const user = useAuthStore((s) => s.user);
+  const navigate = useNavigate();
   const [clientesAtivos,   setClientesAtivos]   = useState<number | null>(null);
   const [clientesCx,       setClientesCx]       = useState<number | null>(null);
   const [clientesPmo,      setClientesPmo]      = useState<number | null>(null);
@@ -117,6 +128,9 @@ export default function DashboardPage() {
           <KpiCard label="Pendências"
             value={pendencias !== null ? pendencias.toLocaleString('pt-BR') : '—'}
             sub="Em aberto" borderColor="#E74C3C" loading={loadingPen} />
+        </div>
+        <div className="col-12 col-sm-6 col-xl">
+          <QgWarriorsCard onClick={() => navigate('/qg-warriors')} />
         </div>
       </div>
 

@@ -7,6 +7,7 @@ import GestaoPage        from './pages/gestao/gestao-page';
 import ConfiguracoesPage from './pages/configuracoes/configuracoes-page';
 import OperacoesPage     from './pages/operacoes/operacoes-page';
 import ConsultaPage      from './pages/consulta/consulta-page';
+import QgWarriorsPage    from './pages/qg-warriors/qg-warriors-page';
 import AppLayout         from './components/layout/app-layout';
 import ProtectedRoute    from './components/ui/protected-route';
 import { useAuthStore }  from './store/auth-store';
@@ -37,6 +38,7 @@ export default function App() {
         <Route path="operacoes"     element={<ProtectedRoute requiredRoles={OPS}>     <OperacoesPage />     </ProtectedRoute>} />
         <Route path="gestao"        element={<ProtectedRoute requiredRoles={GEST}>    <GestaoPage />        </ProtectedRoute>} />
         <Route path="consulta"      element={<ProtectedRoute requiredRoles={CONSULT}> <ConsultaPage />      </ProtectedRoute>} />
+        <Route path="qg-warriors"   element={<ProtectedRoute requiredRoles={ALL}>     <QgWarriorsPage />    </ProtectedRoute>} />
         <Route path="configuracoes" element={<ProtectedRoute requiredRoles={ADM}>     <ConfiguracoesPage /> </ProtectedRoute>} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
