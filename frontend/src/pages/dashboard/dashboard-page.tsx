@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
   LineChart, Line, BarChart, Bar,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
@@ -41,6 +40,24 @@ function KpiCard({ label, value, sub, borderColor, loading }: {
   );
 }
 
+const QG_WARRIORS_URL = 'https://claude.ai/artifact/FyupE9RVk5ZpVsgsHesEGH?sk=qeYil1eF34OIdHrvTy612A';
+
+/** Abre o QG Warriors numa janela separada, encaixada na metade direita da tela. */
+function openQgWarriors() {
+  const scr = window.screen as Screen & { availLeft?: number; availTop?: number };
+  const left   = (scr.availLeft ?? 0) + Math.floor(scr.availWidth / 2);
+  const top    = scr.availTop ?? 0;
+  const width  = Math.floor(scr.availWidth / 2);
+  const height = scr.availHeight;
+  const features = `popup=yes,left=${left},top=${top},width=${width},height=${height}`;
+  const win = window.open(QG_WARRIORS_URL, 'qg-warriors', features);
+  if (win) {
+    win.focus();
+  } else {
+    window.open(QG_WARRIORS_URL, '_blank', 'noopener');
+  }
+}
+
 function QgWarriorsCard({ onClick }: { onClick: () => void }) {
   return (
     <button type="button" className="qg-warriors-card" onClick={onClick} aria-label="Abrir QG Warriors">
@@ -52,7 +69,6 @@ function QgWarriorsCard({ onClick }: { onClick: () => void }) {
 
 export default function DashboardPage() {
   const user = useAuthStore((s) => s.user);
-  const navigate = useNavigate();
   const [clientesAtivos,   setClientesAtivos]   = useState<number | null>(null);
   const [clientesCx,       setClientesCx]       = useState<number | null>(null);
   const [clientesPmo,      setClientesPmo]      = useState<number | null>(null);
@@ -130,7 +146,7 @@ export default function DashboardPage() {
             sub="Em aberto" borderColor="#E74C3C" loading={loadingPen} />
         </div>
         <div className="col-12 col-sm-6 col-xl">
-          <QgWarriorsCard onClick={() => navigate('/qg-warriors')} />
+          <QgWarriorsCard onClick={openQgWarriors} />
         </div>
       </div>
 
