@@ -42,20 +42,9 @@ function KpiCard({ label, value, sub, borderColor, loading }: {
 
 const QG_WARRIORS_URL = 'https://claude.ai/artifact/FyupE9RVk5ZpVsgsHesEGH?sk=qeYil1eF34OIdHrvTy612A';
 
-/** Abre o QG Warriors numa janela separada, encaixada na metade direita da tela. */
+/** Sai do Admsquad e abre o QG Warriors (artefato no claude.ai) na mesma aba. */
 function openQgWarriors() {
-  const scr = window.screen as Screen & { availLeft?: number; availTop?: number };
-  const left   = (scr.availLeft ?? 0) + Math.floor(scr.availWidth / 2);
-  const top    = scr.availTop ?? 0;
-  const width  = Math.floor(scr.availWidth / 2);
-  const height = scr.availHeight;
-  const features = `popup=yes,left=${left},top=${top},width=${width},height=${height}`;
-  const win = window.open(QG_WARRIORS_URL, 'qg-warriors', features);
-  if (win) {
-    win.focus();
-  } else {
-    window.open(QG_WARRIORS_URL, '_blank', 'noopener');
-  }
+  window.location.assign(QG_WARRIORS_URL);
 }
 
 function QgWarriorsCard({ onClick }: { onClick: () => void }) {
