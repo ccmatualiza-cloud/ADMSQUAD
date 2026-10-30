@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import type { CSSProperties } from 'react';
 import {
   LineChart, Line, BarChart, Bar,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
@@ -13,7 +14,8 @@ interface AtividadeHoje {
   duracao: string | null; status: string;
 }
 
-interface AtendimentoItem { cor: string; descricao: string; qtd: number; }
+/** qtd = CX; qtd2 = PMO (ainda não vem do backend, exibe 0). */
+interface AtendimentoItem { cor: string; descricao: string; qtd: number; qtd2?: number; }
 
 interface AusenciaItem {
   colaborador: string; tipo: string; data_ini: string; hora_ini: string;
@@ -57,13 +59,30 @@ function safeColor(cor: string | null | undefined): string {
   return '#C3C3C3';
 }
 
-/** Quadro "Atendimentos" (tbl_whatsqtd): legenda colorida + descrição + quantidade. */
+/** Quadro "Atendimentos" (tbl_whatsqtd): cor + descrição | quantidade CX | quantidade PMO. */
+const ATEND_GRID = '14px minmax(0, 1fr) 40px 40px';
+
+const qtdFieldStyle: CSSProperties = {
+  width: 40, textAlign: 'center', fontWeight: 700, fontSize: 13, color: 'var(--ccm-ink)',
+  background: '#FFFFFF', border: '1px solid var(--ccm-line)', borderRadius: 4, padding: '2px 0',
+};
+
+const qtdHeaderStyle: CSSProperties = {
+  width: 40, textAlign: 'center', fontSize: 10, fontWeight: 700, letterSpacing: '.04em',
+  textTransform: 'uppercase', color: 'var(--ccm-gray-medium)',
+};
+
 function AtendimentosCard({ itens, loading }: { itens: AtendimentoItem[]; loading: boolean }) {
   return (
     <div className="chart-card" style={{ flex: 1 }}>
-      <div className="chart-card-title" style={{ fontSize: 12, marginBottom: 12 }}>
-        <i className="bi bi-whatsapp me-1" style={{ color: '#25D366' }} aria-hidden="true" />
-        Atendimentos
+      {/* Cabeçalho: título "Atendimentos" sobre a coluna de descrição + títulos CX e PMO sobre as quantidades */}
+      <div style={{ display: 'grid', gridTemplateColumns: ATEND_GRID, alignItems: 'end', columnGap: 8, padding: '0 10px', marginBottom: 8 }}>
+        <div className="chart-card-title" style={{ gridColumn: '1 / 3', fontSize: 12, margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          <i className="bi bi-whatsapp me-1" style={{ color: '#25D366' }} aria-hidden="true" />
+          Atendimentos
+        </div>
+        <span style={qtdHeaderStyle}>CX</span>
+        <span style={qtdHeaderStyle}>PMO</span>
       </div>
       {loading ? (
         <div style={{ textAlign: 'center', padding: '16px 0' }}>
@@ -76,13 +95,16 @@ function AtendimentosCard({ itens, loading }: { itens: AtendimentoItem[]; loadin
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           {itens.map((a, i) => (
-            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 10px', background: '#F7F8FA', borderRadius: 6, border: '1px solid var(--ccm-line)' }}>
-              <span aria-hidden="true" style={{ width: 14, height: 14, borderRadius: '50%', backgroundColor: safeColor(a.cor), border: '1px solid rgba(12,25,33,.15)', flexShrink: 0, display: 'inline-block' }} />
-              <span title={a.descricao} style={{ flex: 1, minWidth: 0, fontSize: 12, color: 'var(--ccm-ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <div key={i} style={{ display: 'grid', gridTemplateColumns: ATEND_GRID, alignItems: 'center', columnGap: 8, padding: '7px 10px', background: '#F7F8FA', borderRadius: 6, border: '1px solid var(--ccm-line)' }}>
+              <span aria-hidden="true" style={{ width: 14, height: 14, borderRadius: '50%', backgroundColor: safeColor(a.cor), border: '1px solid rgba(12,25,33,.15)', display: 'inline-block' }} />
+              <span title={a.descricao} style={{ minWidth: 0, fontSize: 12, color: 'var(--ccm-ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {a.descricao}
               </span>
-              <span style={{ fontWeight: 700, fontSize: 13, color: 'var(--ccm-ink)', flexShrink: 0 }}>
+              <span style={qtdFieldStyle} aria-label={`${a.descricao} CX`}>
                 {a.qtd.toLocaleString('pt-BR')}
+              </span>
+              <span style={qtdFieldStyle} aria-label={`${a.descricao} PMO`}>
+                {(a.qtd2 ?? 0).toLocaleString('pt-BR')}
               </span>
             </div>
           ))}
