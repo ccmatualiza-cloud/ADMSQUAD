@@ -49,6 +49,14 @@ function openQgWarriors() {
   window.location.assign(QG_WARRIORS_URL);
 }
 
+/** Garante uma cor CSS válida para a legenda (fallback cinza). */
+function safeColor(cor: string | null | undefined): string {
+  const value = (cor ?? '').trim();
+  if (value && typeof CSS !== 'undefined' && CSS.supports('color', value)) return value;
+  if (/^[0-9a-fA-F]{3,8}$/.test(value)) return `#${value}`;
+  return '#C3C3C3';
+}
+
 /** Quadro "Atendimentos" (tbl_whatsqtd): legenda colorida + descrição + quantidade. */
 function AtendimentosCard({ itens, loading }: { itens: AtendimentoItem[]; loading: boolean }) {
   return (
@@ -69,7 +77,7 @@ function AtendimentosCard({ itens, loading }: { itens: AtendimentoItem[]; loadin
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           {itens.map((a, i) => (
             <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 10px', background: '#F7F8FA', borderRadius: 6, border: '1px solid var(--ccm-line)' }}>
-              <span aria-hidden="true" style={{ width: 12, height: 12, borderRadius: '50%', background: a.cor, flexShrink: 0 }} />
+              <span aria-hidden="true" style={{ width: 14, height: 14, borderRadius: '50%', backgroundColor: safeColor(a.cor), border: '1px solid rgba(12,25,33,.15)', flexShrink: 0, display: 'inline-block' }} />
               <span title={a.descricao} style={{ flex: 1, minWidth: 0, fontSize: 12, color: 'var(--ccm-ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {a.descricao}
               </span>

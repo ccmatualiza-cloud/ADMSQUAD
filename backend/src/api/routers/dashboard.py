@@ -1,4 +1,5 @@
 import re
+import unicodedata
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -246,7 +247,41 @@ async def bh_colaboradores(
 
 DEFAULT_ATENDIMENTO_COLOR = "#C3C3C3"
 _HEX_COLOR_RE = re.compile(r"^#?([0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$")
-_NAMED_COLOR_RE = re.compile(r"^[a-zA-Z]{3,20}$")
+_FUNC_COLOR_RE = re.compile(r"^(rgb|rgba|hsl|hsla)\(\s*[0-9.,%\s/-]+\)$", re.IGNORECASE)
+_NAMED_COLOR_RE = re.compile(r"^[a-z]{3,20}$")
+
+# Portuguese color names (as typed in the table) -> CSS color.
+PT_COLOR_NAMES: dict[str, str] = {
+    "verde": "#1DB954",
+    "verdeescuro": "#0E7E3B",
+    "verdeclaro": "#7ED957",
+    "vermelho": "#E74C3C",
+    "vermelhoescuro": "#9B2020",
+    "azul": "#204294",
+    "azulclaro": "#00B0EA",
+    "azulescuro": "#0C1921",
+    "ciano": "#00B0EA",
+    "amarelo": "#F9E000",
+    "laranja": "#F9A825",
+    "roxo": "#7F77DD",
+    "lilas": "#B39DDB",
+    "rosa": "#E91E63",
+    "marrom": "#795548",
+    "cinza": "#9E9E9E",
+    "cinzaclaro": "#C3C3C3",
+    "cinzaescuro": "#4A4A4A",
+    "preto": "#000000",
+    "branco": "#FFFFFF",
+}
+
+# CSS named colors accepted as-is (subset; unknown names fall back to gray).
+CSS_COLOR_NAMES = frozenset({
+    "black", "white", "gray", "grey", "silver", "red", "maroon", "orange", "gold", "yellow",
+    "olive", "lime", "green", "darkgreen", "teal", "aqua", "cyan", "blue", "navy", "darkblue",
+    "lightblue", "skyblue", "purple", "violet", "magenta", "fuchsia", "pink", "brown",
+    "darkred", "darkorange", "orangered", "tomato", "crimson", "indigo", "turquoise",
+    "lightgreen", "lightgray", "lightgrey", "darkgray", "darkgrey", "coral", "salmon",
+})
 
 
 class AtendimentoOut(BaseModel):
@@ -255,13 +290,25 @@ class AtendimentoOut(BaseModel):
     qtd: int
 
 
+def _strip_accents(value: str) -> str:
+    return "".join(c for c in unicodedata.normalize("NFD", value) if unicodedata.category(c) != "Mn")
+
+
 def normalize_color(raw: str | None) -> str:
-    """Accepts '#1DB954', '1DB954', '#fff' or a CSS color name; anything else falls back to gray."""
+    """Accepts hex (with/without '#'), rgb()/hsl(), CSS names or Portuguese names; else gray."""
     value = (raw or "").strip()
+    if not value:
+        return DEFAULT_ATENDIMENTO_COLOR
     if _HEX_COLOR_RE.match(value):
         return value if value.startswith("#") else f"#{value}"
-    if _NAMED_COLOR_RE.match(value):
+    if _FUNC_COLOR_RE.match(value):
         return value.lower()
+    key = re.sub(r"[\s_-]+", "", _strip_accents(value).lower())
+    if key in PT_COLOR_NAMES:
+        return PT_COLOR_NAMES[key]
+    if _NAMED_COLOR_RE.match(key) and key in CSS_COLOR_NAMES:
+        return key
+    logger.warning("atendimento_color_unrecognized", value=value)
     return DEFAULT_ATENDIMENTO_COLOR
 
 
