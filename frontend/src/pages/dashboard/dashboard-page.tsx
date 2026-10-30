@@ -363,7 +363,7 @@ export default function DashboardPage() {
             )}
           </div>
         </div>
-        <div className="col-12 col-lg-6 col-xl-4" style={{ display: 'flex', flexDirection: 'column' }}>
+        <div className="col-12 col-lg-6 dashboard-col-activities" style={{ display: 'flex', flexDirection: 'column' }}>
           <div className="chart-card" style={{ flex: 1 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
               <div className="chart-card-title" style={{ fontSize: 12, marginBottom: 0 }}>
@@ -407,7 +407,7 @@ export default function DashboardPage() {
             )}
           </div>
         </div>
-        <div className="col-12 col-lg-6 col-xl-3" style={{ display: 'flex', flexDirection: 'column' }}>
+        <div className="col-12 col-lg-6 dashboard-col-attendances" style={{ display: 'flex', flexDirection: 'column' }}>
           <AtendimentosCard itens={atendimentos} loading={loadingAtend} />
         </div>
       </div>

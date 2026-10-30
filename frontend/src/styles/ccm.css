@@ -378,3 +378,9 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .qg-warriors-card { animation: none; border-color: #00B0EA; }
 }
+
+/* Dashboard — última linha: Ausências (5/12) | Atividades (4,5/12) | Atendimentos (2,5/12) em telas >= 1200px */
+@media (min-width: 1200px) {
+  .row > .dashboard-col-activities  { flex: 0 0 auto; width: 37.5%; }
+  .row > .dashboard-col-attendances { flex: 0 0 auto; width: 20.8333%; }
+}
