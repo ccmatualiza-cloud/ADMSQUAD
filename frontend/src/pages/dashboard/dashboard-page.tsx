@@ -13,6 +13,8 @@ interface AtividadeHoje {
   duracao: string | null; status: string;
 }
 
+interface AtendimentoItem { cor: string; descricao: string; qtd: number; }
+
 interface AusenciaItem {
   colaborador: string; tipo: string; data_ini: string; hora_ini: string;
   data_fim: string; hora_fim: string; area: string | null; depto: string | null;
@@ -47,6 +49,41 @@ function openQgWarriors() {
   window.location.assign(QG_WARRIORS_URL);
 }
 
+/** Quadro "Atendimentos" (tbl_whatsqtd): legenda colorida + descrição + quantidade. */
+function AtendimentosCard({ itens, loading }: { itens: AtendimentoItem[]; loading: boolean }) {
+  return (
+    <div className="chart-card" style={{ flex: 1 }}>
+      <div className="chart-card-title" style={{ fontSize: 12, marginBottom: 12 }}>
+        <i className="bi bi-whatsapp me-1" style={{ color: '#25D366' }} aria-hidden="true" />
+        Atendimentos
+      </div>
+      {loading ? (
+        <div style={{ textAlign: 'center', padding: '16px 0' }}>
+          <span className="spinner-border spinner-border-sm" />
+        </div>
+      ) : itens.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: '16px 0', color: 'var(--ccm-gray-medium)', fontSize: 11 }}>
+          Sem dados de atendimentos
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          {itens.map((a, i) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 10px', background: '#F7F8FA', borderRadius: 6, border: '1px solid var(--ccm-line)' }}>
+              <span aria-hidden="true" style={{ width: 12, height: 12, borderRadius: '50%', background: a.cor, flexShrink: 0 }} />
+              <span title={a.descricao} style={{ flex: 1, minWidth: 0, fontSize: 12, color: 'var(--ccm-ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {a.descricao}
+              </span>
+              <span style={{ fontWeight: 700, fontSize: 13, color: 'var(--ccm-ink)', flexShrink: 0 }}>
+                {a.qtd.toLocaleString('pt-BR')}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function QgWarriorsCard({ onClick }: { onClick: () => void }) {
   return (
     <button type="button" className="qg-warriors-card" onClick={onClick} aria-label="Abrir QG Warriors">
@@ -74,6 +111,8 @@ export default function DashboardPage() {
   const [atividadesHoje, setAtividadesHoje] = useState<AtividadeHoje[]>([]);
   const [showAtividadeModal, setShowAtividadeModal] = useState(false);
   const [historico, setHistorico] = useState<{ data: string; agente_ia: number; humano: number }[]>([]);
+  const [atendimentos, setAtendimentos] = useState<AtendimentoItem[]>([]);
+  const [loadingAtend, setLoadingAtend] = useState(true);
 
   useEffect(() => {
     http.get<{ total: number }>('/api/dashboard/clientes-ativos')
@@ -97,6 +136,8 @@ export default function DashboardPage() {
     http.get<AtividadeHoje[]>('/api/dashboard/atividades-hoje')
       .then(setAtividadesHoje)
       .catch(() => {});
+    http.get<AtendimentoItem[]>('/api/dashboard/atendimentos-whatsapp')
+      .then(setAtendimentos).catch(() => setAtendimentos([])).finally(() => setLoadingAtend(false));
     http.get<{ total: number }>('/api/dashboard/pendencias-abertas')
       .then(r => setPendencias(r.total)).catch(() => setPendencias(null)).finally(() => setLoadingPen(false));
   }, []);
@@ -221,9 +262,9 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
-      {/* Ausências próximos 7 dias */}
+      {/* Ausências próximos 7 dias | Atividades de hoje | Atendimentos WhatsApp */}
       <div className="row g-3" style={{ marginTop: 4 }}>
-        <div className="col-12 col-lg-6" style={{ display: 'flex', flexDirection: 'column' }}>
+        <div className="col-12 col-lg-6 col-xl-5" style={{ display: 'flex', flexDirection: 'column' }}>
           <div className="chart-card" style={{ flex: 1 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
               <div className="chart-card-title" style={{ fontSize: 12, marginBottom: 0 }}>
@@ -282,7 +323,7 @@ export default function DashboardPage() {
             )}
           </div>
         </div>
-        <div className="col-12 col-lg-6" style={{ display: 'flex', flexDirection: 'column' }}>
+        <div className="col-12 col-lg-6 col-xl-5" style={{ display: 'flex', flexDirection: 'column' }}>
           <div className="chart-card" style={{ flex: 1 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
               <div className="chart-card-title" style={{ fontSize: 12, marginBottom: 0 }}>
@@ -325,6 +366,9 @@ export default function DashboardPage() {
               </div>
             )}
           </div>
+        </div>
+        <div className="col-12 col-lg-6 col-xl-2" style={{ display: 'flex', flexDirection: 'column' }}>
+          <AtendimentosCard itens={atendimentos} loading={loadingAtend} />
         </div>
       </div>
       {showAtividadeModal && (

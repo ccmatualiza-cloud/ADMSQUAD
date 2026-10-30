@@ -1,9 +1,13 @@
-from fastapi import APIRouter, Depends
+import re
 from typing import Annotated
+
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.deps.auth import get_current_user, get_db
+from src.logger import logger
 
 router = APIRouter(prefix="/api/dashboard", tags=["dashboard"])
 
@@ -236,3 +240,56 @@ async def bh_colaboradores(
         return [dict(zip(keys, r)) for r in rows]
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
+
+
+# ── Atendimentos WhatsApp (tbl_whatsqtd: cor, descricao, qtd) ───────────────
+
+DEFAULT_ATENDIMENTO_COLOR = "#C3C3C3"
+_HEX_COLOR_RE = re.compile(r"^#?([0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$")
+_NAMED_COLOR_RE = re.compile(r"^[a-zA-Z]{3,20}$")
+
+
+class AtendimentoOut(BaseModel):
+    cor: str
+    descricao: str
+    qtd: int
+
+
+def normalize_color(raw: str | None) -> str:
+    """Accepts '#1DB954', '1DB954', '#fff' or a CSS color name; anything else falls back to gray."""
+    value = (raw or "").strip()
+    if _HEX_COLOR_RE.match(value):
+        return value if value.startswith("#") else f"#{value}"
+    if _NAMED_COLOR_RE.match(value):
+        return value.lower()
+    return DEFAULT_ATENDIMENTO_COLOR
+
+
+def parse_qtd(raw: object) -> int:
+    """Converts the qtd column (INT or VARCHAR like '1.234') to int; invalid values become 0."""
+    if raw is None:
+        return 0
+    if isinstance(raw, (int, float)):
+        return int(raw)
+    digits = re.sub(r"[^0-9-]", "", str(raw))
+    try:
+        return int(digits) if digits not in ("", "-") else 0
+    except ValueError:
+        return 0
+
+
+@router.get("/atendimentos-whatsapp", response_model=list[AtendimentoOut])
+async def atendimentos_whatsapp(
+    _: Annotated[dict, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> list[AtendimentoOut]:
+    try:
+        result = await session.execute(text("SELECT cor, descricao, qtd FROM tbl_whatsqtd"))
+        rows = result.fetchall()
+    except Exception as exc:
+        logger.error("atendimentos_whatsapp_failed", error=str(exc))
+        raise HTTPException(status_code=500, detail="Failed to load WhatsApp attendances")
+    return [
+        AtendimentoOut(cor=normalize_color(r[0]), descricao=(r[1] or "").strip(), qtd=parse_qtd(r[2]))
+        for r in rows
+    ]
