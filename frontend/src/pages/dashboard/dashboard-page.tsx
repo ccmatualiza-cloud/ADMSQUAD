@@ -123,6 +123,9 @@ function QgWarriorsCard({ onClick }: { onClick: () => void }) {
   );
 }
 
+/** Intervalo de atualização automática do Dashboard (3 minutos). */
+const DASHBOARD_REFRESH_MS = 3 * 60 * 1000;
+
 export default function DashboardPage() {
   const user = useAuthStore((s) => s.user);
   const [clientesAtivos,   setClientesAtivos]   = useState<number | null>(null);
@@ -145,31 +148,38 @@ export default function DashboardPage() {
   const [loadingAtend, setLoadingAtend] = useState(true);
 
   useEffect(() => {
-    http.get<{ total: number }>('/api/dashboard/clientes-ativos')
-      .then(r => setClientesAtivos(r.total)).catch(() => setClientesAtivos(null)).finally(() => setLoadingA(false));
-    http.get<{ total: number }>('/api/dashboard/clientes-cx')
-      .then(r => setClientesCx(r.total)).catch(() => setClientesCx(null)).finally(() => setLoadingCx(false));
-    http.get<{ total: number }>('/api/dashboard/clientes-pmo')
-      .then(r => setClientesPmo(r.total)).catch(() => setClientesPmo(null)).finally(() => setLoadingPmo(false));
-    http.get<{ total: number }>('/api/dashboard/servidores-ativos')
-      .then(r => setServidoresAtivos(r.total)).catch(() => setServidoresAtivos(null)).finally(() => setLoadingSrv(false));
-    http.get<{ data: string; agente_ia: number; humano: number }[]>('/api/dashboard/historico-atualizacoes')
-      .then(r => setHistorico(r)).catch(() => setHistorico([]));
-    http.get<{ nome: string; valor: number }[]>('/api/dashboard/pendencias-por-analista')
-      .then(r => setPendenciasAnalista(r)).catch(() => setPendenciasAnalista([]));
-    http.get<{ status: string; total: number }[]>('/api/dashboard/pendencias-por-status')
-      .then(setPendenciasStatus)
-      .catch(() => {});
-    http.get<AusenciaItem[]>('/api/dashboard/ausencias-proximas')
-      .then(setAusencias)
-      .catch(() => {});
-    http.get<AtividadeHoje[]>('/api/dashboard/atividades-hoje')
-      .then(setAtividadesHoje)
-      .catch(() => {});
-    http.get<AtendimentoItem[]>('/api/dashboard/atendimentos-whatsapp')
-      .then(setAtendimentos).catch(() => setAtendimentos([])).finally(() => setLoadingAtend(false));
-    http.get<{ total: number }>('/api/dashboard/pendencias-abertas')
-      .then(r => setPendencias(r.total)).catch(() => setPendencias(null)).finally(() => setLoadingPen(false));
+    const loadDashboard = () => {
+      http.get<{ total: number }>('/api/dashboard/clientes-ativos')
+        .then(r => setClientesAtivos(r.total)).catch(() => setClientesAtivos(null)).finally(() => setLoadingA(false));
+      http.get<{ total: number }>('/api/dashboard/clientes-cx')
+        .then(r => setClientesCx(r.total)).catch(() => setClientesCx(null)).finally(() => setLoadingCx(false));
+      http.get<{ total: number }>('/api/dashboard/clientes-pmo')
+        .then(r => setClientesPmo(r.total)).catch(() => setClientesPmo(null)).finally(() => setLoadingPmo(false));
+      http.get<{ total: number }>('/api/dashboard/servidores-ativos')
+        .then(r => setServidoresAtivos(r.total)).catch(() => setServidoresAtivos(null)).finally(() => setLoadingSrv(false));
+      http.get<{ data: string; agente_ia: number; humano: number }[]>('/api/dashboard/historico-atualizacoes')
+        .then(r => setHistorico(r)).catch(() => setHistorico([]));
+      http.get<{ nome: string; valor: number }[]>('/api/dashboard/pendencias-por-analista')
+        .then(r => setPendenciasAnalista(r)).catch(() => setPendenciasAnalista([]));
+      http.get<{ status: string; total: number }[]>('/api/dashboard/pendencias-por-status')
+        .then(setPendenciasStatus)
+        .catch(() => {});
+      http.get<AusenciaItem[]>('/api/dashboard/ausencias-proximas')
+        .then(setAusencias)
+        .catch(() => {});
+      http.get<AtividadeHoje[]>('/api/dashboard/atividades-hoje')
+        .then(setAtividadesHoje)
+        .catch(() => {});
+      http.get<AtendimentoItem[]>('/api/dashboard/atendimentos-whatsapp')
+        .then(setAtendimentos).catch(() => setAtendimentos([])).finally(() => setLoadingAtend(false));
+      http.get<{ total: number }>('/api/dashboard/pendencias-abertas')
+        .then(r => setPendencias(r.total)).catch(() => setPendencias(null)).finally(() => setLoadingPen(false));
+    };
+
+    loadDashboard();
+    // Atualiza o Dashboard a cada 3 minutos enquanto a página estiver aberta
+    const timer = window.setInterval(loadDashboard, DASHBOARD_REFRESH_MS);
+    return () => window.clearInterval(timer);
   }, []);
 
   return (
@@ -353,7 +363,7 @@ export default function DashboardPage() {
             )}
           </div>
         </div>
-        <div className="col-12 col-lg-6 col-xl-5" style={{ display: 'flex', flexDirection: 'column' }}>
+        <div className="col-12 col-lg-6 col-xl-4" style={{ display: 'flex', flexDirection: 'column' }}>
           <div className="chart-card" style={{ flex: 1 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
               <div className="chart-card-title" style={{ fontSize: 12, marginBottom: 0 }}>
@@ -397,7 +407,7 @@ export default function DashboardPage() {
             )}
           </div>
         </div>
-        <div className="col-12 col-lg-6 col-xl-2" style={{ display: 'flex', flexDirection: 'column' }}>
+        <div className="col-12 col-lg-6 col-xl-3" style={{ display: 'flex', flexDirection: 'column' }}>
           <AtendimentosCard itens={atendimentos} loading={loadingAtend} />
         </div>
       </div>
