@@ -1,5 +1,5 @@
 # ── Stage 1: build / dependências ─────────────────────────────────────────────
-FROM python:3.12.3-slim-bookworm AS builder
+FROM mirror.gcr.io/library/python:3.12.3-slim-bookworm AS builder
 
 ENV UV_COMPILE_BYTECODE=1
 ENV UV_LINK_MODE=copy
@@ -17,7 +17,7 @@ RUN uv sync --no-group dev
 COPY src/ ./src/
 
 # ── Stage 2: runtime ───────────────────────────────────────────────────────────
-FROM python:3.12.3-slim-bookworm AS runtime
+FROM mirror.gcr.io/library/python:3.12.3-slim-bookworm AS runtime
 
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1

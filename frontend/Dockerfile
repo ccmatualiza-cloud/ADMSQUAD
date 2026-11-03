@@ -1,5 +1,5 @@
 # ── Stage 1: build ─────────────────────────────────────────────────────────────
-FROM node:20.11.1-alpine3.19 AS builder
+FROM mirror.gcr.io/library/node:20.11.1-alpine3.19 AS builder
 WORKDIR /app
 COPY package.json package-lock.json* ./
 RUN npm ci
@@ -7,7 +7,7 @@ COPY . .
 RUN npm run build
 
 # ── Stage 2: runtime (nginx) ───────────────────────────────────────────────────
-FROM nginx:1.25.4-alpine3.18-slim AS runtime
+FROM mirror.gcr.io/library/nginx:1.25.4-alpine3.18-slim AS runtime
 
 ENV TZ=America/Sao_Paulo
 
