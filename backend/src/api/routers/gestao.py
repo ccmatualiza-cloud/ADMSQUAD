@@ -2,9 +2,11 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy import text
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.deps.auth import get_current_user, get_db
+from src.logger import logger
 
 router = APIRouter(prefix="/api/gestao", tags=["gestao"])
 
@@ -404,6 +406,31 @@ async def bi_faixas_users(
         ]
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
+
+
+VERSOES_STATUS = ("6 - ATIVO", "4 - BASE", "7 - ATIVO VPU")
+
+
+@router.get("/bi/versoes")
+async def bi_versoes(
+    _: Annotated[dict, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> list[dict]:
+    """Client count per current version (tbl_linx.versaoat) for active/base/VPU clients."""
+    try:
+        result = await session.execute(
+            text(
+                "SELECT COALESCE(NULLIF(TRIM(versaoat),''), 'SEM VERSÃO') AS versao, COUNT(*) AS total "
+                "FROM tbl_linx WHERE status IN (:s1, :s2, :s3) "
+                "GROUP BY COALESCE(NULLIF(TRIM(versaoat),''), 'SEM VERSÃO') "
+                "ORDER BY total DESC, versao ASC"
+            ),
+            {"s1": VERSOES_STATUS[0], "s2": VERSOES_STATUS[1], "s3": VERSOES_STATUS[2]},
+        )
+        return [{"versao": r[0] or "SEM VERSÃO", "total": int(r[1])} for r in result.fetchall()]
+    except SQLAlchemyError:
+        logger.exception("bi_versoes_failed")
+        raise HTTPException(status_code=500, detail="Failed to load version statistics")
 
 
 @router.get("/bi/stats")
