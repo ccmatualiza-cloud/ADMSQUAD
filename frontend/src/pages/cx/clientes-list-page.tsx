@@ -4,7 +4,7 @@ import { http } from '../../lib/http-client';
 
 interface Cliente {
   cod: number; razao: string | null; cliente: string | null;
-  sistema: string | null; versao: string | null;
+  sistema: string | null; versaoat: string | null; versao: string | null;
   qtdusers: number | null; qtdusersts: number | null; serverbd: string | null;
   codigoc: string | null; grupo: string | null; status: string | null; doc: string | null;
 }
@@ -19,7 +19,7 @@ interface ClienteDetalhe {
   integracoes: string | null; infraprod: string | null; infrats: string | null; shape: string | null;
   ocpu: string | null; mem: string | null; tsplus: string | null; detalhes: string | null;
   implat: string | null; datastart: string | null; prxcontat: string | null; cnpj: string | null;
-  codigoc: string | null; agtazure: string | null; linxwebver: string | null; doc: string | null;
+  codigoc: string | null; agtazure: string | null; linxwebver: string | null; horaupdate: string | null; doc: string | null;
   link1: string | null; link2: string | null; link3: string | null;
 }
 
@@ -30,7 +30,7 @@ type EditForm = {
   implat: string; contatos: string; telefones: string; emails: string;
   local: string; prxcontat: string; codigoc: string; cnpj: string; grupo: string;
   tipo: string; pacote: string; dt_atualiza: string; versaoat: string;
-  datastart: string; agtazure: string; linxwebver: string;
+  datastart: string; agtazure: string; linxwebver: string; horaupdate: string;
   shape: string; ocpu: string; mem: string; tsplus: string;
   integracoes: string; infraprod: string; infrats: string; detalhes: string; doc: string;
   link1: string; link2: string; link3: string;
@@ -74,7 +74,7 @@ const emptyEditForm: EditForm = {
   implat: '', contatos: '', telefones: '', emails: '',
   local: '', prxcontat: '', codigoc: '', cnpj: '', grupo: '',
   tipo: '', pacote: '', dt_atualiza: '', versaoat: '',
-  datastart: '', agtazure: '', linxwebver: '',
+  datastart: '', agtazure: '', linxwebver: '', horaupdate: '',
   shape: '', ocpu: '', mem: '', tsplus: '',
   integracoes: '', infraprod: '', infrats: '', detalhes: '', doc: '',
   link1: '', link2: '', link3: '',
@@ -143,7 +143,7 @@ export default function ClientesListPage({ onBack, readOnly = false }: { onBack:
         tipo: d.tipo ?? '', pacote: d.pacote ?? '',
         dt_atualiza: d.dt_atualiza ?? '', versaoat: d.versaoat ?? '',
         datastart: d.datastart ?? '', agtazure: d.agtazure ?? '',
-        linxwebver: d.linxwebver ?? '', shape: d.shape ?? '',
+        linxwebver: d.linxwebver ?? '', horaupdate: d.horaupdate ?? '', shape: d.shape ?? '',
         ocpu: d.ocpu ?? '', mem: d.mem ?? '', tsplus: d.tsplus ?? '',
         integracoes: d.integracoes ?? '', infraprod: d.infraprod ?? '',
         infrats: d.infrats ?? '', detalhes: d.detalhes ?? '', doc: d.doc ?? '',
@@ -194,7 +194,7 @@ export default function ClientesListPage({ onBack, readOnly = false }: { onBack:
         </div>
 
         <div style={{ padding: '12px 20px', borderBottom: '1px solid var(--ccm-line)', display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
-          <input type="text" className="form-control" placeholder="Buscar por razão, cliente ou sistema..."
+          <input type="text" className="form-control" placeholder="Buscar por razão, cliente, sistema ou Ver.At..."
             value={search} onChange={e => setSearch(e.target.value)} onKeyDown={handleKeyDown}
             style={{ maxWidth: 340, fontSize: 13 }} />
           <select className="form-select" value={filterStatus} onChange={e => setFilterStatus(e.target.value)}
@@ -225,6 +225,7 @@ export default function ClientesListPage({ onBack, readOnly = false }: { onBack:
                   <th style={th}>Razão Social</th>
                   <th style={th}>Cliente</th>
                   <th style={th}>Sistema</th>
+                  <th style={th}>Ver.At</th>
                   <th style={th}>Versão</th>
                   <th style={{ ...th, textAlign: 'center' }}>Users</th>
                   <th style={{ ...th, textAlign: 'center' }}>Users-TS</th>
@@ -237,12 +238,13 @@ export default function ClientesListPage({ onBack, readOnly = false }: { onBack:
               </thead>
               <tbody>
                 {clientes.length === 0 ? (
-                  <tr><td colSpan={8} style={{ padding: 32, textAlign: 'center', color: 'var(--ccm-gray-dark)' }}>Nenhum cliente encontrado</td></tr>
+                  <tr><td colSpan={12} style={{ padding: 32, textAlign: 'center', color: 'var(--ccm-gray-dark)' }}>Nenhum cliente encontrado</td></tr>
                 ) : clientes.map((c, i) => (
                   <tr key={c.cod} style={{ background: i % 2 === 0 ? '#fff' : '#F7F8FA', borderBottom: '1px solid var(--ccm-line)' }}>
                     <td style={{ ...td, fontWeight: 600, color: 'var(--ccm-ink)', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.razao || '—'}</td>
                     <td style={{ ...td, color: 'var(--ccm-gray-dark)', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.cliente || '—'}</td>
                     <td style={{ ...td, color: 'var(--ccm-blue)', fontWeight: 600 }}>{c.sistema || '—'}</td>
+                    <td style={td}>{c.versaoat || '—'}</td>
                     <td style={td}>{c.versao || '—'}</td>
                     <td style={{ ...td, textAlign: 'center', fontWeight: 600 }}>{c.qtdusers ?? '—'}</td>
                     <td style={{ ...td, textAlign: 'center', fontWeight: 600 }}>{c.qtdusersts ?? '—'}</td>
@@ -303,7 +305,7 @@ export default function ClientesListPage({ onBack, readOnly = false }: { onBack:
                 <div style={{ padding: '20px 24px' }}>
                   {[
                     { title: 'Identificação', fields: [['Razão Social', detalhe.razao], ['Cliente', detalhe.cliente], ['Bandeira', detalhe.bandeira], ['CNPJ', detalhe.cnpj], ['Grupo', detalhe.grupo], ['UF Matriz', detalhe.ufmatriz], ['Franquia', detalhe.franq], ['Região', detalhe.reg], ['Local', detalhe.local], ['Data Start', detalhe.datastart], ['Documentação', detalhe.doc]] },
-                    { title: 'Sistema', fields: [['Sistema', detalhe.sistema], ['Versão', detalhe.versao], ['Versão Atual', detalhe.versaoat], ['Pacote', detalhe.pacote], ['Tipo', detalhe.tipo], ['Qtd. Users', detalhe.qtdusers], ['Qtd. Users-TS', detalhe.qtdusersts], ['Qtd. TS', detalhe.qtdusersts], ['Linx Web Ver.', detalhe.linxwebver], ['Últ. Atualização', detalhe.dt_atualiza]] },
+                    { title: 'Sistema', fields: [['Sistema', detalhe.sistema], ['Versão', detalhe.versao], ['Versão Atual', detalhe.versaoat], ['Pacote', detalhe.pacote], ['Tipo', detalhe.tipo], ['Qtd. Users', detalhe.qtdusers], ['Qtd. Users-TS', detalhe.qtdusersts], ['Qtd. TS', detalhe.qtdusersts], ['Linx Web Ver.', detalhe.linxwebver], ['Últ. Atualização', detalhe.dt_atualiza], ['Hora Atualização', detalhe.horaupdate]] },
                     { title: 'Infraestrutura', fields: [['BD', detalhe.bd], ['Server BD', detalhe.serverbd], ['Qtd. Servidores', detalhe.qtdsrv], ['Shape', detalhe.shape], ['oCPU', detalhe.ocpu], ['Memória', detalhe.mem], ['TSPlus', detalhe.tsplus], ['Azure Agent', detalhe.agtazure], ['Infra Prod', detalhe.infraprod], ['Infra TS', detalhe.infrats], ['Integrações', detalhe.integracoes]] },
                     { title: 'Contato', fields: [['Contatos', detalhe.contatos], ['Telefones', detalhe.telefones], ['Emails', detalhe.emails], ['Próx. Contato', detalhe.prxcontat]] },
                   ].map(section => (
@@ -384,7 +386,7 @@ export default function ClientesListPage({ onBack, readOnly = false }: { onBack:
                 ['Sistema', 'sistema'], ['Versão', 'versao'], ['Versão Atual', 'versaoat'],
                 ['Tipo', 'tipo'], ['Pacote', 'pacote'], ['Qtd. Usuários', 'qtdusers'],
                 ['Qtd. TS', 'qtdusersts'], ['Linx Web Ver.', 'linxwebver'],
-                ['Últ. Atualização', 'dt_atualiza'],
+                ['Últ. Atualização', 'dt_atualiza'], ['Hora Atualização', 'horaupdate'],
               ] as [string, keyof EditForm][]).map(([label, key]) => (
                 <div key={key} className="col-12 col-md-6">
                   <label style={labelStyle}>{label}</label>

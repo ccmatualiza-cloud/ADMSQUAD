@@ -14,6 +14,7 @@ class ClienteItem(BaseModel):
     razao: str | None = None
     cliente: str | None = None
     sistema: str | None = None
+    versaoat: str | None = None
     versao: str | None = None
     qtdusers: int | None = None
     qtdusersts: int | None = None
@@ -65,6 +66,7 @@ class ClienteDetalhe(BaseModel):
     codigoc: str | None = None
     agtazure: str | None = None
     linxwebver: str | None = None
+    horaupdate: str | None = None
     doc: str | None = None
     link1: str | None = None
     link2: str | None = None
@@ -84,7 +86,7 @@ async def list_clientes(
         where = "WHERE 1=1"
         params: dict = {}
         if q:
-            where += " AND (razao LIKE :q OR cliente LIKE :q OR sistema LIKE :q)"
+            where += " AND (razao LIKE :q OR cliente LIKE :q OR sistema LIKE :q OR versaoat LIKE :q)"
             params["q"] = f"%{q}%"
         if status_filter:
             where += " AND status = :status"
@@ -96,7 +98,7 @@ async def list_clientes(
             where += " AND serverbd LIKE :serverbd"
             params["serverbd"] = f"%{serverbd_filter}%"
         result = await session.execute(
-            text(f"SELECT cod, razao, cliente, sistema, versao, qtdusers, qtdusersts, serverbd, codigoc, grupo, status, doc FROM tbl_linx {where} ORDER BY razao"),
+            text(f"SELECT cod, razao, cliente, sistema, versaoat, versao, qtdusers, qtdusersts, serverbd, codigoc, grupo, status, doc FROM tbl_linx {where} ORDER BY razao"),
             params
         )
         rows = result.fetchall()
@@ -128,7 +130,7 @@ async def get_cliente(
                        qtdusers, qtdusersts, qtdsistemas, qtdsrv, status, contatos, telefones, emails,
                        reg, local, grupo, tipo, pacote, dt_atualiza, versaoat, franq, ufmatriz,
                        integracoes, infraprod, infrats, shape, ocpu, mem, tsplus, detalhes,
-                       implat, datastart, prxcontat, cnpj, codigoc, agtazure, linxwebver, doc, link1, link2, link3
+                       implat, datastart, prxcontat, cnpj, codigoc, agtazure, linxwebver, horaupdate, doc, link1, link2, link3
                 FROM tbl_linx WHERE cod = :cod"""),
         {"cod": cod}
     )
@@ -620,7 +622,7 @@ async def update_cliente(
                    "tipo", "pacote", "dt_atualiza", "versaoat", "franq", "ufmatriz",
                    "integracoes", "infraprod", "infrats", "shape", "ocpu", "mem",
                    "tsplus", "detalhes", "implat", "datastart", "prxcontat", "cnpj", "codigoc",
-                   "agtazure", "linxwebver", "bandeira", "bd", "doc", "link1", "link2", "link3"]
+                   "agtazure", "linxwebver", "horaupdate", "bandeira", "bd", "doc", "link1", "link2", "link3"]
         sets, params = [], {"cod": cod}
         for k, v in body.items():
             if k in allowed:
