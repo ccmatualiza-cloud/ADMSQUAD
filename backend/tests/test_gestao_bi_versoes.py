@@ -5,7 +5,7 @@ import pytest
 from fastapi import HTTPException
 from sqlalchemy.exc import OperationalError
 
-from src.api.routers.gestao import _count_by_version, bi_versoes, bi_versoes_camadas
+from src.api.routers.gestao import _count_by_version, bi_status, bi_versoes, bi_versoes_camadas
 
 
 def _session(rows: list[tuple]) -> MagicMock:
@@ -62,3 +62,18 @@ async def test_versoes_camadas_uses_versao_column() -> None:
 async def test_count_by_version_rejects_unknown_column() -> None:
     with pytest.raises(ValueError):
         await _count_by_version(MagicMock(), "razao; DROP TABLE x", "evt")
+
+
+@pytest.mark.asyncio
+async def test_status_counts_all_statuses() -> None:
+    session = _session([("6 - ATIVO", 120), ("9 - INATIVO", 40), ("SEM STATUS", 1)])
+
+    out = await bi_status({}, session)
+
+    sql = str(session.execute.await_args.args[0])
+    assert "GROUP BY" in sql and "WHERE" not in sql
+    assert out == [
+        {"status": "6 - ATIVO", "total": 120},
+        {"status": "9 - INATIVO", "total": 40},
+        {"status": "SEM STATUS", "total": 1},
+    ]

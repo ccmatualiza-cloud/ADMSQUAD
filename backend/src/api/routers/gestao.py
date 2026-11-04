@@ -450,6 +450,23 @@ async def bi_versoes_camadas(
     return await _count_by_version(session, "versao", "bi_versoes_camadas_failed")
 
 
+@router.get("/bi/status")
+async def bi_status(
+    _: Annotated[dict, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> list[dict]:
+    """Client count per status (tbl_linx.status), all statuses."""
+    expr = "COALESCE(NULLIF(TRIM(status),''), 'SEM STATUS')"
+    try:
+        result = await session.execute(
+            text(f"SELECT {expr} AS label, COUNT(*) AS total FROM tbl_linx GROUP BY {expr} ORDER BY label ASC")
+        )
+        return [{"status": r[0] or "SEM STATUS", "total": int(r[1])} for r in result.fetchall()]
+    except SQLAlchemyError:
+        logger.exception("bi_status_failed")
+        raise HTTPException(status_code=500, detail="Failed to load status statistics")
+
+
 @router.get("/bi/stats")
 async def bi_stats(
     _: Annotated[dict, Depends(get_current_user)],

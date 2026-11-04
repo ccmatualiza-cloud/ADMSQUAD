@@ -8,6 +8,21 @@ interface FaixaItem { faixa: string; total: number; }
 interface SistemaItem { sistema: string; total: number; }
 interface AtualizItem { data: string; total: number; }
 interface VersaoItem { versao: string; total: number; }
+interface StatusItem { status: string; total: number; }
+
+const STATUS_BAR_COLORS: Record<string, string> = {
+  '0 - IMPLANTAÇÃO': '#F9A825',
+  '1 - PRIMEIRO CONTATO': '#0EA5E9',
+  '2 - SMART CLOUD': '#00B0FA',
+  '3 - SMART DBA': '#7F77DD',
+  '4 - BASE': '#14B8A6',
+  '5 - EM CANCELAMENTO': '#F97316',
+  '6 - ATIVO': '#1DB954',
+  '7 - ATIVO VPU': '#0F6E56',
+  '8 - CONSULTA': '#8B5CF6',
+  '9 - INATIVO': '#E74C3C',
+  'X - ATIVO COMPLEMENTO': '#204294',
+};
 
 export default function BiPage({ onBack }: { onBack: () => void }) {
   const [stats, setStats]               = useState<Stats | null>(null);
@@ -18,6 +33,7 @@ export default function BiPage({ onBack }: { onBack: () => void }) {
   const [atualizData, setAtualizData]   = useState<AtualizItem[]>([]);
   const [versoesData, setVersoesData]   = useState<VersaoItem[] | null>(null);
   const [camadasData, setCamadasData]   = useState<VersaoItem[] | null>(null);
+  const [statusData, setStatusData]     = useState<StatusItem[] | null>(null);
 
   useEffect(() => {
     http.get<Stats>('/api/gestao/bi/stats').then(setStats).catch(() => {});
@@ -28,6 +44,7 @@ export default function BiPage({ onBack }: { onBack: () => void }) {
     http.get<AtualizItem[]>('/api/gestao/bi/atualizacoes').then(setAtualizData).catch(() => {});
     http.get<VersaoItem[]>('/api/gestao/bi/versoes').then(setVersoesData).catch(() => setVersoesData([]));
     http.get<VersaoItem[]>('/api/gestao/bi/versoes-camadas').then(setCamadasData).catch(() => setCamadasData([]));
+    http.get<StatusItem[]>('/api/gestao/bi/status').then(setStatusData).catch(() => setStatusData([]));
   }, []);
 
   const KpiCard = ({ label, value, color }: { label: string; value: string; color: string }) => (
@@ -270,6 +287,43 @@ export default function BiPage({ onBack }: { onBack: () => void }) {
     );
   };
 
+  // Status — horizontal bars, one color per status
+  const StatusChart = () => {
+    const data = statusData ?? [];
+    const total = data.reduce((s, d) => s + d.total, 0);
+    const maxS = data.length > 0 ? Math.max(...data.map(d => d.total), 1) : 1;
+    return (
+      <div style={{ background: '#fff', border: '1px solid var(--ccm-line)', borderRadius: 8, padding: '16px 18px', boxShadow: '0 1px 4px rgba(12,25,33,.06)' }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--ccm-ink)', marginBottom: 4, textAlign: 'center', textTransform: 'uppercase', letterSpacing: '.08em' }}>Clientes por status</div>
+        <div style={{ fontSize: 10, color: 'var(--ccm-gray-medium)', marginBottom: 14, textAlign: 'center' }}>
+          Todos os status{total > 0 ? ` — ${total.toLocaleString('pt-BR')} clientes` : ''}
+        </div>
+        {statusData === null || data.length === 0 ? (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 160, background: '#F7F8FA', borderRadius: 4 }}>
+            <span style={{ fontSize: 12, color: 'var(--ccm-gray-medium)' }}>{statusData === null ? 'Carregando...' : 'Nenhum dado encontrado'}</span>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {data.map(d => {
+              const pct = Math.round((d.total / (total || 1)) * 100);
+              const color = STATUS_BAR_COLORS[d.status] ?? '#C3C3C3';
+              return (
+                <div key={d.status} title={`${d.status}: ${d.total} clientes (${pct}%)`} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div style={{ fontSize: 9, fontWeight: 700, color: 'var(--ccm-gray-dark)', width: 130, textAlign: 'right', flexShrink: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{d.status}</div>
+                  <div style={{ flex: 1, height: 14, background: '#F0F4FA', borderRadius: 99, overflow: 'hidden' }}>
+                    <div style={{ width: `${Math.max(1, Math.round((d.total / maxS) * 100))}%`, height: '100%', background: color, borderRadius: 99 }} />
+                  </div>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--ccm-ink)', width: 34, textAlign: 'right', flexShrink: 0 }}>{d.total.toLocaleString('pt-BR')}</div>
+                  <div style={{ fontSize: 9, color: 'var(--ccm-gray-medium)', width: 32, flexShrink: 0 }}>({pct}%)</div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   const v = (n: number | null | undefined) => (n != null) ? n.toLocaleString('pt-BR') : '…';
 
   return (
@@ -301,9 +355,10 @@ export default function BiPage({ onBack }: { onBack: () => void }) {
         <SistemasChart />
         <GruposChart />
         <FaixasChart />
-        <div style={{ gridColumn: '1 / -1', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: 14 }}>
+        <div style={{ gridColumn: '1 / -1', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 14 }}>
           <VersoesChart title="Versão do Atualizador" source={versoesData} highlight={HIGHLIGHT_VERSION} />
           <VersoesChart title="Versão 2 e 3 Camadas" source={camadasData} />
+          <StatusChart />
         </div>
       </div>
     </div>
