@@ -5,7 +5,7 @@ import pytest
 from fastapi import HTTPException
 from sqlalchemy.exc import OperationalError
 
-from src.api.routers.gestao import bi_versoes
+from src.api.routers.gestao import _count_by_version, bi_versoes, bi_versoes_camadas
 
 
 def _session(rows: list[tuple]) -> MagicMock:
@@ -43,3 +43,22 @@ async def test_versoes_db_error_returns_generic_500() -> None:
 
     assert exc.value.status_code == 500
     assert "password" not in str(exc.value.detail)
+
+
+@pytest.mark.asyncio
+async def test_versoes_camadas_uses_versao_column() -> None:
+    session = _session([("12.1.0", 30), ("SEM VERSÃO", 2)])
+
+    out = await bi_versoes_camadas({}, session)
+
+    sql = str(session.execute.await_args.args[0])
+    params = session.execute.await_args.args[1]
+    assert "TRIM(versao)" in sql and "versaoat" not in sql
+    assert set(params.values()) == {"6 - ATIVO", "4 - BASE", "7 - ATIVO VPU"}
+    assert out == [{"versao": "12.1.0", "total": 30}, {"versao": "SEM VERSÃO", "total": 2}]
+
+
+@pytest.mark.asyncio
+async def test_count_by_version_rejects_unknown_column() -> None:
+    with pytest.raises(ValueError):
+        await _count_by_version(MagicMock(), "razao; DROP TABLE x", "evt")

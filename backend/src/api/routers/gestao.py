@@ -411,26 +411,43 @@ async def bi_faixas_users(
 VERSOES_STATUS = ("6 - ATIVO", "4 - BASE", "7 - ATIVO VPU")
 
 
-@router.get("/bi/versoes")
-async def bi_versoes(
-    _: Annotated[dict, Depends(get_current_user)],
-    session: Annotated[AsyncSession, Depends(get_db)],
-) -> list[dict]:
-    """Client count per current version (tbl_linx.versaoat) for active/base/VPU clients."""
+async def _count_by_version(session: AsyncSession, column: str, event: str) -> list[dict]:
+    """Client count grouped by a version column (whitelisted) for active/base/VPU clients."""
+    if column not in ("versaoat", "versao"):
+        raise ValueError(f"unsupported column: {column}")
+    expr = f"COALESCE(NULLIF(TRIM({column}),''), 'SEM VERSÃO')"
     try:
         result = await session.execute(
             text(
-                "SELECT COALESCE(NULLIF(TRIM(versaoat),''), 'SEM VERSÃO') AS versao, COUNT(*) AS total "
+                f"SELECT {expr} AS label, COUNT(*) AS total "
                 "FROM tbl_linx WHERE status IN (:s1, :s2, :s3) "
-                "GROUP BY COALESCE(NULLIF(TRIM(versaoat),''), 'SEM VERSÃO') "
-                "ORDER BY total DESC, versao ASC"
+                f"GROUP BY {expr} "
+                "ORDER BY total DESC, label ASC"
             ),
             {"s1": VERSOES_STATUS[0], "s2": VERSOES_STATUS[1], "s3": VERSOES_STATUS[2]},
         )
         return [{"versao": r[0] or "SEM VERSÃO", "total": int(r[1])} for r in result.fetchall()]
     except SQLAlchemyError:
-        logger.exception("bi_versoes_failed")
+        logger.exception(event)
         raise HTTPException(status_code=500, detail="Failed to load version statistics")
+
+
+@router.get("/bi/versoes")
+async def bi_versoes(
+    _: Annotated[dict, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> list[dict]:
+    """Updater version chart (tbl_linx.versaoat)."""
+    return await _count_by_version(session, "versaoat", "bi_versoes_failed")
+
+
+@router.get("/bi/versoes-camadas")
+async def bi_versoes_camadas(
+    _: Annotated[dict, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> list[dict]:
+    """2/3-tier version chart (tbl_linx.versao)."""
+    return await _count_by_version(session, "versao", "bi_versoes_camadas_failed")
 
 
 @router.get("/bi/stats")
