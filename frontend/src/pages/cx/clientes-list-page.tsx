@@ -194,7 +194,7 @@ export default function ClientesListPage({ onBack, readOnly = false }: { onBack:
         </div>
 
         <div style={{ padding: '12px 20px', borderBottom: '1px solid var(--ccm-line)', display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
-          <input type="text" className="form-control" placeholder="Buscar por razão, cliente, sistema ou Ver.At..."
+          <input type="text" className="form-control" placeholder="Buscar por razão, cliente, sistema, Ver.At ou versão..."
             value={search} onChange={e => setSearch(e.target.value)} onKeyDown={handleKeyDown}
             style={{ maxWidth: 340, fontSize: 13 }} />
           <select className="form-select" value={filterStatus} onChange={e => setFilterStatus(e.target.value)}

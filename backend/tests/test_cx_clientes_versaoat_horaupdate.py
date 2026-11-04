@@ -41,6 +41,7 @@ async def test_search_matches_versaoat() -> None:
     sql = str(session.execute.await_args.args[0])
     params = session.execute.await_args.args[1]
     assert "versaoat LIKE :q" in sql
+    assert "versao LIKE :q" in sql
     assert params["q"] == "%2.5.10%"
 
 

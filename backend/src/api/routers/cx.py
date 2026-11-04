@@ -86,7 +86,7 @@ async def list_clientes(
         where = "WHERE 1=1"
         params: dict = {}
         if q:
-            where += " AND (razao LIKE :q OR cliente LIKE :q OR sistema LIKE :q OR versaoat LIKE :q)"
+            where += " AND (razao LIKE :q OR cliente LIKE :q OR sistema LIKE :q OR versaoat LIKE :q OR versao LIKE :q)"
             params["q"] = f"%{q}%"
         if status_filter:
             where += " AND status = :status"
