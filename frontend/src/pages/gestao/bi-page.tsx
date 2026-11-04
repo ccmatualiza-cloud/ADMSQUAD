@@ -225,7 +225,9 @@ export default function BiPage({ onBack }: { onBack: () => void }) {
     );
   };
 
-  // Versões (Ver.At) — vertical column chart
+  // Versões (Ver.At) — vertical column chart; HIGHLIGHT_VERSION bar in green
+  const HIGHLIGHT_VERSION = '3.00';
+  const HIGHLIGHT_COLOR = '#1DB954';
   const VersoesChart = () => {
     const data = versoesData ?? [];
     const total = data.reduce((s, d) => s + d.total, 0);
@@ -233,7 +235,7 @@ export default function BiPage({ onBack }: { onBack: () => void }) {
     const BAR_AREA = 180;
     return (
       <div style={{ background: '#fff', border: '1px solid var(--ccm-line)', borderRadius: 8, padding: '16px 18px', boxShadow: '0 1px 4px rgba(12,25,33,.06)' }}>
-        <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--ccm-ink)', marginBottom: 4, textAlign: 'center', textTransform: 'uppercase', letterSpacing: '.08em' }}>Clientes por versão atual (Ver.At)</div>
+        <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--ccm-ink)', marginBottom: 4, textAlign: 'center', textTransform: 'uppercase', letterSpacing: '.08em' }}>Versão do Atualizador</div>
         <div style={{ fontSize: 10, color: 'var(--ccm-gray-medium)', marginBottom: 14, textAlign: 'center' }}>
           Status 6 - Ativo, 4 - Base e 7 - Ativo VPU{total > 0 ? ` — ${total.toLocaleString('pt-BR')} clientes` : ''}
         </div>
@@ -248,12 +250,13 @@ export default function BiPage({ onBack }: { onBack: () => void }) {
                 const pct = Math.round((d.total / (total || 1)) * 100);
                 const h = Math.max(2, Math.round((d.total / maxV) * BAR_AREA));
                 const semVersao = d.versao === 'SEM VERSÃO';
+                const destaque = d.versao.trim() === HIGHLIGHT_VERSION;
                 return (
                   <div key={d.versao} title={`${d.versao}: ${d.total} clientes (${pct}%)`}
                     style={{ flex: '1 1 0', minWidth: 44, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                     <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--ccm-ink)' }}>{d.total}</div>
                     <div style={{ fontSize: 9, color: 'var(--ccm-gray-medium)', marginBottom: 3 }}>{pct}%</div>
-                    <div style={{ width: '70%', maxWidth: 48, height: h, background: semVersao ? '#C3C3C3' : 'var(--ccm-blue)', borderRadius: '3px 3px 0 0' }} />
+                    <div style={{ width: '70%', maxWidth: 48, height: h, background: destaque ? HIGHLIGHT_COLOR : semVersao ? '#C3C3C3' : 'var(--ccm-blue)', borderRadius: '3px 3px 0 0' }} />
                     <div style={{ width: '100%', borderTop: '1px solid var(--ccm-line)', marginTop: 0, paddingTop: 5, fontSize: 9, fontWeight: 700, color: 'var(--ccm-gray-dark)', textAlign: 'center', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{d.versao}</div>
                   </div>
                 );
