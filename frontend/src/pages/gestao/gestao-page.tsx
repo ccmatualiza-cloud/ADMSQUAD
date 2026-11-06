@@ -7,8 +7,9 @@ import CaminhoBdPage      from './caminho-bd-page';
 import CaminhoUpdatesPage from './caminho-updates-page';
 import CaminhoAppPage      from './caminho-app-page';
 import ColaboradoresPage   from './colaboradores-page';
+import TarefasKanbanPage   from './tarefas-kanban-page';
 
-type SubPage = null | 'links' | 'resultados' | 'smartbooks' | 'bi' | 'caminhobd' | 'caminhoup' | 'caminhoapp' | 'colaboradores';
+type SubPage = null | 'links' | 'resultados' | 'smartbooks' | 'bi' | 'caminhobd' | 'caminhoup' | 'caminhoapp' | 'colaboradores' | 'tarefas';
 
 export default function GestaoPage() {
   const [subPage, setSubPage] = useState<SubPage>(null);
@@ -21,6 +22,7 @@ export default function GestaoPage() {
   if (subPage === 'caminhoup')   return <CaminhoUpdatesPage onBack={() => setSubPage(null)} />;
   if (subPage === 'caminhoapp')    return <CaminhoAppPage      onBack={() => setSubPage(null)} />;
   if (subPage === 'colaboradores') return <ColaboradoresPage   onBack={() => setSubPage(null)} />;
+  if (subPage === 'tarefas')       return <TarefasKanbanPage   onBack={() => setSubPage(null)} />;
 
   const Card = ({ title, desc, color, bg, icon, onClick }: { title: string; desc: string; color: string; bg: string; icon: string; onClick: () => void }) => (
     <div className="col-12 col-md-4 col-lg-3">
@@ -54,6 +56,7 @@ export default function GestaoPage() {
         <Card title="Caminho Updates" desc="Link updates Linx."                  color="#7F77DD" bg="#F0EFFE" icon="bi-arrow-repeat"       onClick={() => setSubPage('caminhoup')} />
         <Card title="Caminho APP"     desc="Aplicativo dos atualizadores."        color="#F9A825" bg="#FFF8E1" icon="bi-phone-fill"          onClick={() => setSubPage('caminhoapp')} />
         <Card title="Colaboradores"   desc="Gestão dos colaboradores."            color="#1DB954" bg="#E8F5F1" icon="bi-people-fill"         onClick={() => setSubPage('colaboradores')} />
+        <Card title="Tarefas"         desc="Kanban das pendências da equipe."     color="#00B0FA" bg="#E8F7FF" icon="bi-kanban-fill"         onClick={() => setSubPage('tarefas')} />
         <div className="col-12 col-md-4 col-lg-3">
           <div style={{ background: '#F7F8FA', border: '1px dashed var(--ccm-line)', borderRadius: 6, padding: '20px 22px', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 120, color: 'var(--ccm-gray-medium)', fontSize: 12, letterSpacing: '.08em' }}>
             <i className="bi bi-plus-circle me-2" />Em breve

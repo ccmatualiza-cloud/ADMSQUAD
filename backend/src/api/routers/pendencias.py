@@ -4,6 +4,7 @@ from typing import Annotated, Literal
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy import text
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.deps.auth import get_current_user, get_db
@@ -17,6 +18,8 @@ SELECT_PENDENCIAS = (
 )
 
 StatusType = Literal["aberto", "em_andamento", "impedimento", "resolvido"]
+# "concluido" = archived from the Gestão > Tarefas Kanban; hidden from every list/count.
+STATUS_CONCLUIDO = "concluido"
 
 
 class PendenciaOut(BaseModel):
@@ -126,7 +129,10 @@ async def list_pendencias(
     session: Annotated[AsyncSession, Depends(get_db)] = None,
 ) -> list[PendenciaOut]:
     try:
-        where = "" if include_resolvido else "WHERE status != 'resolvido'"
+        where = (
+            "WHERE status != 'concluido'" if include_resolvido
+            else "WHERE status NOT IN ('resolvido', 'concluido')"
+        )
         result = await session.execute(
             text(f"{SELECT_PENDENCIAS} {where} ORDER BY data ASC, id ASC")
         )
@@ -244,6 +250,27 @@ async def update_pendencia(
     if not row:
         raise HTTPException(status_code=404, detail="Pendência não encontrada")
     return row_to_out(row, list(result.keys()))
+
+
+@router.put("/{pendencia_id}/concluir", status_code=status.HTTP_204_NO_CONTENT)
+async def concluir_pendencia(
+    pendencia_id: int,
+    current_user: Annotated[dict, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> None:
+    """Archive a resolved pendencia (Kanban 'Concluir'): resolvido -> concluido."""
+    try:
+        result = await session.execute(
+            text("UPDATE tbl_pendencias SET status = :new WHERE id = :id AND status = 'resolvido'"),
+            {"new": STATUS_CONCLUIDO, "id": pendencia_id},
+        )
+        await session.commit()
+    except SQLAlchemyError:
+        logger.exception("concluir_pendencia_failed", pendencia_id=pendencia_id)
+        raise HTTPException(status_code=500, detail="Failed to archive pendencia")
+    if result.rowcount == 0:
+        raise HTTPException(status_code=409, detail="Only resolved pendencias can be archived")
+    logger.info("pendencia_concluida", pendencia_id=pendencia_id, user=current_user.get("sub"))
 
 
 @router.delete("/{pendencia_id}", status_code=status.HTTP_204_NO_CONTENT)

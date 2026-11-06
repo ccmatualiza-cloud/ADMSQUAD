@@ -97,7 +97,7 @@ async def pendencias_abertas(
 ) -> dict:
     try:
         result = await session.execute(
-            text("SELECT COUNT(*) FROM tbl_pendencias WHERE status != 'resolvido'")
+            text("SELECT COUNT(*) FROM tbl_pendencias WHERE status NOT IN ('resolvido', 'concluido')")
         )
         row = result.fetchone()
         return {"total": int(row[0]) if row else 0}
@@ -115,7 +115,7 @@ async def pendencias_por_analista(
             text("""
                 SELECT analista, COUNT(*) as total
                 FROM tbl_pendencias
-                WHERE status != 'resolvido'
+                WHERE status NOT IN ('resolvido', 'concluido')
                   AND analista != ''
                 GROUP BY analista
                 ORDER BY total DESC
@@ -164,7 +164,7 @@ async def pendencias_por_status(
             text("""
                 SELECT status, COUNT(*) as total
                 FROM tbl_pendencias
-                WHERE status != 'resolvido'
+                WHERE status NOT IN ('resolvido', 'concluido')
                 GROUP BY status
                 ORDER BY total DESC
             """)
