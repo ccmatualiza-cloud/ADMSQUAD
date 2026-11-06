@@ -243,7 +243,7 @@ async def bh_colaboradores(
         raise HTTPException(status_code=500, detail=str(exc))
 
 
-# ── Atendimentos WhatsApp (tbl_whatsqtd: cor, descricao, qtd) ───────────────
+# ── Atendimentos WhatsApp (tbl_whatsqtd: cor, descricao, qtd = CX, qtd2 = PMO) ───────────────
 
 DEFAULT_ATENDIMENTO_COLOR = "#C3C3C3"
 _HEX_COLOR_RE = re.compile(r"^#?([0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$")
@@ -288,6 +288,7 @@ class AtendimentoOut(BaseModel):
     cor: str
     descricao: str
     qtd: int
+    qtd2: int = 0
 
 
 def _strip_accents(value: str) -> str:
@@ -331,12 +332,12 @@ async def atendimentos_whatsapp(
     session: Annotated[AsyncSession, Depends(get_db)],
 ) -> list[AtendimentoOut]:
     try:
-        result = await session.execute(text("SELECT cor, descricao, qtd FROM tbl_whatsqtd"))
+        result = await session.execute(text("SELECT cor, descricao, qtd, qtd2 FROM tbl_whatsqtd"))
         rows = result.fetchall()
     except Exception as exc:
         logger.error("atendimentos_whatsapp_failed", error=str(exc))
         raise HTTPException(status_code=500, detail="Failed to load WhatsApp attendances")
     return [
-        AtendimentoOut(cor=normalize_color(r[0]), descricao=(r[1] or "").strip(), qtd=parse_qtd(r[2]))
+        AtendimentoOut(cor=normalize_color(r[0]), descricao=(r[1] or "").strip(), qtd=parse_qtd(r[2]), qtd2=parse_qtd(r[3]))
         for r in rows
     ]

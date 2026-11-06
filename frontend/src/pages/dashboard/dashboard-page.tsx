@@ -14,8 +14,8 @@ interface AtividadeHoje {
   duracao: string | null; status: string;
 }
 
-/** qtd = CX; qtd2 = PMO (ainda não vem do backend, exibe 0). */
-interface AtendimentoItem { cor: string; descricao: string; qtd: number; qtd2?: number; }
+/** qtd = CX; qtd2 = PMO (tbl_whatsqtd). */
+interface AtendimentoItem { cor: string; descricao: string; qtd: number; qtd2: number; }
 
 interface AusenciaItem {
   colaborador: string; tipo: string; data_ini: string; hora_ini: string;

@@ -45,15 +45,15 @@ def test_parse_qtd(raw: object, expected: int) -> None:
 @pytest.mark.asyncio
 async def test_atendimentos_whatsapp_maps_rows() -> None:
     result = MagicMock()
-    result.fetchall.return_value = [("#1DB954", "Em atendimento", "5"), ("F9A825", "Na fila", 2)]
+    result.fetchall.return_value = [("#1DB954", "Em atendimento", "5", 3), ("F9A825", "Na fila", 2, None)]
     session = MagicMock()
     session.execute = AsyncMock(return_value=result)
 
     out = await atendimentos_whatsapp({}, session)
 
-    assert [(a.cor, a.descricao, a.qtd) for a in out] == [
-        ("#1DB954", "Em atendimento", 5),
-        ("#F9A825", "Na fila", 2),
+    assert [(a.cor, a.descricao, a.qtd, a.qtd2) for a in out] == [
+        ("#1DB954", "Em atendimento", 5, 3),
+        ("#F9A825", "Na fila", 2, 0),
     ]
 
 
