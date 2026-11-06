@@ -10,10 +10,10 @@ interface Pendencia {
 type ColumnKey = 'aberto' | 'em_andamento' | 'impedimento' | 'resolvido';
 
 const COLUMNS: { key: ColumnKey; title: string; color: string; tint: string; icon: string }[] = [
-  { key: 'aberto',       title: 'Aberto',      color: '#00B0FA', tint: '#E8F7FF', icon: 'bi-inbox-fill' },
-  { key: 'em_andamento', title: 'Andamento',   color: '#1DB954', tint: '#E8FBF0', icon: 'bi-play-circle-fill' },
+  { key: 'aberto',       title: 'Aberto',      color: '#F9A825', tint: '#FFF8E1', icon: 'bi-inbox-fill' },
+  { key: 'em_andamento', title: 'Andamento',   color: '#00B0FA', tint: '#E8F7FF', icon: 'bi-play-circle-fill' },
   { key: 'impedimento',  title: 'Impedimento', color: '#E74C3C', tint: '#FDECEA', icon: 'bi-exclamation-octagon-fill' },
-  { key: 'resolvido',    title: 'Resolvido',   color: '#F9A825', tint: '#FFF8E1', icon: 'bi-check-circle-fill' },
+  { key: 'resolvido',    title: 'Resolvido',   color: '#1DB954', tint: '#E8FBF0', icon: 'bi-check-circle-fill' },
 ];
 
 /** 'YYYY-MM-DD' -> 'DD/MM/YYYY' (no timezone shift). */
