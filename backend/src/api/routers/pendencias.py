@@ -170,6 +170,10 @@ EXTRA_CLIENTES = (
     "ENGENHARIA CCM",
     "GRC CCM",
     "PED CCM",
+    "FINANCEIRO CCM",
+    "RH CCM",
+    "COMERCIAL CCM",
+    "MARKETING CCM",
 )
 
 

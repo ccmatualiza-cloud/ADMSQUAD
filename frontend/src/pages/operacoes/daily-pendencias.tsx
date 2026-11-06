@@ -6,11 +6,12 @@ interface Pendencia {
   id: number; cliente: string; ticket: string; descritivo: string; tratativa: string | null;
   analista: string; status: string; data: string; data_limite: string | null; dias: number | null;
 }
+// Same colors as the Gestão > Tarefas Kanban (tarefas-kanban-page.tsx)
 const STATUS_INFO: Record<string, { label: string; color: string; bg: string }> = {
-  aberto:       { label: 'Aberto',       color: '#fff', bg: '#204294' },
-  em_andamento: { label: 'Em Andamento', color: '#fff', bg: '#0F6E56' },
+  aberto:       { label: 'Aberto',       color: '#fff', bg: '#F9A825' },
+  em_andamento: { label: 'Em Andamento', color: '#fff', bg: '#00B0FA' },
   impedimento:  { label: 'Impedimento',  color: '#fff', bg: '#E74C3C' },
-  resolvido:    { label: 'Resolvido',    color: '#fff', bg: '#888780' },
+  resolvido:    { label: 'Resolvido',    color: '#fff', bg: '#1DB954' },
 };
 const STATUS_OPTIONS = [
   { value: 'aberto', label: 'Aberto' }, { value: 'em_andamento', label: 'Em Andamento' },

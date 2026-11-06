@@ -23,8 +23,10 @@ def test_partial_match_and_no_duplicates() -> None:
     assert "LINX SISTEMAS" not in out
 
 
-def test_all_eight_extras_exist() -> None:
-    assert len(EXTRA_CLIENTES) == 8
+def test_all_twelve_extras_exist() -> None:
+    assert len(EXTRA_CLIENTES) == 12
+    for name in ("FINANCEIRO CCM", "RH CCM", "COMERCIAL CCM", "MARKETING CCM"):
+        assert name in EXTRA_CLIENTES
     assert merge_cliente_suggestions("", []) == list(EXTRA_CLIENTES)
 
 
