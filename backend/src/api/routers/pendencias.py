@@ -160,6 +160,27 @@ async def list_indicadores(
         raise HTTPException(status_code=500, detail="Failed to load indicators")
 
 
+# Internal "clients" offered on the Daily autocomplete besides tbl_linx.cliente.
+EXTRA_CLIENTES = (
+    "LINX SISTEMAS",
+    "SQUAD CCM BULLS",
+    "SQUAD CCM LAKERS",
+    "SQUAD CCM ROCKETS",
+    "SQUAD CCM WARRIORS",
+    "ENGENHARIA CCM",
+    "GRC CCM",
+    "PED CCM",
+)
+
+
+def merge_cliente_suggestions(q: str, linx: list[str]) -> list[str]:
+    """Matching extra clients first (case-insensitive 'contains'), then tbl_linx ones, no duplicates."""
+    needle = q.strip().casefold()
+    extras = [c for c in EXTRA_CLIENTES if needle in c.casefold()]
+    seen = {c.casefold() for c in extras}
+    return extras + [c for c in linx if c.casefold() not in seen]
+
+
 @router.get("/clientes-autocomplete")
 async def clientes_autocomplete(
     q: str = "",
@@ -173,9 +194,9 @@ async def clientes_autocomplete(
             {"q": f"%{q}%"}
         )
         rows = result.fetchall()
-        return [r[0] for r in rows if r[0]]
+        return merge_cliente_suggestions(q, [r[0] for r in rows if r[0]])
     except Exception:
-        return []
+        return merge_cliente_suggestions(q, [])
 
 
 @router.get("/analistas")
