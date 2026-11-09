@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { toast } from 'sonner';
 import { http } from '../../lib/http-client';
 import { useAuthStore } from '../../store/auth-store';
+import { filterClientesInternos, mergeClienteSugestoes } from '../../lib/clientes-internos';
 
 interface Atividade {
   cod: number; cliente: string; analista: string;
@@ -70,11 +71,16 @@ export default function MonitorAtividades({ onBack }: { onBack: () => void }) {
   const handleClienteSearch = async (val: string) => {
     setForm(f => ({ ...f, cliente: val }));
     if (val.length >= 2) {
+      let api: string[] = [];
       try {
-        const s = await http.get<string[]>(`/api/pendencias/clientes-autocomplete?q=${encodeURIComponent(val)}`);
-        setClienteSugs(s); setShowSugs(s.length > 0);
-      } catch { setClienteSugs([]); }
-    } else { setClienteSugs([]); setShowSugs(false); }
+        api = await http.get<string[]>(`/api/pendencias/clientes-autocomplete?q=${encodeURIComponent(val)}`);
+      } catch { /* mantém só os internos */ }
+      const s = mergeClienteSugestoes(val, api);
+      setClienteSugs(s); setShowSugs(s.length > 0);
+    } else {
+      const internos = filterClientesInternos(val);
+      setClienteSugs(internos); setShowSugs(internos.length > 0);
+    }
   };
 
   const handleSave = async () => {
@@ -255,7 +261,8 @@ export default function MonitorAtividades({ onBack }: { onBack: () => void }) {
               <div className="col-12" ref={clienteRef} style={{ position: 'relative' }}>
                 <label style={labelStyle}>Cliente *</label>
                 <input type="text" className="form-control mt-1" style={inputStyle}
-                  value={form.cliente} onChange={e => handleClienteSearch(e.target.value)} placeholder="Digite para buscar..." />
+                  value={form.cliente} onChange={e => handleClienteSearch(e.target.value)}
+                  onFocus={() => { if (!form.cliente) handleClienteSearch(''); }} placeholder="Digite para buscar..." />
                 {showSugs && (
                   <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: '#1a2e3e', border: '1px solid #1a3a6e', borderRadius: 4, zIndex: 100, maxHeight: 160, overflowY: 'auto', marginTop: 2 }}>
                     {clienteSugs.map(s => (

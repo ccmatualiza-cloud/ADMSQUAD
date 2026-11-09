@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { http } from '../../lib/http-client';
+import { filterClientesInternos, mergeClienteSugestoes } from '../../lib/clientes-internos';
 
 const ATIVIDADE_OPTS = ['Incidente', 'Requisição', 'Implantação', 'Migração', 'Manutenção'];
 const emptyForm = { cliente: '', analista: '', ticketproj: '', atividade: 'Incidente', tipoatividade: '', data: new Date().toISOString().split('T')[0] };
@@ -28,12 +29,15 @@ export default function NovaAtividadeModal({ onClose }: { onClose: () => void })
 
   const handleClienteSearch = async (val: string) => {
     setForm(f => ({ ...f, cliente: val }));
-    if (val.length < 2) { setShowSugs(false); return; }
+    const internos = filterClientesInternos(val);
+    if (val.length < 2) { setClienteSugs(internos); setShowSugs(internos.length > 0); return; }
+    let api: string[] = [];
     try {
       const d = await http.get<{ razao: string }[]>(`/api/cx/clientes?q=${encodeURIComponent(val)}&limit=10`);
-      setClienteSugs(d.map(c => c.razao).filter(Boolean) as string[]);
-      setShowSugs(true);
-    } catch { setShowSugs(false); }
+      api = d.map(c => c.razao).filter(Boolean) as string[];
+    } catch { /* mantém só os internos */ }
+    const sugs = mergeClienteSugestoes(val, api);
+    setClienteSugs(sugs); setShowSugs(sugs.length > 0);
   };
 
   const handleSave = async () => {
@@ -65,7 +69,8 @@ export default function NovaAtividadeModal({ onClose }: { onClose: () => void })
           <div className="col-12" ref={clienteRef} style={{ position: 'relative' }}>
             <label style={labelStyle}>Cliente *</label>
             <input type="text" className="form-control mt-1" style={inputStyle}
-              value={form.cliente} onChange={e => handleClienteSearch(e.target.value)} placeholder="Digite para buscar..." />
+              value={form.cliente} onChange={e => handleClienteSearch(e.target.value)}
+              onFocus={() => { if (!form.cliente) handleClienteSearch(''); }} placeholder="Digite para buscar..." />
             {showSugs && clienteSugs.length > 0 && (
               <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: '#1a2e3e', border: '1px solid #1a3a6e', borderRadius: 4, zIndex: 100, maxHeight: 160, overflowY: 'auto', marginTop: 2 }}>
                 {clienteSugs.map(s => (
