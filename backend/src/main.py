@@ -7,7 +7,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from src.api.routers import auth, user, dashboard, pendencias, cx, pmo, gestao, operacoes
+from src.api.routers import auth, user, dashboard, pendencias, cx, pmo, gestao, operacoes, gmud
 from src.config import settings
 from src.logger import logger
 
@@ -32,6 +32,7 @@ app.include_router(cx.router)
 app.include_router(pmo.router)
 app.include_router(gestao.router)
 app.include_router(operacoes.router)
+app.include_router(gmud.router)
 
 @app.get("/health", tags=["infra"])
 async def health() -> dict:

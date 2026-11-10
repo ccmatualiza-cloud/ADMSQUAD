@@ -6,8 +6,9 @@ import ConsultasAnalistasPage from './consultas-analistas-page';
 import IntegracoesPage        from './integracoes-page';
 import ApoiosHelpPage    from './apoios-help-page';
 import GeradorCodigoCCM from './gerador-codigo-ccm';
+import GmudPage         from './gmud-page';
 
-type SubPage = null | 'daily' | 'tarefas' | 'atividades' | 'gerador' | 'apoios' | 'consultas' | 'integracoes';
+type SubPage = null | 'daily' | 'tarefas' | 'atividades' | 'gerador' | 'apoios' | 'consultas' | 'integracoes' | 'gmud';
 
 export default function OperacoesPage() {
   const [subPage, setSubPage] = useState<SubPage>(null);
@@ -19,6 +20,7 @@ export default function OperacoesPage() {
   if (subPage === 'apoios')     return <ApoiosHelpPage         onBack={() => setSubPage(null)} />;
   if (subPage === 'consultas')    return <ConsultasAnalistasPage  onBack={() => setSubPage(null)} />;
   if (subPage === 'integracoes') return <IntegracoesPage          onBack={() => setSubPage(null)} />;
+  if (subPage === 'gmud')        return <GmudPage                 onBack={() => setSubPage(null)} />;
 
   const Card = ({ title, desc, color, bg, icon, onClick, external }: { title: string; desc: string; color: string; bg: string; icon: string; onClick?: () => void; external?: string }) => (
     <div className="col-12 col-md-4 col-lg-3">
@@ -50,6 +52,7 @@ export default function OperacoesPage() {
         <Card title="Integrações"            desc="Integrações feitas em clientes."                    color="#7F77DD" bg="#F0EFFE" icon="bi-plugin"                    onClick={() => setSubPage('integracoes')} />
         <Card title="Apoios — Help"          desc="Registrar e acompanhar apoios e solicitações de help." color="#F9A825" bg="#FFF3E0" icon="bi-life-preserver"            onClick={() => setSubPage('apoios')} />
         <Card title="Tarefas"              desc="Consultar tarefas e atualizações dos clientes."       color="#00B0FA" bg="#E8F7FF" icon="bi-list-task"                 onClick={() => setSubPage('tarefas')} />
+        <Card title="GMUD"                  desc="Gestão de Mudanças."                                  color="#00C8B4" bg="#E0F8F5" icon="bi-clipboard2-check"          onClick={() => setSubPage('gmud')} />
         <Card title="Monitor de Atividades" desc="Registrar e monitorar atividades da equipe."         color="#7F77DD" bg="#F0EEFF" icon="bi-activity"                  onClick={() => setSubPage('atividades')} />
         <Card title="API — Whatsapp"       desc="Acessar o painel da API de Whatsapp CCM Cloud."      color="#25D366" bg="#E8FBF0" icon="bi-whatsapp"                   external="https://api.ccmcloud.com.br/app/login" />
         <Card title="Evolution API"         desc="Acessar o painel da Evolution API."                   color="#7F77DD" bg="#F0EEFF" icon="bi-broadcast"                 external="https://evolution-evolution-api.2jgevz.easypanel.host/manager/login" />
