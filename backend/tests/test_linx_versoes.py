@@ -120,3 +120,19 @@ async def test_public_endpoint_needs_no_user_and_returns_items() -> None:
         out = await cx.linx_versoes_public()
     assert [i["key"] for i in out["items"]] == ["dms_web", "autoshop_web"]
     assert out["items"][1]["backend_version"] == "20261109.44"
+
+
+@pytest.mark.asyncio
+async def test_public_list_returns_linxwebver() -> None:
+    from unittest.mock import AsyncMock, MagicMock
+
+    result = MagicMock()
+    result.keys.return_value = ["cod", "sistema", "linxwebver"]
+    result.fetchall.return_value = [(1, "AUTOSHOP", "20261109.44")]
+    session = MagicMock()
+    session.execute = AsyncMock(return_value=result)
+
+    out = await cx.list_atualizacoes_public(session)
+
+    assert "linxwebver" in str(session.execute.await_args.args[0])
+    assert out == [{"cod": 1, "sistema": "AUTOSHOP", "linxwebver": "20261109.44"}]

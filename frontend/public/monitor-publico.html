@@ -62,6 +62,8 @@
     .badge-98   { background: #E74C3C; color: #fff; }
     .badge-0    { background: #1a3a6e; color: #6b8ba4; border: 1px solid #1a3a6e; }
     .badge-prog { background: #F9E000; color: #5a4000; }
+    .badge-web-ok   { background: #1DB954; color: #fff; }
+    .badge-web-diff { background: #F9E000; color: #5a4000; }
 
     footer {
       text-align: center;
@@ -168,6 +170,66 @@
     return 'badge badge-prog';
   }
 
+  // Ver. Web x versão atual Linx: AUTOSHOP → Linx Autoshop (web); demais → Linx DMS Web
+  let linxItems = [];
+  let lastItems = null;
+
+  function esc(v) {
+    return String(v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+
+  function expectedWebVersion(sistema) {
+    const key = String(sistema || '').toUpperCase().includes('AUTOSHOP') ? 'autoshop_web' : 'dms_web';
+    const rel = linxItems.find(r => r.key === key);
+    return rel && rel.backend_version ? rel.backend_version : null;
+  }
+
+  function webVersionCell(item) {
+    const cur = String(item.linxwebver || '').trim();
+    if (!cur) return '<td>—</td>';
+    const expected = expectedWebVersion(item.sistema);
+    if (!expected) return '<td>' + esc(cur) + '</td>';
+    const cls = cur === expected.trim() ? 'badge badge-web-ok' : 'badge badge-web-diff';
+    return '<td title="Linx atual: ' + esc(expected) + '"><span class="' + cls + '">' + esc(cur) + '</span></td>';
+  }
+
+  function renderTable(items) {
+      if (!items || items.length === 0) {
+        document.getElementById('content').innerHTML =
+          '<div class="empty-msg">Nenhuma atualização agendada para hoje</div>';
+      } else {
+        let html = '<table><thead><tr>' +
+          '<th>Razão Social</th><th>Sistema</th><th>BD</th><th>Versão</th><th>Ver. Web</th>' +
+          '<th>Ticket</th><th style="text-align:center">Tipo</th><th>Pacote</th>' +
+          '<th>Agendado Por</th><th style="text-align:center">P</th><th>Hora</th>' +
+          '<th style="text-align:center">%</th>' +
+          '<th style="text-align:center">M</th>' +
+          '</tr></thead><tbody>';
+
+        items.forEach(item => {
+          const conc = String(item.concluido ?? '0').trim();
+          html += '<tr>' +
+            '<td class="razao">' + (item.razao || '—') + '</td>' +
+            '<td class="sistema">' + (item.sistema || '—') + '</td>' +
+            '<td>' + (item.bd || '—') + '</td>' +
+            '<td>' + (item.versao || '—') + '</td>' +
+            webVersionCell(item) +
+            '<td class="ticket">' + (item.ticketupdate || '—') + '</td>' +
+            '<td style="text-align:center;font-weight:700">' + (item.tipo || '—') + '</td>' +
+            '<td>' + (item.pacote || '—') + '</td>' +
+            '<td>' + (item.useragend ? item.useragend.toUpperCase() : '—') + '</td>' +
+            '<td style="text-align:center;font-weight:700">' + (item.prioridade ?? '—') + '</td>' +
+            '<td>' + (item.horaupdate || '—') + '</td>' +
+            '<td style="text-align:center"><span class="' + badgeClass(item.concluido) + '">' + conc + '</span></td>' +
+            '<td style="text-align:center">' + (String(item.versaoat ?? '').trim().startsWith('3.') ? '<i class="bi bi-robot" style="color:#00B0FA;font-size:16px;" title="Versão 3.00"></i>' : '') + '</td>' +
+            '</tr>';
+        });
+        html += '</tbody></table>';
+        document.getElementById('content').innerHTML = html;
+      }
+
+  }
+
   async function load() {
     try {
       const [stats, items] = await Promise.all([
@@ -191,39 +253,8 @@
         card.style.borderTopColor = '#1DB954';
       }
 
-      // Table
-      if (!items || items.length === 0) {
-        document.getElementById('content').innerHTML =
-          '<div class="empty-msg">Nenhuma atualização agendada para hoje</div>';
-      } else {
-        let html = '<table><thead><tr>' +
-          '<th>Razão Social</th><th>Sistema</th><th>BD</th><th>Versão</th>' +
-          '<th>Ticket</th><th style="text-align:center">Tipo</th><th>Pacote</th>' +
-          '<th>Agendado Por</th><th style="text-align:center">P</th><th>Hora</th>' +
-          '<th style="text-align:center">%</th>' +
-          '<th style="text-align:center">M</th>' +
-          '</tr></thead><tbody>';
-
-        items.forEach(item => {
-          const conc = String(item.concluido ?? '0').trim();
-          html += '<tr>' +
-            '<td class="razao">' + (item.razao || '—') + '</td>' +
-            '<td class="sistema">' + (item.sistema || '—') + '</td>' +
-            '<td>' + (item.bd || '—') + '</td>' +
-            '<td>' + (item.versao || '—') + '</td>' +
-            '<td class="ticket">' + (item.ticketupdate || '—') + '</td>' +
-            '<td style="text-align:center;font-weight:700">' + (item.tipo || '—') + '</td>' +
-            '<td>' + (item.pacote || '—') + '</td>' +
-            '<td>' + (item.useragend ? item.useragend.toUpperCase() : '—') + '</td>' +
-            '<td style="text-align:center;font-weight:700">' + (item.prioridade ?? '—') + '</td>' +
-            '<td>' + (item.horaupdate || '—') + '</td>' +
-            '<td style="text-align:center"><span class="' + badgeClass(item.concluido) + '">' + conc + '</span></td>' +
-            '<td style="text-align:center">' + (String(item.versaoat ?? '').trim().startsWith('3.') ? '<i class="bi bi-robot" style="color:#00B0FA;font-size:16px;" title="Versão 3.00"></i>' : '') + '</td>' +
-            '</tr>';
-        });
-        html += '</tbody></table>';
-        document.getElementById('content').innerHTML = html;
-      }
+      lastItems = items;
+      renderTable(items);
 
       document.getElementById('last-update').textContent =
         'Última atualização: ' + new Date().toLocaleTimeString('pt-BR');
@@ -280,6 +311,8 @@
         meta.appendChild(s);
       }
       if (when) meta.appendChild(document.createTextNode('Lido em ' + when));
+      linxItems = data.items || [];
+      if (lastItems) renderTable(lastItems);
       linxLoaded = true;
     } catch (e) {
       if (!linxLoaded) {
