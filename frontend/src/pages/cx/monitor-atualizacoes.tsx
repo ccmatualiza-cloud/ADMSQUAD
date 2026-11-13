@@ -71,7 +71,7 @@ function StatCard({ label, value, sub, borderColor, loading }: {
 function ReleaseField({ label, value, icon, strong, divider }: { label: string; value: string | null; icon?: string; strong?: boolean; divider?: boolean }) {
   return (
     <div style={{ flex: strong ? '1.4 1 0' : '1 1 0', minWidth: 0, paddingLeft: divider ? 16 : 0, borderLeft: divider ? '1px solid var(--ccm-line)' : undefined }}>
-      <div style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.12em', color: 'var(--ccm-gray-dark)', marginBottom: 2 }}>{label}</div>
+      <div style={{ fontSize: 8, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.12em', color: 'var(--ccm-gray-dark)', marginBottom: 2 }}>{label}</div>
       <div style={{ fontSize: 12, fontWeight: strong ? 800 : 700, color: 'var(--ccm-ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={value ?? ''}>
         {icon && <i className={`bi ${icon} me-1`} style={{ color: 'var(--ccm-blue)', fontSize: 11 }} />}
         {value || '—'}
@@ -109,27 +109,21 @@ function LinxReleasesPanel() {
     : null;
 
   return (
-    <div style={{ background: '#fff', borderRadius: 6, padding: '10px 16px', borderTop: '3px solid var(--ccm-cyan)', boxShadow: '0 1px 4px rgba(12,25,33,.07)', marginBottom: 16 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, gap: 8, flexWrap: 'wrap' }}>
-        <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.14em', color: 'var(--ccm-blue)' }}>
-          Versões Linx | Produtos principais
-        </div>
-        <div style={{ fontSize: 10, color: 'var(--ccm-gray-medium)' }}>
-          {data?.stale && <span style={{ color: '#E74C3C', fontWeight: 700, marginRight: 8 }}>Página Linx indisponível — exibindo última leitura</span>}
-          {fetchedAt && <>Lido em {fetchedAt}</>}
-        </div>
+    <div style={{ background: '#fff', borderRadius: 6, padding: '8px 16px', borderTop: '3px solid var(--ccm-cyan)', boxShadow: '0 1px 4px rgba(12,25,33,.07)', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 16, overflowX: 'auto' }}>
+      <div style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.15em', color: 'var(--ccm-blue)', whiteSpace: 'nowrap' }}>
+        Versões Linx
       </div>
 
       {loading ? (
-        <div style={{ color: 'var(--ccm-gray-dark)', fontSize: 12 }}>
+        <div style={{ flex: 1, color: 'var(--ccm-gray-dark)', fontSize: 11 }}>
           <span className="spinner-border spinner-border-sm me-2" />Lendo página de versões Linx...
         </div>
       ) : failed && !data ? (
-        <div style={{ color: '#E74C3C', fontSize: 12 }}>
+        <div style={{ flex: 1, color: '#E74C3C', fontSize: 11 }}>
           <i className="bi bi-exclamation-triangle me-2" />Não foi possível ler a página de versões Linx.
         </div>
       ) : (
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16, overflowX: 'auto' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16, flex: 1, minWidth: 0 }}>
           {(data?.items ?? []).map((item, i) => (
             <div key={item.key} style={{ display: 'contents' }}>
               <ReleaseField label="Produto" value={item.product} strong divider={i > 0} />
@@ -139,6 +133,11 @@ function LinxReleasesPanel() {
           ))}
         </div>
       )}
+
+      <div style={{ fontSize: 9, color: 'var(--ccm-gray-medium)', whiteSpace: 'nowrap', textAlign: 'right' }}>
+        {data?.stale && <div style={{ color: '#E74C3C', fontWeight: 700 }}>Página Linx indisponível</div>}
+        {fetchedAt && <>Lido em {fetchedAt}</>}
+      </div>
     </div>
   );
 }
