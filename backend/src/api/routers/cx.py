@@ -1033,3 +1033,15 @@ async def linx_versoes(
             status_code=status.HTTP_502_BAD_GATEWAY,
             detail="Could not read the Linx release page",
         )
+
+
+@router.get("/linx-versoes/public")
+async def linx_versoes_public() -> dict:
+    """Public (no login) version of /linx-versoes for monitor-publico.html."""
+    try:
+        return await linx_releases_service.get()
+    except LinxReleasesError:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="Could not read the Linx release page",
+        )

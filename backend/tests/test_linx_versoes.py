@@ -108,3 +108,15 @@ async def test_page_without_versions_is_an_error() -> None:
         pytest.raises(linx_releases.LinxReleasesError),
     ):
         await service.get()
+
+
+@pytest.mark.asyncio
+async def test_public_endpoint_needs_no_user_and_returns_items() -> None:
+    service = LinxReleasesService(url="https://example.test")
+    with (
+        patch.object(cx, "linx_releases_service", service),
+        patch.object(linx_releases, "_download", return_value=PAGE_HTML),
+    ):
+        out = await cx.linx_versoes_public()
+    assert [i["key"] for i in out["items"]] == ["dms_web", "autoshop_web"]
+    assert out["items"][1]["backend_version"] == "20261109.44"

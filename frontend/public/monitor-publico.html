@@ -77,6 +77,20 @@
     .empty-msg { text-align: center; padding: 60px; color: #4a6b80; font-size: 14px; }
     .spinner-dot { display: inline-block; width: 8px; height: 8px; background: #00B0FA; border-radius: 50%; animation: pulse .8s ease-in-out infinite; margin-right: 6px; }
 
+    .linx-bar { margin: 14px 28px 0; background: #132230; border-radius: 8px; border-top: 3px solid #00B0EA; padding: 8px 16px; display: flex; align-items: center; gap: 16px; overflow-x: auto; }
+    .linx-title { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .15em; color: #00B0FA; white-space: nowrap; }
+    .linx-fields { display: flex; align-items: flex-start; gap: 16px; flex: 1; min-width: 0; }
+    .linx-field { flex: 1 1 0; min-width: 0; }
+    .linx-field.product { flex: 1.4 1 0; }
+    .linx-field.divider { padding-left: 16px; border-left: 1px solid #1a3a6e; }
+    .linx-label { font-size: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: .12em; color: #6b8ba4; margin-bottom: 2px; }
+    .linx-value { font-size: 12px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .linx-value i { color: #00B0FA; font-size: 11px; margin-right: 4px; }
+    .linx-meta { font-size: 9px; color: #4a6b80; white-space: nowrap; }
+    .linx-meta .stale { color: #E74C3C; font-weight: 700; }
+    .linx-msg { font-size: 11px; color: #6b8ba4; }
+    .linx-msg.error { color: #E74C3C; }
+
     #last-update { font-size: 10px; color: #4a6b80; }
   </style>
 </head>
@@ -92,6 +106,12 @@
     <div class="header-clock" id="clock-label"></div>
   </div>
 </header>
+
+<div class="linx-bar">
+  <div class="linx-title">Versões Linx</div>
+  <div class="linx-fields" id="linx-fields"><span class="linx-msg"><span class="spinner-dot"></span>Lendo página de versões Linx...</span></div>
+  <div class="linx-meta" id="linx-meta"></div>
+</div>
 
 <div class="kpi-row">
   <div class="kpi-card">
@@ -212,6 +232,64 @@
       document.getElementById('last-update').textContent = 'Erro ao carregar dados — tentando novamente...';
     }
   }
+
+  // Versões Linx (página de releases) — recarrega a cada 5 minutos
+  function linxField(label, value, opts) {
+    opts = opts || {};
+    const field = document.createElement('div');
+    field.className = 'linx-field' + (opts.product ? ' product' : '') + (opts.divider ? ' divider' : '');
+    const lbl = document.createElement('div');
+    lbl.className = 'linx-label';
+    lbl.textContent = label;
+    const val = document.createElement('div');
+    val.className = 'linx-value';
+    val.title = value || '';
+    if (opts.icon) {
+      const icon = document.createElement('i');
+      icon.className = 'bi ' + opts.icon;
+      val.appendChild(icon);
+    }
+    val.appendChild(document.createTextNode(value || '—'));
+    field.appendChild(lbl);
+    field.appendChild(val);
+    return field;
+  }
+
+  let linxLoaded = false;
+  async function loadLinx() {
+    const fields = document.getElementById('linx-fields');
+    const meta = document.getElementById('linx-meta');
+    try {
+      const res = await fetch('/api/cx/linx-versoes/public');
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      fields.replaceChildren();
+      (data.items || []).forEach((item, i) => {
+        fields.appendChild(linxField('Produto', item.product, { product: true, divider: i > 0 }));
+        fields.appendChild(linxField('Backend', item.backend_version));
+        fields.appendChild(linxField('Data', item.release_date, { icon: 'bi-calendar-event' }));
+      });
+      const when = data.fetched_at
+        ? new Date(data.fetched_at).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
+        : '';
+      meta.replaceChildren();
+      if (data.stale) {
+        const s = document.createElement('div');
+        s.className = 'stale';
+        s.textContent = 'Página Linx indisponível';
+        meta.appendChild(s);
+      }
+      if (when) meta.appendChild(document.createTextNode('Lido em ' + when));
+      linxLoaded = true;
+    } catch (e) {
+      if (!linxLoaded) {
+        fields.innerHTML = '<span class="linx-msg error"><i class="bi bi-exclamation-triangle"></i> Não foi possível ler a página de versões Linx.</span>';
+      }
+    }
+  }
+
+  loadLinx();
+  setInterval(loadLinx, 5 * 60 * 1000);
 
   load();
   setInterval(load, 20000);
