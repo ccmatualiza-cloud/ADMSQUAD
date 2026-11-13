@@ -11,6 +11,23 @@ interface Stats {
   concluido_count: number;
 }
 
+interface LinxRelease {
+  key: string;
+  product: string;
+  backend_version: string | null;
+  frontend_version: string | null;
+  release_date: string | null;
+}
+
+interface LinxReleasesResponse {
+  items: LinxRelease[];
+  fetched_at: string;
+  source_url: string;
+  stale: boolean;
+}
+
+const LINX_RELEASES_REFRESH_MS = 5 * 60 * 1000;
+
 interface Atualizacao {
   cod: number | null;
   razao: string | null;
@@ -47,6 +64,79 @@ function StatCard({ label, value, sub, borderColor, loading }: {
         {loading ? <span className="spinner-border spinner-border-sm" style={{ width: 20, height: 20 }} /> : value}
       </div>
       <div style={{ fontSize: 11, color: 'var(--ccm-gray-medium)', marginTop: 4 }}>{sub}</div>
+    </div>
+  );
+}
+
+function ReleaseField({ label, value, icon, strong }: { label: string; value: string | null; icon?: string; strong?: boolean }) {
+  return (
+    <div className="col-12 col-md-4">
+      <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.14em', color: 'var(--ccm-gray-dark)', marginBottom: 4 }}>{label}</div>
+      <div style={{ fontSize: strong ? 16 : 15, fontWeight: strong ? 900 : 700, color: 'var(--ccm-ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={value ?? ''}>
+        {icon && <i className={`bi ${icon} me-2`} style={{ color: 'var(--ccm-blue)' }} />}
+        {value || '—'}
+      </div>
+    </div>
+  );
+}
+
+function LinxReleasesPanel() {
+  const [data, setData]       = useState<LinxReleasesResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [failed, setFailed]   = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    const load = async () => {
+      try {
+        const res = await http.get<LinxReleasesResponse>('/api/cx/linx-versoes');
+        if (!active) return;
+        setData(res);
+        setFailed(false);
+      } catch {
+        if (active) setFailed(true);
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
+    load();
+    const interval = setInterval(load, LINX_RELEASES_REFRESH_MS);
+    return () => { active = false; clearInterval(interval); };
+  }, []);
+
+  const fetchedAt = data?.fetched_at
+    ? new Date(data.fetched_at).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
+    : null;
+
+  return (
+    <div style={{ background: '#fff', borderRadius: 6, padding: '16px 20px', borderTop: '3px solid var(--ccm-cyan)', boxShadow: '0 1px 4px rgba(12,25,33,.07)', marginBottom: 16 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, gap: 8, flexWrap: 'wrap' }}>
+        <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.14em', color: 'var(--ccm-blue)' }}>
+          Versões Linx | Produtos principais
+        </div>
+        <div style={{ fontSize: 11, color: 'var(--ccm-gray-medium)' }}>
+          {data?.stale && <span style={{ color: '#E74C3C', fontWeight: 700, marginRight: 8 }}>Página Linx indisponível — exibindo última leitura</span>}
+          {fetchedAt && <>Lido em {fetchedAt}</>}
+        </div>
+      </div>
+
+      {loading ? (
+        <div style={{ color: 'var(--ccm-gray-dark)', fontSize: 12 }}>
+          <span className="spinner-border spinner-border-sm me-2" />Lendo página de versões Linx...
+        </div>
+      ) : failed && !data ? (
+        <div style={{ color: '#E74C3C', fontSize: 12 }}>
+          <i className="bi bi-exclamation-triangle me-2" />Não foi possível ler a página de versões Linx.
+        </div>
+      ) : (
+        (data?.items ?? []).map((item, i) => (
+          <div key={item.key} className="row g-2" style={{ padding: '10px 0', borderTop: i > 0 ? '1px solid var(--ccm-line)' : undefined }}>
+            <ReleaseField label="Produto" value={item.product} strong />
+            <ReleaseField label="Backend" value={item.backend_version} />
+            <ReleaseField label="Data" value={item.release_date} icon="bi-calendar-event" />
+          </div>
+        ))
+      )}
     </div>
   );
 }
@@ -112,6 +202,8 @@ export default function MonitorAtualizacoes({ onBack }: { onBack: () => void }) 
         <span style={{ color: 'var(--ccm-gray-medium)', fontSize: 12 }}>/</span>
         <span style={{ color: 'var(--ccm-gray-dark)', fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.1em' }}>Monitor de Atualizações</span>
       </div>
+
+      <LinxReleasesPanel />
 
       <div className="row g-3 mb-4">
         <div className="col-6 col-lg-3">

@@ -5,6 +5,7 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.deps.auth import get_current_user, get_db
+from src.infrastructure.linx_releases import LinxReleasesError, linx_releases_service
 
 router = APIRouter(prefix="/api/cx", tags=["cx"])
 
@@ -1016,3 +1017,19 @@ async def list_atualizacoes_public(
         return [dict(zip(keys, r)) for r in rows]
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
+
+
+# ── Versões Linx (página de releases no Confluence) ────────────────────────────
+
+@router.get("/linx-versoes")
+async def linx_versoes(
+    _: Annotated[dict, Depends(get_current_user)],
+) -> dict:
+    """Latest Linx DMS Web / Linx Autoshop (web) backend versions and release dates."""
+    try:
+        return await linx_releases_service.get()
+    except LinxReleasesError:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="Could not read the Linx release page",
+        )
