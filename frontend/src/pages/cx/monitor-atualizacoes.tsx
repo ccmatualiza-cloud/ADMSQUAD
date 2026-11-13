@@ -80,7 +80,7 @@ function ReleaseField({ label, value, icon, strong, divider }: { label: string; 
   );
 }
 
-function LinxReleasesPanel() {
+function useLinxReleases() {
   const [data, setData]       = useState<LinxReleasesResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [failed, setFailed]   = useState(false);
@@ -104,6 +104,26 @@ function LinxReleasesPanel() {
     return () => { active = false; clearInterval(interval); };
   }, []);
 
+  return { data, loading, failed };
+}
+
+/** Linx backend version a client should be on: Autoshop (web) when SISTEMA mentions AUTOSHOP, otherwise DMS Web. */
+function expectedWebVersion(sistema: string | null, releases: LinxRelease[] | undefined): string | null {
+  if (!releases) return null;
+  const key = (sistema ?? '').toUpperCase().includes('AUTOSHOP') ? 'autoshop_web' : 'dms_web';
+  return releases.find(r => r.key === key)?.backend_version ?? null;
+}
+
+function webVersionStyle(current: string | null, expected: string | null): React.CSSProperties | undefined {
+  const cur = (current ?? '').trim();
+  if (!cur || !expected) return undefined;
+  const base: React.CSSProperties = { borderRadius: 4, padding: '2px 8px', fontWeight: 700, fontSize: 11, display: 'inline-block' };
+  return cur === expected.trim()
+    ? { ...base, background: '#1DB954', color: '#fff' }
+    : { ...base, background: '#F9E000', color: '#5a4000' };
+}
+
+function LinxReleasesPanel({ data, loading, failed }: { data: LinxReleasesResponse | null; loading: boolean; failed: boolean }) {
   const fetchedAt = data?.fetched_at
     ? new Date(data.fetched_at).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
     : null;
@@ -146,6 +166,7 @@ export default function MonitorAtualizacoes({ onBack }: { onBack: () => void }) 
   const [stats, setStats]     = useState<Stats | null>(null);
   const [items, setItems]     = useState<Atualizacao[]>([]);
   const [loading, setLoading] = useState(true);
+  const linx = useLinxReleases();
 
   const fetchData = async () => {
     setLoading(true);
@@ -204,7 +225,7 @@ export default function MonitorAtualizacoes({ onBack }: { onBack: () => void }) 
         <span style={{ color: 'var(--ccm-gray-dark)', fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.1em' }}>Monitor de Atualizações</span>
       </div>
 
-      <LinxReleasesPanel />
+      <LinxReleasesPanel data={linx.data} loading={linx.loading} failed={linx.failed} />
 
       <div className="row g-3 mb-4">
         <div className="col-6 col-lg-3">
@@ -259,7 +280,16 @@ export default function MonitorAtualizacoes({ onBack }: { onBack: () => void }) 
                     <td style={{ ...tdTrunc(110), color: 'var(--ccm-blue)', fontWeight: 600 }} title={item.sistema ?? ''}>{item.sistema || '—'}</td>
                     <td style={tdTrunc(90)} title={item.bd ?? ''}>{item.bd || '—'}</td>
                     <td style={tdTrunc(80)} title={item.versao ?? ''}>{item.versao || '—'}</td>
-                    <td style={tdTrunc(80)} title={item.linxwebver ?? ''}>{item.linxwebver || '—'}</td>
+                    {(() => {
+                      const expected = expectedWebVersion(item.sistema, linx.data?.items);
+                      const badge = webVersionStyle(item.linxwebver, expected);
+                      const tip = expected ? `${item.linxwebver ?? '—'} — Linx atual: ${expected}` : (item.linxwebver ?? '');
+                      return (
+                        <td style={tdTrunc(100)} title={tip}>
+                          {badge ? <span style={badge}>{item.linxwebver}</span> : (item.linxwebver || '—')}
+                        </td>
+                      );
+                    })()}
                     <td style={{ ...tdTrunc(90), color: 'var(--ccm-blue)' }} title={item.ticketupdate ?? ''}>{item.ticketupdate || '—'}</td>
                     <td style={{ ...td, textAlign: 'center', fontWeight: 600 }}>{item.tipo || '—'}</td>
                     <td style={tdTrunc(80)} title={item.pacote ?? ''}>{item.pacote || '—'}</td>
