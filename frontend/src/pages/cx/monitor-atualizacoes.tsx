@@ -68,12 +68,12 @@ function StatCard({ label, value, sub, borderColor, loading }: {
   );
 }
 
-function ReleaseField({ label, value, icon, strong }: { label: string; value: string | null; icon?: string; strong?: boolean }) {
+function ReleaseField({ label, value, icon, strong, divider }: { label: string; value: string | null; icon?: string; strong?: boolean; divider?: boolean }) {
   return (
-    <div className="col-12 col-md-4">
-      <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.14em', color: 'var(--ccm-gray-dark)', marginBottom: 4 }}>{label}</div>
-      <div style={{ fontSize: strong ? 16 : 15, fontWeight: strong ? 900 : 700, color: 'var(--ccm-ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={value ?? ''}>
-        {icon && <i className={`bi ${icon} me-2`} style={{ color: 'var(--ccm-blue)' }} />}
+    <div style={{ flex: strong ? '1.4 1 0' : '1 1 0', minWidth: 0, paddingLeft: divider ? 16 : 0, borderLeft: divider ? '1px solid var(--ccm-line)' : undefined }}>
+      <div style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.12em', color: 'var(--ccm-gray-dark)', marginBottom: 2 }}>{label}</div>
+      <div style={{ fontSize: 12, fontWeight: strong ? 800 : 700, color: 'var(--ccm-ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={value ?? ''}>
+        {icon && <i className={`bi ${icon} me-1`} style={{ color: 'var(--ccm-blue)', fontSize: 11 }} />}
         {value || '—'}
       </div>
     </div>
@@ -109,12 +109,12 @@ function LinxReleasesPanel() {
     : null;
 
   return (
-    <div style={{ background: '#fff', borderRadius: 6, padding: '16px 20px', borderTop: '3px solid var(--ccm-cyan)', boxShadow: '0 1px 4px rgba(12,25,33,.07)', marginBottom: 16 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, gap: 8, flexWrap: 'wrap' }}>
+    <div style={{ background: '#fff', borderRadius: 6, padding: '10px 16px', borderTop: '3px solid var(--ccm-cyan)', boxShadow: '0 1px 4px rgba(12,25,33,.07)', marginBottom: 16 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, gap: 8, flexWrap: 'wrap' }}>
         <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.14em', color: 'var(--ccm-blue)' }}>
           Versões Linx | Produtos principais
         </div>
-        <div style={{ fontSize: 11, color: 'var(--ccm-gray-medium)' }}>
+        <div style={{ fontSize: 10, color: 'var(--ccm-gray-medium)' }}>
           {data?.stale && <span style={{ color: '#E74C3C', fontWeight: 700, marginRight: 8 }}>Página Linx indisponível — exibindo última leitura</span>}
           {fetchedAt && <>Lido em {fetchedAt}</>}
         </div>
@@ -129,13 +129,15 @@ function LinxReleasesPanel() {
           <i className="bi bi-exclamation-triangle me-2" />Não foi possível ler a página de versões Linx.
         </div>
       ) : (
-        (data?.items ?? []).map((item, i) => (
-          <div key={item.key} className="row g-2" style={{ padding: '10px 0', borderTop: i > 0 ? '1px solid var(--ccm-line)' : undefined }}>
-            <ReleaseField label="Produto" value={item.product} strong />
-            <ReleaseField label="Backend" value={item.backend_version} />
-            <ReleaseField label="Data" value={item.release_date} icon="bi-calendar-event" />
-          </div>
-        ))
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16, overflowX: 'auto' }}>
+          {(data?.items ?? []).map((item, i) => (
+            <div key={item.key} style={{ display: 'contents' }}>
+              <ReleaseField label="Produto" value={item.product} strong divider={i > 0} />
+              <ReleaseField label="Backend" value={item.backend_version} />
+              <ReleaseField label="Data" value={item.release_date} icon="bi-calendar-event" />
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );
