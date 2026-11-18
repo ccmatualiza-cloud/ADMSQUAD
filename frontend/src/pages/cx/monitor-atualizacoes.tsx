@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { http } from '../../lib/http-client';
 
 interface Stats {
@@ -44,6 +44,50 @@ interface Atualizacao {
   concluido: string | number | null;
   email_enviado: number | null;
   dt_atualiza: string | null;
+}
+
+const PACOTE_LABELS: Record<string, string> = { EVO: 'Evolutivo', ESS: 'Essencial', ESP: 'Específico' };
+
+/** Distinct, trimmed, sorted values of a field; keeps the currently selected value so it never vanishes from the select. */
+function distinctValues(items: Atualizacao[], field: 'sistema' | 'pacote', selected: string): string[] {
+  const set = new Set<string>();
+  items.forEach(item => {
+    const v = (item[field] ?? '').trim();
+    if (v) set.add(v);
+  });
+  if (selected) set.add(selected);
+  return Array.from(set).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+}
+
+/** Same rules as GET /api/cx/atualizacoes/stats, applied to the filtered rows. */
+function computeStats(rows: Atualizacao[]): Stats {
+  let nao = 0, em = 0, conc = 0;
+  rows.forEach(r => {
+    const v = String(r.concluido ?? '0').trim();
+    if (v === '0' || v === '') nao++;
+    else if (v === '100') conc++;
+    else em++;
+  });
+  const total = rows.length;
+  const pct = (n: number) => (total > 0 ? Math.round((n / total) * 1000) / 10 : 0);
+  return {
+    total, nao_iniciado: nao, em_andamento: em, concluido_count: conc,
+    pct_nao_iniciado: pct(nao), pct_em_andamento: pct(em), pct_concluido: pct(conc),
+  };
+}
+
+function FilterSelect({ label, value, options, onChange, format }: {
+  label: string; value: string; options: string[]; onChange: (v: string) => void; format?: (v: string) => string;
+}) {
+  return (
+    <div style={{ minWidth: 180 }}>
+      <label style={{ display: 'block', fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.14em', color: 'var(--ccm-gray-dark)', marginBottom: 4 }}>{label}</label>
+      <select className="form-select form-select-sm" value={value} onChange={e => onChange(e.target.value)} style={{ fontSize: 12 }}>
+        <option value="">Todos</option>
+        {options.map(o => <option key={o} value={o}>{format ? format(o) : o}</option>)}
+      </select>
+    </div>
+  );
 }
 
 function concluidoStyle(val: string | number | null): React.CSSProperties {
@@ -188,7 +232,21 @@ export default function MonitorAtualizacoes({ onBack }: { onBack: () => void }) 
     return () => clearInterval(interval);
   }, []);
 
-  const filtered = items;
+  const [sistemaFilter, setSistemaFilter] = useState('');
+  const [pacoteFilter, setPacoteFilter]   = useState('');
+  const hasFilter = sistemaFilter !== '' || pacoteFilter !== '';
+
+  const sistemaOptions = useMemo(() => distinctValues(items, 'sistema', sistemaFilter), [items, sistemaFilter]);
+  const pacoteOptions  = useMemo(() => distinctValues(items, 'pacote', pacoteFilter), [items, pacoteFilter]);
+
+  const filtered = useMemo(() => items.filter(item =>
+    (!sistemaFilter || (item.sistema ?? '').trim() === sistemaFilter) &&
+    (!pacoteFilter  || (item.pacote ?? '').trim() === pacoteFilter)
+  ), [items, sistemaFilter, pacoteFilter]);
+
+  // Cards follow the filters; without filters keep the backend numbers.
+  const shownStats = useMemo(() => (hasFilter ? computeStats(filtered) : stats), [hasFilter, filtered, stats]);
+  const clearFilters = () => { setSistemaFilter(''); setPacoteFilter(''); };
 
   const th = { color: '#fff', fontWeight: 700, textTransform: 'uppercase' as const, letterSpacing: '.04em', padding: '10px 8px', textAlign: 'left' as const, fontSize: 10, whiteSpace: 'nowrap' as const };
   const td = { padding: '9px 8px', fontSize: 11, whiteSpace: 'nowrap' as const };
@@ -229,17 +287,31 @@ export default function MonitorAtualizacoes({ onBack }: { onBack: () => void }) 
 
       <div className="row g-3 mb-4">
         <div className="col-6 col-lg-3">
-          <StatCard label="Total Agendado" value={String(stats?.total ?? 0)} sub="Atualizações hoje" borderColor="var(--ccm-blue)" loading={loading} />
+          <StatCard label="Total Agendado" value={String(shownStats?.total ?? 0)} sub={hasFilter ? 'Atualizações hoje (filtrado)' : 'Atualizações hoje'} borderColor="var(--ccm-blue)" loading={loading} />
         </div>
         <div className="col-6 col-lg-3">
-          <StatCard label="Não Iniciado" value={`${stats?.pct_nao_iniciado ?? 0}%`} sub={`${stats?.nao_iniciado ?? 0} registros`} borderColor="#C3C3C3" loading={loading} />
+          <StatCard label="Não Iniciado" value={`${shownStats?.pct_nao_iniciado ?? 0}%`} sub={`${shownStats?.nao_iniciado ?? 0} registros`} borderColor="#C3C3C3" loading={loading} />
         </div>
         <div className="col-6 col-lg-3">
-          <StatCard label="Em Andamento" value={`${stats?.pct_em_andamento ?? 0}%`} sub={`${stats?.em_andamento ?? 0} registros`} borderColor="#F9E000" loading={loading} />
+          <StatCard label="Em Andamento" value={`${shownStats?.pct_em_andamento ?? 0}%`} sub={`${shownStats?.em_andamento ?? 0} registros`} borderColor="#F9E000" loading={loading} />
         </div>
         <div className="col-6 col-lg-3">
-          <StatCard label="Concluído" value={`${stats?.pct_concluido ?? 0}%`} sub={`${stats?.concluido_count ?? 0} registros`}
-            borderColor={stats?.pct_concluido !== undefined && stats.pct_concluido >= 98 && stats.pct_concluido < 100 ? '#E74C3C' : '#1DB954'} loading={loading} />
+          <StatCard label="Concluído" value={`${shownStats?.pct_concluido ?? 0}%`} sub={`${shownStats?.concluido_count ?? 0} registros`}
+            borderColor={shownStats?.pct_concluido !== undefined && shownStats.pct_concluido >= 98 && shownStats.pct_concluido < 100 ? '#E74C3C' : '#1DB954'} loading={loading} />
+        </div>
+      </div>
+
+      <div style={{ background: '#fff', borderRadius: 6, padding: '10px 16px', boxShadow: '0 1px 4px rgba(12,25,33,.07)', marginBottom: 12, display: 'flex', alignItems: 'flex-end', gap: 16, flexWrap: 'wrap' }}>
+        <FilterSelect label="Sistema" value={sistemaFilter} options={sistemaOptions} onChange={setSistemaFilter} />
+        <FilterSelect label="Pacote" value={pacoteFilter} options={pacoteOptions} onChange={setPacoteFilter}
+          format={v => (PACOTE_LABELS[v.toUpperCase()] ? `${v} — ${PACOTE_LABELS[v.toUpperCase()]}` : v)} />
+        {hasFilter && (
+          <button type="button" className="btn btn-sm btn-outline-secondary" onClick={clearFilters} style={{ fontSize: 12 }}>
+            <i className="bi bi-x-circle me-1" />Limpar filtros
+          </button>
+        )}
+        <div style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--ccm-gray-dark)', alignSelf: 'center' }}>
+          {loading ? '' : `${filtered.length} de ${items.length} atualizações`}
         </div>
       </div>
 
@@ -252,7 +324,7 @@ export default function MonitorAtualizacoes({ onBack }: { onBack: () => void }) 
           ) : filtered.length === 0 ? (
             <div style={{ padding: 48, textAlign: 'center', color: 'var(--ccm-gray-dark)' }}>
               <i className="bi bi-calendar-check" style={{ fontSize: 32, display: 'block', marginBottom: 12, color: 'var(--ccm-gray-medium)' }} />
-              Nenhuma atualização agendada para hoje
+              {hasFilter && items.length > 0 ? 'Nenhuma atualização para os filtros selecionados' : 'Nenhuma atualização agendada para hoje'}
             </div>
           ) : (
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
