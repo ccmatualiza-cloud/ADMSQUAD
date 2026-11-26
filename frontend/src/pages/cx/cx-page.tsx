@@ -7,6 +7,8 @@ import ZohoDeskDashboard    from './zoho-desk-dashboard';
 import TouchPointsPage      from './touchpoints-page';
 import ConsultarAtualizacaoLinx from './consultar-atualizacao-linx';
 
+const MONITOR_PUBLICO_URL = 'https://apps-admsquad.2jgevz.easypanel.host/monitor-publico.html';
+
 type SubPage = null | 'clientes' | 'monitor' | 'agendar' | 'consultar' | 'adiantar' | 'zoho' | 'touchpoints';
 
 export default function CxPage() {
@@ -46,6 +48,7 @@ export default function CxPage() {
       <div className="row g-3">
         <Card title="Clientes"                   desc="Consultar e visualizar dados dos clientes parceria Linx."    color="#00B0FA" icon="bi-people-fill"          onClick={() => setSubPage('clientes')} />
         <Card title="Monitor de Atualizações"    desc="Acompanhar as atualizações Linx de hoje."                   color="#1DB954" icon="bi-arrow-repeat"         onClick={() => setSubPage('monitor')}  />
+        <Card title="Monitor de Atualizações Aut" desc="Acompanhar a Migração do atualizador 100% aut." color="#00B0EA" icon="bi-robot"          onClick={() => window.open(MONITOR_PUBLICO_URL, '_blank', 'noopener,noreferrer')} />
         <Card title="Agendar Atualização Linx"   desc="Registrar agendamentos de atualizações Linx."               color="#7F77DD" icon="bi-calendar-plus"        onClick={() => setSubPage('agendar')}  />
         <Card title="Consultar Atualização Linx" desc="Consultar última atualização do cliente."                   color="#F9A825" icon="bi-search"               onClick={() => setSubPage('consultar')} />
         <Card title="Adiantar Atendimento Linx"  desc="Registrar atendimentos sem ticket aberto."                  color="#E74C3C" icon="bi-ticket-detailed"      onClick={() => setSubPage('adiantar')} />
