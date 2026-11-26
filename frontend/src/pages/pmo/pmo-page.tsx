@@ -6,6 +6,8 @@ import CancelamentoClientePage from './cancelamento-cliente-page';
 import ZohoProjectsDashboard   from './zoho-projects-dashboard';
 import ChecklistPage           from './checklist-page';
 
+const MONITOR_PUBLICO_URL = 'https://apps-admsquad.2jgevz.easypanel.host/monitor-publico.html';
+
 type SubPage = null | 'implantacao' | 'franquias' | 'clientes' | 'cancelamento' | 'zoho' | 'checklist';
 
 export default function PmoPage() {
@@ -48,6 +50,7 @@ export default function PmoPage() {
         <Card title="Cancelamento de Cliente"  desc="Clientes inativos com status 9 - INATIVO."          color="#E74C3C" icon="bi-x-circle-fill"     onClick={() => setSubPage('cancelamento')} />
         <Card title="Checklist"            desc="Checklists dos projetos em andamento."           color="#1DB954" icon="bi-check2-square"    onClick={() => setSubPage('checklist')} />
         <Card title="Dashboard Zoho Projects"   desc="Informações de projetos da squad."               color="#1A73E8" icon="bi-kanban-fill"        onClick={() => setSubPage('zoho')} />
+        <Card title="Monitor de Atualizações Aut" desc="Acompanhar a Migração do atualizador 100% aut." color="#00B0EA" icon="bi-robot"          onClick={() => window.open(MONITOR_PUBLICO_URL, '_blank', 'noopener,noreferrer')} />
         <div className="col-12 col-md-4 col-lg-3">
           <div style={{ background: '#F7F8FA', border: '1px dashed var(--ccm-line)', borderRadius: 6, padding: '20px 22px', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 120, color: 'var(--ccm-gray-medium)', fontSize: 12, letterSpacing: '.08em' }}>
             <i className="bi bi-plus-circle me-2" />Em breve
