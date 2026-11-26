@@ -245,7 +245,7 @@ export default function BiPage({ onBack }: { onBack: () => void }) {
   };
 
   // Versões (Ver.At) — vertical column chart; HIGHLIGHT_VERSION bar in green
-  const HIGHLIGHT_VERSION = '3.00';
+  const HIGHLIGHT_VERSION = '3.01';
   const HIGHLIGHT_COLOR = '#1DB954';
   const VersoesChart = ({ title, source, highlight }: { title: string; source: VersaoItem[] | null; highlight?: string }) => {
     const data = source ?? [];
